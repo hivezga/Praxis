@@ -107,4 +107,12 @@ body {
   .rule-soft {
     @apply border-t border-slate-800/40;
   }
+
+  /* ── Skip-link (keyboard accessibility) ───────────────────────────── */
+  .skip-link {
+    @apply sr-only;
+  }
+  .skip-link:focus {
+    @apply not-sr-only fixed left-4 top-4 z-50 inline-flex items-center rounded-md border border-amber-400/60 bg-slate-950 px-4 py-2 font-serif text-sm italic text-amber-100 shadow-lg outline-none ring-2 ring-amber-400/40;
+  }
 }

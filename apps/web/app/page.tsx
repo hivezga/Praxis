@@ -5,7 +5,7 @@ import { SavedGamesList } from "./_components/SavedGamesList";
 
 export default function HomePage() {
   return (
-    <main className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
+    <main id="main" className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
       <OnboardingModal />
       {/* Masthead */}
       <header className="mb-16 border-b border-slate-800/40 pb-12">
@@ -52,6 +52,24 @@ export default function HomePage() {
             }
           />
         </div>
+      </section>
+
+      {/* Join an existing room */}
+      <section className="mb-12">
+        <Link
+          href="/play/join"
+          className="group flex items-center justify-between rounded-lg border border-slate-800/60 bg-slate-900/30 px-6 py-5 transition-colors hover:border-slate-700 hover:bg-slate-900/60"
+        >
+          <div>
+            <p className="editorial-eyebrow">Joining a friend</p>
+            <p className="mt-2 font-serif text-base text-slate-200">
+              Enter a 6-character room code →
+            </p>
+          </div>
+          <span className="font-serif text-sm italic text-slate-500 group-hover:text-slate-300">
+            Join room
+          </span>
+        </Link>
       </section>
 
       {/* Saved games */}

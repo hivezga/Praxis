@@ -72,6 +72,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${sans.variable} ${mono.variable} ${serif.variable} font-sans min-h-full`}>
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         <WasmBootstrap />
         <div className="min-h-screen">{children}</div>
         <Analytics />

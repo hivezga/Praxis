@@ -10,6 +10,7 @@ export function SavedGamesList() {
   const [metas, setMetas] = useState<GameMeta[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [sharedId, setSharedId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -25,6 +26,22 @@ export function SavedGamesList() {
   async function remove(id: string) {
     await localStorageAdapter.remove(id);
     setMetas((prev) => prev.filter((m) => m.id !== id));
+  }
+
+  async function shareGame(id: string) {
+    const state = await localStorageAdapter.load(id);
+    if (!state) return;
+    const stripped = { ...state, history: [] };
+    const json = JSON.stringify(stripped);
+    const b64 = btoa(unescape(encodeURIComponent(json)));
+    const url = `${window.location.origin}/play/import#${b64}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setSharedId(id);
+      setTimeout(() => setSharedId((cur) => (cur === id ? null : cur)), 1500);
+    } catch {
+      window.prompt("Copy this link to share the game:", url);
+    }
   }
 
   async function exportGame(id: string) {
@@ -122,6 +139,14 @@ export function SavedGamesList() {
                 <Link href={`/play/${m.id}`} className="btn text-xs">
                   Open
                 </Link>
+                <button
+                  type="button"
+                  className="btn btn-ghost text-xs"
+                  onClick={() => shareGame(m.id)}
+                  title="Copy a share link to clipboard"
+                >
+                  {sharedId === m.id ? "Copied!" : "Share"}
+                </button>
                 <button
                   type="button"
                   className="btn btn-ghost text-xs"

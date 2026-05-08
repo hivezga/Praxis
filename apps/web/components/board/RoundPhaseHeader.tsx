@@ -1,5 +1,6 @@
 "use client";
 
+import { PartyBadge } from "./PartyBadge";
 import { useGame, useGameState } from "@/lib/store";
 import type { Phase } from "@/lib/types/game";
 
@@ -135,6 +136,11 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
           >
             End round
           </button>
+        </div>
+
+        {/* Party badge — only renders when in a room */}
+        <div className="lg:order-last">
+          <PartyBadge />
         </div>
       </div>
 

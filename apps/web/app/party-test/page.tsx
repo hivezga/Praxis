@@ -86,7 +86,7 @@ export default function PartyTestPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
+    <main id="main" className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/"
         className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"

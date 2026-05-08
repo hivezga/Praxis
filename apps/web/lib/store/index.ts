@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { RoomHost, RoomPeer } from "@praxis/party";
 
 import { wasm } from "@/lib/wasm";
 import { localStorageAdapter } from "./persistence/localStorage";
@@ -19,6 +20,10 @@ let adapter: PersistenceAdapter = localStorageAdapter;
 export function setPersistenceAdapter(next: PersistenceAdapter): void {
   adapter = next;
 }
+
+// Live PeerJS instances — kept outside Zustand state so they aren't serialized.
+let hostInstance: RoomHost | null = null;
+let peerInstance: RoomPeer | null = null;
 
 // Path → Mutation mapping for the adjustClassNumber / setClassNumber helpers.
 function classPathToMutation(classId: ClassId, path: string, delta: number): Mutation {
@@ -56,15 +61,33 @@ function getByPath(obj: Record<string, unknown>, path: string): unknown {
   return cursor;
 }
 
-function persist(state: GameState | null): void {
-  if (!state) return;
+function persist(state: GameState | null, isPeer: boolean): void {
+  // Peers never write to local persistence — their copy is host-driven.
+  if (!state || isPeer) return;
   void adapter.save(state);
 }
+
+interface PartyState {
+  role: "host" | "peer" | null;
+  code: string | null;
+  peerCount: number;
+  connected: boolean;
+  error: string | null;
+}
+
+const PARTY_IDLE: PartyState = {
+  role: null,
+  code: null,
+  peerCount: 0,
+  connected: false,
+  error: null,
+};
 
 interface GameStore {
   state: GameState | null;
   loading: boolean;
   error: string | null;
+  party: PartyState;
 
   load(gameId: string): Promise<void>;
   hydrate(state: GameState): void;
@@ -85,18 +108,29 @@ interface GameStore {
   setClassString(classId: ClassId, path: string, value: string): void;
 
   undo(): void;
+
+  startHosting(): Promise<string>;
+  stopHosting(): void;
+  joinRoom(code: string): Promise<void>;
+  leaveRoom(): void;
 }
 
 export const useGame = create<GameStore>((set, get) => ({
   state: null,
   loading: false,
   error: null,
+  party: PARTY_IDLE,
 
   async load(gameId) {
+    // Peers receive state through broadcasts — never touch local storage.
+    if (get().party.role === "peer") return;
     set({ loading: true, error: null });
     try {
       const loaded = await adapter.load(gameId);
       set({ state: loaded, loading: false });
+      if (loaded && get().party.role === "host" && hostInstance) {
+        hostInstance.broadcastState(loaded);
+      }
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
     }
@@ -104,7 +138,10 @@ export const useGame = create<GameStore>((set, get) => ({
 
   hydrate(state) {
     set({ state });
-    persist(state);
+    persist(state, get().party.role === "peer");
+    if (get().party.role === "host" && hostInstance) {
+      hostInstance.broadcastState(state);
+    }
   },
 
   clear() {
@@ -112,12 +149,16 @@ export const useGame = create<GameStore>((set, get) => ({
   },
 
   apply(mutation, label = "") {
-    const current = get().state;
+    const { state: current, party } = get();
     if (!current) return;
+    if (party.role === "peer") return; // Peer cannot mutate locally.
     const next = wasm().apply_mutation_wasm(current, mutation, label) as GameState;
     next.meta.updatedAt = Date.now();
     set({ state: next });
-    persist(next);
+    persist(next, false);
+    if (party.role === "host" && hostInstance) {
+      hostInstance.broadcastState(next);
+    }
   },
 
   setPolicy(policyId, position) {
@@ -170,16 +211,88 @@ export const useGame = create<GameStore>((set, get) => ({
   },
 
   undo() {
-    const current = get().state;
+    const { state: current, party } = get();
     if (!current) return;
+    if (party.role === "peer") return;
     const restored = wasm().undo_wasm(current) as GameState | null | undefined;
     if (restored == null) return;
     restored.meta.updatedAt = Date.now();
     set({ state: restored });
-    persist(restored);
+    persist(restored, false);
+    if (party.role === "host" && hostInstance) {
+      hostInstance.broadcastState(restored);
+    }
+  },
+
+  async startHosting() {
+    if (hostInstance) return hostInstance.code;
+    if (get().party.role) {
+      throw new Error("Leave the current room before hosting.");
+    }
+    try {
+      const host = await RoomHost.create();
+      hostInstance = host;
+      set({ party: { role: "host", code: host.code, peerCount: 0, connected: true, error: null } });
+      host.onStatus((s) => {
+        set((prev) => ({
+          party: { ...prev.party, peerCount: s.peerCount },
+        }));
+      });
+      const cur = get().state;
+      if (cur) host.broadcastState(cur);
+      return host.code;
+    } catch (err) {
+      hostInstance = null;
+      set({ party: { ...PARTY_IDLE, error: (err as Error).message } });
+      throw err;
+    }
+  },
+
+  stopHosting() {
+    hostInstance?.destroy();
+    hostInstance = null;
+    set({ party: PARTY_IDLE });
+  },
+
+  async joinRoom(code) {
+    if (peerInstance) return;
+    if (get().party.role) {
+      throw new Error("Leave the current room before joining another.");
+    }
+    try {
+      const peer = await RoomPeer.join(code);
+      peerInstance = peer;
+      set({
+        party: { role: "peer", code: peer.code, peerCount: 0, connected: true, error: null },
+        // Clear local state — peer state is host-driven.
+        state: null,
+      });
+      peer.onState((payload) => {
+        set({ state: payload as GameState });
+      });
+      peer.onStatus((s) => {
+        set((prev) => ({
+          party: { ...prev.party, connected: s.connected },
+        }));
+      });
+    } catch (err) {
+      peerInstance = null;
+      set({ party: { ...PARTY_IDLE, error: (err as Error).message } });
+      throw err;
+    }
+  },
+
+  leaveRoom() {
+    peerInstance?.destroy();
+    peerInstance = null;
+    set({ party: PARTY_IDLE, state: null });
   },
 }));
 
 export function useGameState(): GameState | null {
   return useGame((s) => s.state);
+}
+
+export function useParty(): PartyState {
+  return useGame((s) => s.party);
 }

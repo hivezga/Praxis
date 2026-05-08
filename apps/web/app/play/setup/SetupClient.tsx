@@ -70,8 +70,12 @@ export function SetupClient() {
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
   const [classes, setClasses] = useState<Set<ClassId>>(new Set(ALL_CLASSES));
   const [expansions, setExpansions] = useState<ExpansionFlags>(DEFAULT_EXPANSIONS);
+  const [hostParty, setHostParty] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [partyError, setPartyError] = useState<string | null>(null);
 
   const hydrate = useGame((s) => s.hydrate);
+  const startHosting = useGame((s) => s.startHosting);
 
   function toggleClass(c: ClassId) {
     const next = new Set(classes);
@@ -88,20 +92,37 @@ export function SetupClient() {
   }
 
   async function start() {
-    const state = wasm().create_starting_state_wasm({
-      name: name || undefined,
-      mode,
-      playerCount,
-      classesInPlay: Array.from(classes),
-      expansions,
-    }) as GameState;
-    await localStorageAdapter.save(state);
-    hydrate(state);
-    router.push(`/play/${state.meta.id}`);
+    setPartyError(null);
+    setStarting(true);
+    try {
+      const state = wasm().create_starting_state_wasm({
+        name: name || undefined,
+        mode,
+        playerCount,
+        classesInPlay: Array.from(classes),
+        expansions,
+      }) as GameState;
+      await localStorageAdapter.save(state);
+      hydrate(state);
+      if (hostParty) {
+        try {
+          await startHosting();
+        } catch (err) {
+          setPartyError(
+            err instanceof Error
+              ? err.message
+              : "Couldn’t start the party room. The game is still saved locally.",
+          );
+        }
+      }
+      router.push(`/play/${state.meta.id}`);
+    } finally {
+      setStarting(false);
+    }
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
+    <main id="main" className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/"
         className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
@@ -243,19 +264,40 @@ export function SetupClient() {
           ) : null}
         </Field>
 
+        {/* Party room option */}
+        <Field
+          label="Party room"
+          hint="Friends with the room code can connect from another device and watch the game live. Only you can change values."
+        >
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700/60 bg-slate-900/40 px-4 py-3 text-sm text-slate-300 transition-colors hover:border-slate-600">
+            <input
+              type="checkbox"
+              className="rounded border-slate-600"
+              checked={hostParty}
+              onChange={(e) => setHostParty(e.target.checked)}
+            />
+            <span className="font-serif text-base">Host a party room (share a 6-char code)</span>
+          </label>
+        </Field>
+
         {/* CTA */}
         <div className="border-t border-slate-800/40 pt-6">
           <button
             type="button"
             className="btn btn-primary px-6 py-3 font-serif text-base"
             onClick={start}
-            disabled={classes.size === 0}
+            disabled={classes.size === 0 || starting}
           >
-            Start game →
+            {starting ? (hostParty ? "Opening room…" : "Starting…") : "Start game →"}
           </button>
           {classes.size === 0 ? (
             <p className="mt-2 font-serif text-xs italic text-slate-500">
               Select at least one class to start.
+            </p>
+          ) : null}
+          {partyError ? (
+            <p className="mt-3 rounded-md border border-rose-700/30 bg-rose-950/20 px-4 py-2.5 font-serif text-xs italic text-rose-300">
+              {partyError}
             </p>
           ) : null}
         </div>

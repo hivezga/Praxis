@@ -46,14 +46,14 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-slate-500">
+      <main id="main" className="flex min-h-screen items-center justify-center text-slate-500">
         Loading…
       </main>
     );
   }
   if (!state) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
+      <main id="main" className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
         <p className="text-slate-400">This game was not found in your browser storage.</p>
         <Link href="/" className="btn btn-primary">
           ← Back to home
@@ -68,7 +68,7 @@ export default function GamePage() {
   return (
     <div className="min-h-screen">
       <RoundPhaseHeader onOpenEndRound={() => setEndRoundOpen(true)} />
-      <main className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
+      <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
         {/* Game identity row */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/40 pb-4">
           <div>

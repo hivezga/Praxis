@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
@@ -20,4 +21,14 @@ const nextConfig = {
   },
 };
 
-export default withSerwist(nextConfig);
+const sentryOptions = {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Skip source-map upload if the auth token isn't configured (local + preview).
+  dryRun: !process.env.SENTRY_AUTH_TOKEN,
+  hideSourceMaps: true,
+  disableLogger: true,
+};
+
+export default withSentryConfig(withSerwist(nextConfig), sentryOptions);
