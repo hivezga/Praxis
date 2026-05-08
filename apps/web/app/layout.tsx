@@ -3,6 +3,7 @@ import { Crimson_Pro, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
+import { ThemeProvider } from "./_components/ThemeProvider";
 import { WasmBootstrap } from "./_components/WasmBootstrap";
 
 const sans = IBM_Plex_Sans({
@@ -62,21 +63,35 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0c1019",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fcfaf5" },
+    { media: "(prefers-color-scheme: dark)",  color: "#0c1019" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
+// Inline FOUC-prevention: read stored theme + system pref + apply class
+// before React hydrates, so the very first paint already matches.
+const themeBootScript = `
+(function(){try{var k='praxis.theme';var s=localStorage.getItem(k);var sys=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';var t=s||'system';var r=t==='system'?sys:t;var c=document.documentElement.classList;c.remove('theme-light','dark');c.add(r==='light'?'theme-light':'dark');}catch(e){}})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className={`${sans.variable} ${mono.variable} ${serif.variable} font-sans min-h-full`}>
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <WasmBootstrap />
-        <div className="min-h-screen">{children}</div>
+        <ThemeProvider>
+          <WasmBootstrap />
+          <div className="min-h-screen">{children}</div>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

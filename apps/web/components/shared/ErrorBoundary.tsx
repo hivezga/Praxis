@@ -50,8 +50,8 @@ export function PanelErrorFallback({
   retry: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-rose-700/30 bg-rose-950/20 p-5">
-      <p className="font-serif text-sm italic text-rose-300">
+    <div className="rounded-lg border border-danger/30 bg-danger/20 p-5">
+      <p className="font-serif text-sm italic text-danger">
         The {label} panel hit an unexpected error.
       </p>
       <button type="button" className="btn mt-3 text-xs" onClick={retry}>

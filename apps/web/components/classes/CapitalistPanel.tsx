@@ -91,17 +91,17 @@ export function CapitalistPanel() {
         <div className="panel-title">Companies ({c.companies.length})</div>
         <ul className="space-y-1.5">
           {c.companies.map((co) => (
-            <li key={co.id} className="rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2">
+            <li key={co.id} className="rounded-md border border-rule/60 bg-paper/30 px-3 py-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-slate-200">{co.label}</span>
-                <span className="shrink-0 font-mono text-[10px] text-slate-500">
+                <span className="text-sm text-ink">{co.label}</span>
+                <span className="shrink-0 font-mono text-[10px] text-inkMute">
                   Ind {co.industry} · L{co.wageLevel} · {co.workersAssigned}W{co.onStrike ? " · strike" : ""}
                 </span>
               </div>
             </li>
           ))}
           {c.companies.length === 0 ? (
-            <li className="font-serif text-xs italic text-slate-600">No companies built.</li>
+            <li className="font-serif text-xs italic text-inkMute">No companies built.</li>
           ) : null}
         </ul>
       </div>
@@ -117,7 +117,7 @@ export function CapitalistPanel() {
             max={20}
           />
           {!partyMode ? (
-            <p className="mt-2 font-serif text-xs italic text-slate-600">
+            <p className="mt-2 font-serif text-xs italic text-inkMute">
               In solo mode this curtain is not needed; toggling it just blurs the panel.
             </p>
           ) : null}

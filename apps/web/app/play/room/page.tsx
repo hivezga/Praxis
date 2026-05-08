@@ -47,7 +47,7 @@ export default function RoomPage() {
       <main id="main" className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="editorial-eyebrow">Connected</p>
         <h1 className="editorial-h2">Waiting for the host…</h1>
-        <p className="font-serif text-sm italic text-slate-500">
+        <p className="font-serif text-sm italic text-inkMute">
           The first state snapshot will arrive any moment.
         </p>
       </main>
@@ -61,10 +61,10 @@ export default function RoomPage() {
       <PeerObserverBanner />
       <RoundPhaseHeader onOpenEndRound={() => {}} />
       <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/40 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule/40 pb-4">
           <div>
-            <h1 className="font-serif text-2xl font-light text-slate-100">{state.meta.name}</h1>
-            <p className="mt-1 font-serif text-xs italic text-slate-500">
+            <h1 className="font-serif text-2xl font-light text-ink">{state.meta.name}</h1>
+            <p className="mt-1 font-serif text-xs italic text-inkMute">
               {state.meta.mode === "solo" ? "Solo" : "Party"} · {state.meta.playerCount} players
               {state.meta.expansions.crisisAndControl ? " · Crisis & Control" : ""}
             </p>
@@ -100,8 +100,8 @@ export default function RoomPage() {
 
 function PeerObserverBanner() {
   return (
-    <div className="border-b border-amber-400/20 bg-amber-400/[0.04] px-5 py-2 text-center">
-      <p className="font-serif text-[13px] italic text-amber-200/80">
+    <div className="border-b border-accent/20 bg-accent/[0.04] px-5 py-2 text-center">
+      <p className="font-serif text-[13px] italic text-accentInk/80">
         Connected as observer — only the host can change values. Your taps are silent.
       </p>
     </div>

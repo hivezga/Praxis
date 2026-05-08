@@ -49,17 +49,17 @@ export function ScoringPanel() {
   const winner = ACCENT[ranked[0]].label;
 
   return (
-    <section className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+    <section className="rounded-xl border border-rule bg-surface/80 p-5">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-slate-100">
+        <h2 className="text-lg font-bold text-ink">
           {isFinal ? "Final Scores" : `Round ${state.meta.round} — Scoring`}
         </h2>
         {isFinal ? (
-          <p className="mt-0.5 text-sm font-medium text-amber-400">
+          <p className="mt-0.5 text-sm font-medium text-accent">
             Game over — {winner} wins!
           </p>
         ) : (
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-inkMute">
             Live VP totals · Apply end-of-round to advance to the next round.
           </p>
         )}
@@ -75,12 +75,12 @@ export function ScoringPanel() {
             <div
               key={classId}
               className={`rounded-lg border ${accent.border} ${accent.bg} px-4 py-3 ${
-                isLeader && isFinal ? "ring-2 ring-amber-500/40" : ""
+                isLeader && isFinal ? "ring-2 ring-accent/40" : ""
               }`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.15em] text-inkMute">
                     {PLACE[i]}
                   </span>
                   <span className={`truncate text-sm font-semibold ${accent.text}`}>
@@ -89,7 +89,7 @@ export function ScoringPanel() {
                 </div>
                 <span className={`shrink-0 font-mono text-2xl font-bold leading-none ${accent.text}`}>
                   {vp.total}
-                  <span className="ml-1 text-xs font-normal text-slate-500">VP</span>
+                  <span className="ml-1 text-xs font-normal text-inkMute">VP</span>
                 </span>
               </div>
 
@@ -112,9 +112,9 @@ export function ScoringPanel() {
 
 function Chip({ label, value }: { label: string; value: number }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-950/60 px-2.5 py-0.5 text-xs">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-mono font-semibold text-slate-200">{value}</span>
+    <span className="inline-flex items-center gap-1 rounded-full border border-rule bg-paper/60 px-2.5 py-0.5 text-xs">
+      <span className="text-inkSoft">{label}</span>
+      <span className="font-mono font-semibold text-ink">{value}</span>
     </span>
   );
 }

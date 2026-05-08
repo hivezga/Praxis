@@ -30,25 +30,25 @@ const CLASS_META: Record<
     label:    "Working Class",
     desc:     "Labor, unions & welfare",
     active:   "border-working/60 bg-working/10 text-working",
-    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
+    inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
   middle: {
     label:    "Middle Class",
     desc:     "Companies & savings",
     active:   "border-middle/60 bg-middle/10 text-middle",
-    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
+    inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
   capitalist: {
     label:    "Capitalist Class",
     desc:     "Capital & revenue",
     active:   "border-capitalist/60 bg-capitalist/10 text-capitalist",
-    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
+    inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
   state: {
     label:    "The State",
     desc:     "Treasury & legitimacy",
     active:   "border-state/60 bg-state/10 text-state",
-    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
+    inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
 };
 
@@ -125,15 +125,15 @@ export function SetupClient() {
     <main id="main" className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
+        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
       >
         ← Back to home
       </Link>
 
-      <header className="mb-12 mt-6 border-b border-slate-800/40 pb-8">
+      <header className="mb-12 mt-6 border-b border-rule/40 pb-8">
         <p className="editorial-eyebrow">A new session</p>
         <h1 className="editorial-h2 mt-3">Configure & begin</h1>
-        <p className="mt-3 font-serif text-sm italic leading-relaxed text-slate-500">
+        <p className="mt-3 font-serif text-sm italic leading-relaxed text-inkMute">
           A few choices first — then Praxis sets up the board state for you.
         </p>
       </header>
@@ -158,16 +158,16 @@ export function SetupClient() {
                 type="button"
                 aria-pressed={mode === m}
                 onClick={() => setMode(m)}
-                className={`rounded-lg border px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+                className={`rounded-lg border px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
                   mode === m
-                    ? "border-amber-400/40 bg-amber-400/10 text-amber-100"
-                    : "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600"
+                    ? "border-accent/40 bg-accent/10 text-accentInk"
+                    : "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule"
                 }`}
               >
                 <div className="font-serif text-lg font-normal capitalize">
                   {m === "party" ? "Party" : "Solo"}
                 </div>
-                <div className="mt-1 font-serif text-xs italic text-slate-500">
+                <div className="mt-1 font-serif text-xs italic text-inkMute">
                   {m === "party" ? "One screen, two to four players" : "One player against an automa"}
                 </div>
               </button>
@@ -211,14 +211,14 @@ export function SetupClient() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => toggleClass(c)}
-                  className={`rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+                  className={`rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
                     active ? meta.active : meta.inactive
                   }`}
                 >
                   <div className="font-serif text-sm font-normal">{meta.label}</div>
                   <div
                     className={`mt-1 font-serif text-[11px] italic ${
-                      active ? "opacity-70" : "text-slate-600"
+                      active ? "opacity-70" : "text-inkMute"
                     }`}
                   >
                     {meta.desc}
@@ -231,10 +231,10 @@ export function SetupClient() {
 
         {/* Expansion */}
         <Field label="Expansion: Crisis & Control">
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700/60 bg-slate-900/40 px-4 py-3 text-sm text-slate-300 transition-colors hover:border-slate-600">
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-rule/60 bg-surface/40 px-4 py-3 text-sm text-inkSoft transition-colors hover:border-rule">
             <input
               type="checkbox"
-              className="rounded border-slate-600"
+              className="rounded border-rule"
               checked={expansions.crisisAndControl}
               onChange={(e) =>
                 setExpansions((p) => ({ ...p, crisisAndControl: e.target.checked }))
@@ -248,11 +248,11 @@ export function SetupClient() {
                 (k) => (
                   <label
                     key={k}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2 text-xs text-slate-300 transition-colors hover:border-slate-700"
+                    className="flex cursor-pointer items-center gap-2.5 rounded-md border border-rule/60 bg-paper/30 px-3 py-2 text-xs text-inkSoft transition-colors hover:border-rule"
                   >
                     <input
                       type="checkbox"
-                      className="rounded border-slate-600"
+                      className="rounded border-rule"
                       checked={expansions.modules[k]}
                       onChange={(e) => setExp(k, e.target.checked)}
                     />
@@ -269,10 +269,10 @@ export function SetupClient() {
           label="Party room"
           hint="Friends with the room code can connect from another device and watch the game live. Only you can change values."
         >
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700/60 bg-slate-900/40 px-4 py-3 text-sm text-slate-300 transition-colors hover:border-slate-600">
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-rule/60 bg-surface/40 px-4 py-3 text-sm text-inkSoft transition-colors hover:border-rule">
             <input
               type="checkbox"
-              className="rounded border-slate-600"
+              className="rounded border-rule"
               checked={hostParty}
               onChange={(e) => setHostParty(e.target.checked)}
             />
@@ -281,7 +281,7 @@ export function SetupClient() {
         </Field>
 
         {/* CTA */}
-        <div className="border-t border-slate-800/40 pt-6">
+        <div className="border-t border-rule/40 pt-6">
           <button
             type="button"
             className="btn btn-primary px-6 py-3 font-serif text-base"
@@ -291,12 +291,12 @@ export function SetupClient() {
             {starting ? (hostParty ? "Opening room…" : "Starting…") : "Start game →"}
           </button>
           {classes.size === 0 ? (
-            <p className="mt-2 font-serif text-xs italic text-slate-500">
+            <p className="mt-2 font-serif text-xs italic text-inkMute">
               Select at least one class to start.
             </p>
           ) : null}
           {partyError ? (
-            <p className="mt-3 rounded-md border border-rose-700/30 bg-rose-950/20 px-4 py-2.5 font-serif text-xs italic text-rose-300">
+            <p className="mt-3 rounded-md border border-danger/30 bg-danger/20 px-4 py-2.5 font-serif text-xs italic text-danger">
               {partyError}
             </p>
           ) : null}
@@ -319,7 +319,7 @@ function Field({
     <div>
       <p className="editorial-eyebrow mb-3">{label}</p>
       {children}
-      {hint ? <p className="mt-2 font-serif text-xs italic text-slate-500">{hint}</p> : null}
+      {hint ? <p className="mt-2 font-serif text-xs italic text-inkMute">{hint}</p> : null}
     </div>
   );
 }

@@ -89,22 +89,22 @@ export default function PartyTestPage() {
     <main id="main" className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
+        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
       >
         ← Back to home
       </Link>
 
-      <header className="mb-10 mt-6 border-b border-slate-800/40 pb-8">
+      <header className="mb-10 mt-6 border-b border-rule/40 pb-8">
         <p className="editorial-eyebrow">Network spike</p>
         <h1 className="editorial-h2 mt-3">Party mode lab</h1>
-        <p className="mt-3 font-serif text-sm italic leading-relaxed text-slate-500">
+        <p className="mt-3 font-serif text-sm italic leading-relaxed text-inkMute">
           A standalone test of the WebRTC layer before integrating into the game flow.
           Open this page in two browsers (or on two devices) and exchange messages.
         </p>
       </header>
 
       {error ? (
-        <p className="mb-6 rounded-md border border-rose-700/30 bg-rose-950/20 px-4 py-3 font-serif text-sm italic text-rose-300">
+        <p className="mb-6 rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger">
           {error}
         </p>
       ) : null}
@@ -140,10 +140,10 @@ export default function PartyTestPage() {
         <section className="space-y-5">
           <div>
             <p className="editorial-eyebrow mb-2">Your room code</p>
-            <p className="font-mono text-5xl font-light tracking-[0.3em] text-amber-200">
+            <p className="font-mono text-5xl font-light tracking-[0.3em] text-accentInk">
               {hostStatus.code}
             </p>
-            <p className="mt-2 font-serif text-sm italic text-slate-500">
+            <p className="mt-2 font-serif text-sm italic text-inkMute">
               {hostStatus.peerCount === 0
                 ? "Waiting for peers to connect…"
                 : `${hostStatus.peerCount} peer${hostStatus.peerCount === 1 ? "" : "s"} connected.`}
@@ -174,10 +174,10 @@ export default function PartyTestPage() {
         <section className="space-y-5">
           <div>
             <p className="editorial-eyebrow mb-2">Connected to room</p>
-            <p className="font-mono text-3xl font-light tracking-[0.2em] text-amber-200">
+            <p className="font-mono text-3xl font-light tracking-[0.2em] text-accentInk">
               {peerStatus.code}
             </p>
-            <p className="mt-2 font-serif text-sm italic text-slate-500">
+            <p className="mt-2 font-serif text-sm italic text-inkMute">
               {peerStatus.connected ? "Connected." : "Disconnected."}
             </p>
           </div>
@@ -185,13 +185,13 @@ export default function PartyTestPage() {
           <div>
             <p className="editorial-eyebrow mb-2">Received broadcasts</p>
             {peerLog.length === 0 ? (
-              <p className="font-serif text-sm italic text-slate-500">
+              <p className="font-serif text-sm italic text-inkMute">
                 No messages yet — host can broadcast above.
               </p>
             ) : (
-              <ul className="divide-y divide-slate-800/40 overflow-hidden rounded-md border border-slate-800/60 bg-slate-950/30">
+              <ul className="divide-y divide-rule/40 overflow-hidden rounded-md border border-rule/60 bg-paper/30">
                 {peerLog.map((m, i) => (
-                  <li key={i} className="px-3 py-2 font-mono text-xs text-slate-300">
+                  <li key={i} className="px-3 py-2 font-mono text-xs text-inkSoft">
                     {m}
                   </li>
                 ))}

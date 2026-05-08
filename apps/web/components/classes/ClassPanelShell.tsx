@@ -62,7 +62,7 @@ export function ClassPanelShell({ classId, children }: Props) {
   const vp = state ? (wasm().compute_vp_wasm(state, classId) as VpBreakdown) : null;
   return (
     <section
-      className={`relative overflow-hidden rounded-lg border ${accent.rule} bg-slate-900/30`}
+      className={`relative overflow-hidden rounded-lg border ${accent.rule} bg-surface/30`}
     >
       <span aria-hidden className={`absolute left-0 top-0 h-full w-[2px] ${accent.rail}`} />
       <header
@@ -72,13 +72,13 @@ export function ClassPanelShell({ classId, children }: Props) {
           <h3 className={`font-serif text-2xl font-light leading-none ${accent.text}`}>
             {accent.label}
           </h3>
-          <p className="mt-1.5 font-serif text-[11px] uppercase italic tracking-[0.2em] text-slate-500">
+          <p className="mt-1.5 font-serif text-[11px] uppercase italic tracking-[0.2em] text-inkMute">
             {accent.subtitle}
           </p>
         </div>
         {vp != null ? (
           <div className="flex items-baseline gap-2 text-right">
-            <span className="font-serif text-[10px] uppercase italic tracking-[0.25em] text-slate-500">
+            <span className="font-serif text-[10px] uppercase italic tracking-[0.25em] text-inkMute">
               Victory
             </span>
             <span className={`font-mono text-3xl font-light leading-none ${accent.text}`}>

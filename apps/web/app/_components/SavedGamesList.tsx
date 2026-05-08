@@ -108,29 +108,29 @@ export function SavedGamesList() {
       </div>
 
       {importError ? (
-        <p className="mb-4 rounded-md border border-rose-700/30 bg-rose-950/20 px-4 py-3 font-serif text-sm italic text-rose-300">
+        <p className="mb-4 rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger">
           {importError}
         </p>
       ) : null}
 
       {metas.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-800/60 bg-slate-900/20 p-8 text-center">
-          <p className="font-serif text-sm italic text-slate-500">
+        <div className="rounded-lg border border-dashed border-rule/60 bg-surface/20 p-8 text-center">
+          <p className="font-serif text-sm italic text-inkMute">
             No saved games yet — start one above, or import a save.
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-slate-800/40 overflow-hidden rounded-lg border border-slate-800/60 bg-slate-900/30">
+        <ul className="divide-y divide-rule/40 overflow-hidden rounded-lg border border-rule/60 bg-surface/30">
           {metas.map((m) => (
             <li
               key={m.id}
-              className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-900/50"
+              className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-surface/50"
             >
               <div className="min-w-0 flex-1">
-                <div className="truncate font-serif text-base font-normal text-slate-100">
+                <div className="truncate font-serif text-base font-normal text-ink">
                   {m.name}
                 </div>
-                <div className="mt-1 truncate text-xs text-slate-500">
+                <div className="mt-1 truncate text-xs text-inkMute">
                   {m.mode === "solo" ? "Solo" : "Party"} · {m.playerCount} players · round{" "}
                   {m.round} · {new Date(m.updatedAt).toLocaleString()}
                 </div>
@@ -157,7 +157,7 @@ export function SavedGamesList() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost text-xs text-rose-400/80 hover:text-rose-300"
+                  className="btn btn-ghost text-xs text-danger/80 hover:text-danger"
                   onClick={() => remove(m.id)}
                 >
                   Delete

@@ -44,7 +44,7 @@ export default function ImportPage() {
       {error ? (
         <>
           <h1 className="editorial-h2">That link didn’t work.</h1>
-          <p className="font-serif text-sm italic text-rose-300">{error}</p>
+          <p className="font-serif text-sm italic text-danger">{error}</p>
           <Link href="/" className="btn">
             Back to home
           </Link>

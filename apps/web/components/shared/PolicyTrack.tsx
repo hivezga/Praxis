@@ -14,18 +14,18 @@ const SECTIONS: PolicySection[] = ["A", "B", "C"];
 
 export function PolicyTrack({ policy, position, pendingPosition, onChange }: Props) {
   return (
-    <div className="rounded-md border border-slate-800/60 bg-slate-950/30 p-3">
+    <div className="rounded-md border border-rule/60 bg-paper/30 p-3">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="truncate font-serif text-[12px] italic text-slate-300">
-            <span className="not-italic font-mono text-slate-500">{policy.number}.</span>{" "}
+          <div className="truncate font-serif text-[12px] italic text-inkSoft">
+            <span className="not-italic font-mono text-inkMute">{policy.number}.</span>{" "}
             {policy.name}
           </div>
-          <div className="mt-0.5 font-serif text-[10px] italic text-slate-600">
+          <div className="mt-0.5 font-serif text-[10px] italic text-inkMute">
             {policy.axis === "leftRight" ? "Socialism ↔ Neoliberalism" : "Nationalism ↔ Globalism"}
           </div>
         </div>
-        <span className="shrink-0 font-mono text-sm font-light text-slate-300">{position}</span>
+        <span className="shrink-0 font-mono text-sm font-light text-inkSoft">{position}</span>
       </div>
       <div className="grid grid-cols-3 gap-1">
         {SECTIONS.map((s) => {
@@ -37,12 +37,12 @@ export function PolicyTrack({ policy, position, pendingPosition, onChange }: Pro
               type="button"
               aria-label={`Set ${policy.name} to section ${s}`}
               aria-pressed={active}
-              className={`rounded-md border px-1.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+              className={`rounded-md border px-1.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
                 active
-                  ? "border-amber-400/40 bg-amber-400/[0.08] text-amber-100"
+                  ? "border-accent/40 bg-accent/[0.08] text-accentInk"
                   : pending
-                    ? "border-rose-400/40 bg-rose-400/[0.05] text-rose-300"
-                    : "border-slate-700/50 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                    ? "border-rose-400/40 bg-rose-400/[0.05] text-danger"
+                    : "border-rule/50 bg-surface/40 text-inkSoft hover:border-rule hover:text-ink"
               }`}
               title={policy.sections[s].tooltip}
               onClick={() => onChange?.(s)}

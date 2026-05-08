@@ -30,15 +30,15 @@ export default function JoinPage() {
     <main id="main" className="mx-auto max-w-md px-6 py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
+        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
       >
         ← Back to home
       </Link>
 
-      <header className="mb-10 mt-6 border-b border-slate-800/40 pb-8">
+      <header className="mb-10 mt-6 border-b border-rule/40 pb-8">
         <p className="editorial-eyebrow">A friend has invited you</p>
         <h1 className="editorial-h2 mt-3">Join a party room</h1>
-        <p className="mt-3 font-serif text-sm italic leading-relaxed text-slate-500">
+        <p className="mt-3 font-serif text-sm italic leading-relaxed text-inkMute">
           Enter the six-character code your host shared. You’ll see the game live as
           changes happen — only the host can edit values.
         </p>
@@ -61,7 +61,7 @@ export default function JoinPage() {
         </div>
 
         {error ? (
-          <p className="rounded-md border border-rose-700/30 bg-rose-950/20 px-4 py-3 font-serif text-sm italic text-rose-300">
+          <p className="rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger">
             {error}
           </p>
         ) : null}
@@ -75,7 +75,7 @@ export default function JoinPage() {
           {busy ? "Connecting…" : "Join room"}
         </button>
 
-        <p className="text-center font-serif text-xs italic text-slate-600">
+        <p className="text-center font-serif text-xs italic text-inkMute">
           Codes are six letters and digits — no zeroes, ones, I, L or O.
         </p>
       </div>

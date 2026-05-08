@@ -57,11 +57,11 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
   const phaseInfo = PHASES.find((p) => p.id === phase);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-rule/60 bg-paper/90 backdrop-blur">
       <div className="mx-auto flex max-w-screen-2xl flex-col gap-2.5 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:gap-x-6">
         {/* Round selector */}
         <div className="flex items-center gap-3">
-          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-slate-500 lg:w-auto">
+          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-inkMute lg:w-auto">
             Round
           </span>
           <div className="flex gap-1">
@@ -72,10 +72,10 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={`Round ${n}`}
                 aria-pressed={round === n}
                 onClick={() => setRound(n)}
-                className={`flex h-9 w-9 items-center justify-center rounded-md border font-serif text-[15px] font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+                className={`flex h-9 w-9 items-center justify-center rounded-md border font-serif text-[15px] font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
                   round === n
-                    ? "border-amber-400/50 bg-amber-400/15 text-amber-100"
-                    : "border-slate-700/60 bg-slate-900/40 text-slate-500 hover:border-slate-600 hover:text-slate-300"
+                    ? "border-accent/50 bg-accent/15 text-accentInk"
+                    : "border-rule/60 bg-surface/40 text-inkMute hover:border-rule hover:text-inkSoft"
                 }`}
               >
                 {ROMAN[n]}
@@ -86,7 +86,7 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
 
         {/* Phase selector */}
         <div className="flex min-w-0 items-center gap-3 lg:flex-1">
-          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-slate-500 lg:w-auto">
+          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-inkMute lg:w-auto">
             Phase
           </span>
           <div className="flex flex-1 gap-1 lg:flex-initial">
@@ -97,10 +97,10 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={p.label}
                 aria-pressed={phase === p.id}
                 onClick={() => setPhase(p.id)}
-                className={`min-h-[36px] flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 sm:flex-initial sm:px-3 sm:text-xs ${
+                className={`min-h-[36px] flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:flex-initial sm:px-3 sm:text-xs ${
                   phase === p.id
-                    ? "border-amber-400/50 bg-amber-400/15 text-amber-100"
-                    : "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                    ? "border-accent/50 bg-accent/15 text-accentInk"
+                    : "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule hover:text-ink"
                 }`}
               >
                 <span className="sm:hidden">{p.short}</span>
@@ -146,9 +146,9 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
 
       {/* Phase cue — concise reminder of what to do */}
       {phaseInfo ? (
-        <div className="mx-auto max-w-screen-2xl border-t border-slate-800/40 px-4 py-2 sm:px-5">
-          <p className="font-serif text-[12px] italic leading-snug text-slate-400 sm:text-[13px] sm:leading-relaxed">
-            <span className="not-italic text-slate-600">— </span>
+        <div className="mx-auto max-w-screen-2xl border-t border-rule/40 px-4 py-2 sm:px-5">
+          <p className="font-serif text-[12px] italic leading-snug text-inkSoft sm:text-[13px] sm:leading-relaxed">
+            <span className="not-italic text-inkMute">— </span>
             {phaseInfo.cue}
           </p>
         </div>

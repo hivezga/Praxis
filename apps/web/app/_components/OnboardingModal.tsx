@@ -58,7 +58,7 @@ export function OnboardingModal() {
               <span
                 key={i}
                 className={`h-1.5 w-6 rounded-full transition-colors ${
-                  i === step ? "bg-amber-300/80" : "bg-slate-700/60"
+                  i === step ? "bg-accent/80" : "bg-surfaceMute/60"
                 }`}
               />
             ))}
@@ -84,7 +84,7 @@ export function OnboardingModal() {
         </div>
       }
     >
-      <p className="font-serif text-base leading-relaxed text-slate-300">{cur.body}</p>
+      <p className="font-serif text-base leading-relaxed text-inkSoft">{cur.body}</p>
     </Modal>
   );
 }

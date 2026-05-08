@@ -5,29 +5,29 @@ export default function RulesCheatsheetPage() {
     <main id="main" className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
+        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
       >
         ← Back to home
       </Link>
 
-      <header className="mb-12 mt-6 border-b border-slate-800/40 pb-8">
+      <header className="mb-12 mt-6 border-b border-rule/40 pb-8">
         <p className="editorial-eyebrow">A field guide</p>
         <h1 className="editorial-h1 mt-3">Quick rules reference</h1>
-        <p className="mt-4 max-w-xl font-serif text-sm italic leading-relaxed text-slate-500">
+        <p className="mt-4 max-w-xl font-serif text-sm italic leading-relaxed text-inkMute">
           Distilled from the official rulebooks bundled in{" "}
-          <code className="not-italic font-mono text-slate-400">/docs/</code>. The
+          <code className="not-italic font-mono text-inkSoft">/docs/</code>. The
           rulebook remains the definitive answer.
         </p>
       </header>
 
       <div className="space-y-8">
         <Block title="Tax multiplier">
-          <p className="font-serif text-base leading-relaxed text-slate-300">
+          <p className="font-serif text-base leading-relaxed text-inkSoft">
             Multiplier ={" "}
-            <strong className="font-medium text-slate-100">Tax base</strong> +{" "}
-            <strong className="font-medium text-slate-100">Health welfare modifier</strong>{" "}
+            <strong className="font-medium text-ink">Tax base</strong> +{" "}
+            <strong className="font-medium text-ink">Health welfare modifier</strong>{" "}
             +{" "}
-            <strong className="font-medium text-slate-100">Education welfare modifier</strong>
+            <strong className="font-medium text-ink">Education welfare modifier</strong>
           </p>
           <Table
             headers={["Track position", "Tax base", "Welfare modifier"]}
@@ -37,7 +37,7 @@ export default function RulesCheatsheetPage() {
               ["Section C", "1", "0"],
             ]}
           />
-          <p className="font-serif text-xs italic text-slate-500">
+          <p className="font-serif text-xs italic text-inkMute">
             Range: 1 (low tax + private welfare) to 7 (high tax + universal welfare).
           </p>
         </Block>
@@ -76,7 +76,7 @@ export default function RulesCheatsheetPage() {
         </Block>
 
         <Block title="VP scoring per round">
-          <ul className="space-y-3 font-serif text-base leading-relaxed text-slate-300">
+          <ul className="space-y-3 font-serif text-base leading-relaxed text-inkSoft">
             <li>
               <span className="font-medium text-working">Working class</span> — VP for each
               Prosperity step gained (= new value); +2 VP per active Trade Union (≥4 workers);
@@ -115,8 +115,8 @@ export default function RulesCheatsheetPage() {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-slate-800/60 bg-slate-900/30 p-6">
-      <h2 className="editorial-h3 mb-4 border-b border-slate-800/40 pb-3">{title}</h2>
+    <section className="rounded-lg border border-rule/60 bg-surface/30 p-6">
+      <h2 className="editorial-h3 mb-4 border-b border-rule/40 pb-3">{title}</h2>
       <div className="space-y-4">{children}</div>
     </section>
   );
@@ -127,18 +127,18 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-800/60">
+          <tr className="border-b border-rule/60">
             {headers.map((h) => (
               <th
                 key={h}
-                className="py-2 pr-4 text-left font-serif text-[11px] font-normal uppercase italic tracking-[0.2em] text-slate-500 first:pl-0"
+                className="py-2 pr-4 text-left font-serif text-[11px] font-normal uppercase italic tracking-[0.2em] text-inkMute first:pl-0"
               >
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800/30">
+        <tbody className="divide-y divide-rule/30">
           {rows.map((row, i) => (
             <tr key={i}>
               {row.map((cell, j) => (
@@ -146,8 +146,8 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
                   key={j}
                   className={`py-2.5 pr-4 first:pl-0 ${
                     j === 0
-                      ? "font-serif text-slate-300"
-                      : "font-mono text-slate-400"
+                      ? "font-serif text-inkSoft"
+                      : "font-mono text-inkSoft"
                   }`}
                 >
                   {cell}

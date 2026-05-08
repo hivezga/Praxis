@@ -34,18 +34,18 @@ export function Counter({
 
   if (size === "lg") {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-md border border-slate-800/60 bg-slate-950/30 px-4 py-3.5">
+      <div className="flex items-center justify-between gap-3 rounded-md border border-rule/60 bg-paper/30 px-4 py-3.5">
         <div className="min-w-0 flex-1">
-          <div className="font-serif text-[11px] uppercase italic tracking-[0.25em] text-slate-500">
+          <div className="font-serif text-[11px] uppercase italic tracking-[0.25em] text-inkMute">
             {label}
           </div>
-          {hint ? <div className="mt-1 text-[11px] leading-tight text-slate-600">{hint}</div> : null}
+          {hint ? <div className="mt-1 text-[11px] leading-tight text-inkMute">{hint}</div> : null}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
             aria-label={`Decrease ${label}`}
-            className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-lg leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+            className="flex h-10 w-10 items-center justify-center rounded-md border border-rule/70 bg-surface/60 text-lg leading-none text-inkSoft transition-colors hover:border-rule hover:bg-surfaceSoft hover:text-ink active:bg-surfaceMute disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             onClick={() => onAdjust?.(-step)}
             disabled={decDisabled || !onAdjust}
           >
@@ -54,7 +54,7 @@ export function Counter({
           <input
             type="number"
             aria-label={label}
-            className={`h-11 w-20 rounded-md border border-slate-700/70 bg-slate-950 text-center font-mono text-2xl font-light tracking-tight text-slate-100 transition-colors focus:border-amber-400/60 focus:outline-none ${accent ?? ""}`}
+            className={`h-11 w-20 rounded-md border border-rule/70 bg-paper text-center font-mono text-2xl font-light tracking-tight text-ink transition-colors focus:border-accent/60 focus:outline-none ${accent ?? ""}`}
             value={value}
             min={min}
             max={max}
@@ -67,7 +67,7 @@ export function Counter({
           <button
             type="button"
             aria-label={`Increase ${label}`}
-            className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-lg leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+            className="flex h-10 w-10 items-center justify-center rounded-md border border-rule/70 bg-surface/60 text-lg leading-none text-inkSoft transition-colors hover:border-rule hover:bg-surfaceSoft hover:text-ink active:bg-surfaceMute disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             onClick={() => onAdjust?.(step)}
             disabled={incDisabled || !onAdjust}
           >
@@ -79,16 +79,16 @@ export function Counter({
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded-md border border-slate-800/60 bg-slate-950/40 px-3 py-2.5">
+    <div className="flex items-center justify-between gap-2 rounded-md border border-rule/60 bg-paper/40 px-3 py-2.5">
       <div className="min-w-0 flex-1">
         <div className="stat-label truncate">{label}</div>
-        {hint ? <div className="mt-0.5 text-[10px] leading-tight text-slate-600">{hint}</div> : null}
+        {hint ? <div className="mt-0.5 text-[10px] leading-tight text-inkMute">{hint}</div> : null}
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           aria-label={`Decrease ${label}`}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-rule/70 bg-surface/60 text-base leading-none text-inkSoft transition-colors hover:border-rule hover:bg-surfaceSoft hover:text-ink active:bg-surfaceMute disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           onClick={() => onAdjust?.(-step)}
           disabled={decDisabled || !onAdjust}
         >
@@ -97,7 +97,7 @@ export function Counter({
         <input
           type="number"
           aria-label={label}
-          className={`h-9 w-14 rounded-md border border-slate-700/70 bg-slate-950 text-center font-mono text-lg font-light text-slate-100 transition-colors focus:border-amber-400/60 focus:outline-none ${accent ?? ""}`}
+          className={`h-9 w-14 rounded-md border border-rule/70 bg-paper text-center font-mono text-lg font-light text-ink transition-colors focus:border-accent/60 focus:outline-none ${accent ?? ""}`}
           value={value}
           min={min}
           max={max}
@@ -110,7 +110,7 @@ export function Counter({
         <button
           type="button"
           aria-label={`Increase ${label}`}
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-rule/70 bg-surface/60 text-base leading-none text-inkSoft transition-colors hover:border-rule hover:bg-surfaceSoft hover:text-ink active:bg-surfaceMute disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           onClick={() => onAdjust?.(step)}
           disabled={incDisabled || !onAdjust}
         >

@@ -27,13 +27,13 @@ export function Modal({ open, onClose, title, children, footer, widthClass }: Pr
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`w-full ${widthClass ?? "max-w-2xl"} rounded-lg border border-slate-700/40 bg-slate-900/95 shadow-2xl`}>
+      <div className={`w-full ${widthClass ?? "max-w-2xl"} rounded-lg border border-rule/40 bg-surface/95 shadow-2xl`}>
         {title ? (
-          <div className="flex items-center justify-between border-b border-slate-800/60 px-6 py-4">
-            <h2 className="font-serif text-xl font-light italic text-slate-100">{title}</h2>
+          <div className="flex items-center justify-between border-b border-rule/60 px-6 py-4">
+            <h2 className="font-serif text-xl font-light italic text-ink">{title}</h2>
             <button
               type="button"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700/60 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-rule/60 text-inkSoft transition-colors hover:bg-surfaceSoft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
               onClick={onClose}
               aria-label="Close"
             >
@@ -43,7 +43,7 @@ export function Modal({ open, onClose, title, children, footer, widthClass }: Pr
         ) : null}
         <div className="max-h-[72vh] overflow-y-auto p-6">{children}</div>
         {footer ? (
-          <div className="flex justify-end gap-2 border-t border-slate-800/60 px-6 py-4">{footer}</div>
+          <div className="flex justify-end gap-2 border-t border-rule/60 px-6 py-4">{footer}</div>
         ) : null}
       </div>
     </div>

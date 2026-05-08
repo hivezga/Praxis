@@ -72,17 +72,17 @@ export function MiddlePanel() {
         <div className="panel-title">Companies ({m.companies.length})</div>
         <ul className="space-y-1.5">
           {m.companies.map((c) => (
-            <li key={c.id} className="rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2">
+            <li key={c.id} className="rounded-md border border-rule/60 bg-paper/30 px-3 py-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-slate-200">{c.label}</span>
-                <span className="shrink-0 font-mono text-[10px] text-slate-500">
+                <span className="text-sm text-ink">{c.label}</span>
+                <span className="shrink-0 font-mono text-[10px] text-inkMute">
                   L{c.wageLevel} · {c.workersAssigned}M / {c.workingClassEmployees}W
                 </span>
               </div>
             </li>
           ))}
           {m.companies.length === 0 ? (
-            <li className="font-serif text-xs italic text-slate-600">No companies built.</li>
+            <li className="font-serif text-xs italic text-inkMute">No companies built.</li>
           ) : null}
         </ul>
       </div>

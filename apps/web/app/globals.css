@@ -2,14 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Default (dark / "evening") theme ─────────────────────────────── */
 :root {
   color-scheme: dark;
-  --paper:        #0c1019;
-  --ink:          #e8e6e1;
-  --ink-soft:     #b9b4a8;
-  --ink-mute:     #6f6a5e;
-  --rule:         rgba(232, 230, 225, 0.08);
-  --rule-strong:  rgba(232, 230, 225, 0.16);
+
+  /* Backgrounds, deepest → softest */
+  --paper:         12 16 25;       /* #0c1019 */
+  --paper-soft:    18 24 38;       /* #121826 */
+  --surface:       30 41 59;       /* slate-800-ish */
+  --surface-soft:  44 56 80;
+  --surface-mute:  60 73 100;
+
+  /* Ink (text) */
+  --ink:           232 230 225;    /* warm white */
+  --ink-soft:      185 180 168;
+  --ink-mute:      130 125 113;
+  --ink-subtle:     90  87  79;
+
+  /* Rules / borders */
+  --rule:          232 230 225;     /* alpha applied at usage */
+  --rule-strong:   232 230 225;
+
+  /* Accent: amber */
+  --accent:        251 191  36;     /* amber-400 */
+  --accent-soft:   251 191  36;
+  --accent-ink:    254 243 199;     /* amber-100 */
+
+  /* Danger: rose */
+  --danger:        251 113 133;     /* rose-400 */
+  --danger-soft:   244  63  94;
+}
+
+/* ─── Light / "daylight" theme ─────────────────────────────────────── */
+.theme-light {
+  color-scheme: light;
+
+  --paper:         252 250 245;     /* warm off-white */
+  --paper-soft:    246 243 235;
+  --surface:       240 236 226;
+  --surface-soft:  226 222 212;
+  --surface-mute:  205 200 188;
+
+  --ink:            28  25  20;     /* near-black, warm */
+  --ink-soft:       72  68  58;
+  --ink-mute:      120 115 100;
+  --ink-subtle:    160 154 138;
+
+  --rule:           28  25  20;
+  --rule-strong:    28  25  20;
+
+  --accent:        180 124   0;     /* amber-700 — readable on cream */
+  --accent-soft:   217 152  16;     /* amber-600 */
+  --accent-ink:    113  76   0;     /* amber-900 */
+
+  --danger:        190  18  60;     /* rose-700 */
+  --danger-soft:   225  29  72;
 }
 
 html,
@@ -18,8 +65,8 @@ body {
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "kern";
@@ -33,79 +80,78 @@ body {
 @layer components {
   /* ── Surfaces ─────────────────────────────────────────────────────── */
   .panel {
-    @apply rounded-lg border border-slate-800/70 bg-slate-900/40 p-5;
+    @apply rounded-lg border border-rule/40 bg-surface/30 p-5;
   }
   .panel-quiet {
-    @apply rounded-lg border border-slate-800/40 bg-slate-950/30 p-4;
+    @apply rounded-lg border border-rule/20 bg-paperSoft/40 p-4;
   }
   .panel-title {
-    @apply mb-3 font-serif text-[11px] font-normal uppercase italic tracking-[0.25em] text-slate-500;
+    @apply mb-3 font-serif text-[11px] font-normal uppercase italic tracking-[0.25em] text-inkMute;
   }
 
   /* ── Typography helpers ───────────────────────────────────────────── */
   .editorial-h1 {
-    @apply font-serif text-5xl font-light leading-[1.05] tracking-tight text-slate-100 sm:text-6xl;
+    @apply font-serif text-5xl font-light leading-[1.05] tracking-tight text-ink sm:text-6xl;
   }
   .editorial-h2 {
-    @apply font-serif text-3xl font-light leading-tight text-slate-100;
+    @apply font-serif text-3xl font-light leading-tight text-ink;
   }
   .editorial-h3 {
-    @apply font-serif text-xl font-normal italic text-slate-200;
+    @apply font-serif text-xl font-normal italic text-ink/95;
   }
   .editorial-eyebrow {
-    @apply font-serif text-[11px] uppercase italic tracking-[0.3em] text-slate-500;
+    @apply font-serif text-[11px] uppercase italic tracking-[0.3em] text-inkMute;
   }
   .editorial-lede {
-    @apply font-serif text-lg font-light leading-relaxed text-slate-300;
+    @apply font-serif text-lg font-light leading-relaxed text-inkSoft;
   }
 
   /* ── Stats ────────────────────────────────────────────────────────── */
   .stat-num {
-    @apply font-mono text-xl font-semibold text-slate-100;
+    @apply font-mono text-xl font-semibold text-ink;
   }
   .stat-label {
-    @apply text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500;
+    @apply text-[10px] font-medium uppercase tracking-[0.18em] text-inkMute;
   }
 
-  /* Primary stat block — used for hero values like Money, VP */
   .stat-primary {
-    @apply flex items-baseline gap-3 rounded-md border border-slate-800/60 bg-slate-950/30 px-4 py-3;
+    @apply flex items-baseline gap-3 rounded-md border border-rule/30 bg-paperSoft/40 px-4 py-3;
   }
   .stat-primary-label {
-    @apply font-serif text-xs uppercase italic tracking-[0.25em] text-slate-500;
+    @apply font-serif text-xs uppercase italic tracking-[0.25em] text-inkMute;
   }
   .stat-primary-value {
-    @apply font-mono text-3xl font-light tracking-tight text-slate-100;
+    @apply font-mono text-3xl font-light tracking-tight text-ink;
   }
 
   /* ── Buttons ──────────────────────────────────────────────────────── */
   .btn {
-    @apply inline-flex min-h-[36px] items-center justify-center rounded-md border border-slate-700/80 bg-slate-900/60 px-3.5 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-950;
+    @apply inline-flex min-h-[36px] items-center justify-center rounded-md border border-rule/40 bg-surface/30 px-3.5 py-2 text-sm font-medium text-inkSoft transition-colors hover:bg-surface/60 hover:text-ink active:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-paper;
   }
   .btn-primary {
-    @apply border-amber-400/40 bg-amber-400/10 text-amber-100 hover:border-amber-300/60 hover:bg-amber-400/20 hover:text-amber-50;
+    @apply border-accent/40 bg-accent/15 text-accentInk hover:border-accent/60 hover:bg-accent/25 hover:text-accentInk;
   }
   .btn-ghost {
-    @apply border-transparent bg-transparent hover:bg-slate-800/60 hover:border-slate-700/60;
+    @apply border-transparent bg-transparent hover:bg-surface/40 hover:border-rule/30;
   }
   .btn-danger {
-    @apply border-rose-700/40 bg-rose-900/20 text-rose-300 hover:bg-rose-800/30 hover:text-rose-200;
+    @apply border-danger/40 bg-danger/10 text-danger hover:bg-danger/20 hover:text-danger;
   }
 
   /* ── Inputs ───────────────────────────────────────────────────────── */
   .input {
-    @apply w-full rounded-md border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 transition-colors focus:border-amber-400/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/40;
+    @apply w-full rounded-md border border-rule/40 bg-paperSoft/40 px-3 py-2 text-sm text-ink placeholder:text-inkSubtle transition-colors focus:border-accent/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent/40;
   }
 
   /* ── Ornament ─────────────────────────────────────────────────────── */
   .ornament {
-    @apply text-slate-700;
+    @apply text-inkSubtle;
   }
   .ornament::before {
     content: "◆";
   }
   .rule-soft {
-    @apply border-t border-slate-800/40;
+    @apply border-t border-rule/15;
   }
 
   /* ── Skip-link (keyboard accessibility) ───────────────────────────── */
@@ -113,6 +159,6 @@ body {
     @apply sr-only;
   }
   .skip-link:focus {
-    @apply not-sr-only fixed left-4 top-4 z-50 inline-flex items-center rounded-md border border-amber-400/60 bg-slate-950 px-4 py-2 font-serif text-sm italic text-amber-100 shadow-lg outline-none ring-2 ring-amber-400/40;
+    @apply not-sr-only fixed left-4 top-4 z-50 inline-flex items-center rounded-md border border-accent/60 bg-paper px-4 py-2 font-serif text-sm italic text-accentInk shadow-lg outline-none ring-2 ring-accent/40;
   }
 }

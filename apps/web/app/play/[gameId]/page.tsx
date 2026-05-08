@@ -46,7 +46,7 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <main id="main" className="flex min-h-screen items-center justify-center text-slate-500">
+      <main id="main" className="flex min-h-screen items-center justify-center text-inkMute">
         Loading…
       </main>
     );
@@ -54,7 +54,7 @@ export default function GamePage() {
   if (!state) {
     return (
       <main id="main" className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
-        <p className="text-slate-400">This game was not found in your browser storage.</p>
+        <p className="text-inkSoft">This game was not found in your browser storage.</p>
         <Link href="/" className="btn btn-primary">
           ← Back to home
         </Link>
@@ -70,10 +70,10 @@ export default function GamePage() {
       <RoundPhaseHeader onOpenEndRound={() => setEndRoundOpen(true)} />
       <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
         {/* Game identity row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/40 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule/40 pb-4">
           <div>
-            <h1 className="font-serif text-2xl font-light text-slate-100">{state.meta.name}</h1>
-            <p className="mt-1 font-serif text-xs italic text-slate-500">
+            <h1 className="font-serif text-2xl font-light text-ink">{state.meta.name}</h1>
+            <p className="mt-1 font-serif text-xs italic text-inkMute">
               {state.meta.mode === "solo" ? "Solo" : "Party"} · {state.meta.playerCount} players
               {state.meta.expansions.crisisAndControl ? " · Crisis & Control" : ""}
             </p>
@@ -150,10 +150,10 @@ function TabBtn({ label, active, onClick }: { label: string; active: boolean; on
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-md border px-3 py-1.5 font-serif text-xs capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+      className={`rounded-md border px-3 py-1.5 font-serif text-xs capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
         active
-          ? "border-amber-400/40 bg-amber-400/15 text-amber-100"
-          : "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+          ? "border-accent/40 bg-accent/15 text-accentInk"
+          : "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule hover:text-ink"
       }`}
     >
       {label}

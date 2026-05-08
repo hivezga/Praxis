@@ -35,7 +35,7 @@ export function BillsPanel() {
         </button>
       </div>
       {state.bills.length === 0 ? (
-        <p className="rounded-md border border-dashed border-slate-800/60 p-3 font-serif text-xs italic text-slate-500">
+        <p className="rounded-md border border-dashed border-rule/60 p-3 font-serif text-xs italic text-inkMute">
           No bills proposed for the next election.
         </p>
       ) : (
@@ -43,27 +43,27 @@ export function BillsPanel() {
           {state.bills.map((b) => (
             <li
               key={b.id}
-              className="flex items-center justify-between gap-2 rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2.5"
+              className="flex items-center justify-between gap-2 rounded-md border border-rule/60 bg-paper/30 px-3 py-2.5"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="font-mono text-[10px] text-slate-500">{POLICIES_BY_ID[b.policyId].number}.</span>
-                  <span className="text-slate-200">{POLICIES_BY_ID[b.policyId].name}</span>
-                  <span className="text-slate-600">→</span>
-                  <span className="font-mono font-semibold text-amber-300">{b.proposedSection}</span>
+                  <span className="font-mono text-[10px] text-inkMute">{POLICIES_BY_ID[b.policyId].number}.</span>
+                  <span className="text-ink">{POLICIES_BY_ID[b.policyId].name}</span>
+                  <span className="text-inkMute">→</span>
+                  <span className="font-mono font-semibold text-accentInk">{b.proposedSection}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-1.5">
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${CLASS_BADGE[b.proposedBy]}`}>
                     {b.proposedBy}
                   </span>
                   {b.immediateVote ? (
-                    <span className="text-[9px] text-slate-500">· immediate vote</span>
+                    <span className="text-[9px] text-inkMute">· immediate vote</span>
                   ) : null}
                 </div>
               </div>
               <button
                 type="button"
-                className="btn btn-ghost shrink-0 text-xs text-rose-400 hover:text-rose-300"
+                className="btn btn-ghost shrink-0 text-xs text-danger hover:text-danger"
                 onClick={() => remove(b.id)}
               >
                 Remove
@@ -123,10 +123,10 @@ export function BillsPanel() {
               ))}
             </select>
           </label>
-          <label className="col-span-2 flex items-center gap-2 text-xs text-slate-300">
+          <label className="col-span-2 flex items-center gap-2 text-xs text-inkSoft">
             <input
               type="checkbox"
-              className="rounded border-slate-600"
+              className="rounded border-rule"
               checked={immediateVote}
               onChange={(e) => setImmediateVote(e.target.checked)}
             />
