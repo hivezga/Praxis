@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@praxis/party": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "hegemony-core": "workspace:../../packages/hegemony-wasm",
     "next": "14.2.15",
