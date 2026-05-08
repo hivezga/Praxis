@@ -11,3 +11,7 @@ dist
 coverage
 .turbo
 tsconfig.tsbuildinfo
+
+# Rust
+target/
+Cargo.lock

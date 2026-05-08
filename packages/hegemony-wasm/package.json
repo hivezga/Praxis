@@ -1,0 +1,15 @@
+{
+  "name": "hegemony-core",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "hegemony_core_bg.wasm",
+    "hegemony_core.js",
+    "hegemony_core.d.ts"
+  ],
+  "main": "hegemony_core.js",
+  "types": "hegemony_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

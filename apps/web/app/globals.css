@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #0b0f17;
+  color: #e5e7eb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-slate-700/50 bg-slate-900/70 p-4;
+  }
+  .panel-title {
+    @apply mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500;
+  }
+  .stat-num {
+    @apply font-mono text-xl font-semibold text-slate-100;
+  }
+  .stat-label {
+    @apply text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-950;
+  }
+  .btn-primary {
+    @apply border-indigo-600/60 bg-indigo-600 text-white hover:bg-indigo-500 hover:border-indigo-500;
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent hover:bg-slate-800 hover:border-slate-700;
+  }
+  .btn-danger {
+    @apply border-rose-700/40 bg-rose-900/20 text-rose-400 hover:bg-rose-800/30 hover:text-rose-300;
+  }
+  .input {
+    @apply w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 transition-colors focus:border-indigo-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500;
+  }
+}
