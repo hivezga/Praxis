@@ -57,10 +57,10 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur">
-      <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3">
+      <div className="mx-auto flex max-w-screen-2xl flex-col gap-2.5 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:gap-x-6">
         {/* Round selector */}
         <div className="flex items-center gap-3">
-          <span className="font-serif text-[10px] uppercase italic tracking-[0.3em] text-slate-500">
+          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-slate-500 lg:w-auto">
             Round
           </span>
           <div className="flex gap-1">
@@ -84,11 +84,11 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
         </div>
 
         {/* Phase selector */}
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-slate-500">
+        <div className="flex min-w-0 items-center gap-3 lg:flex-1">
+          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-slate-500 lg:w-auto">
             Phase
           </span>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-1 gap-1 lg:flex-initial">
             {PHASES.map((p) => (
               <button
                 key={p.id}
@@ -96,7 +96,7 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={p.label}
                 aria-pressed={phase === p.id}
                 onClick={() => setPhase(p.id)}
-                className={`min-h-[36px] rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+                className={`min-h-[36px] flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 sm:flex-initial sm:px-3 sm:text-xs ${
                   phase === p.id
                     ? "border-amber-400/50 bg-amber-400/15 text-amber-100"
                     : "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:text-slate-200"
@@ -110,10 +110,10 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 lg:shrink-0">
           <button
             type="button"
-            className="btn"
+            className="btn flex-1 sm:flex-initial"
             onClick={undo}
             disabled={!canUndo}
             aria-label="Undo last change"
@@ -121,10 +121,18 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
           >
             ↶ Undo
           </button>
-          <button type="button" className="btn" onClick={advancePhase}>
+          <button
+            type="button"
+            className="btn flex-1 sm:flex-initial"
+            onClick={advancePhase}
+          >
             Next →
           </button>
-          <button type="button" className="btn btn-primary" onClick={onOpenEndRound}>
+          <button
+            type="button"
+            className="btn btn-primary flex-1 sm:flex-initial"
+            onClick={onOpenEndRound}
+          >
             End round
           </button>
         </div>
@@ -132,8 +140,8 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
 
       {/* Phase cue — concise reminder of what to do */}
       {phaseInfo ? (
-        <div className="mx-auto max-w-screen-2xl border-t border-slate-800/40 px-5 py-2">
-          <p className="font-serif text-[13px] italic leading-relaxed text-slate-400">
+        <div className="mx-auto max-w-screen-2xl border-t border-slate-800/40 px-4 py-2 sm:px-5">
+          <p className="font-serif text-[12px] italic leading-snug text-slate-400 sm:text-[13px] sm:leading-relaxed">
             <span className="not-italic text-slate-600">— </span>
             {phaseInfo.cue}
           </p>
