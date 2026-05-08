@@ -1,9 +1,17 @@
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  cacheOnNavigation: true,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   webpack(config) {
-    // Serve .wasm files as static assets (URL), not parsed WebAssembly modules.
-    // The wasm-pack web target fetches the WASM at runtime via the resolved URL.
     config.module.rules.push({
       test: /\.wasm$/,
       type: "asset/resource",
@@ -12,4 +20,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

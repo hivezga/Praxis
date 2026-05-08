@@ -45,7 +45,7 @@ export function Counter({
           <button
             type="button"
             aria-label={`Decrease ${label}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+            className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-lg leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
             onClick={() => onAdjust?.(-step)}
             disabled={decDisabled || !onAdjust}
           >
@@ -54,7 +54,7 @@ export function Counter({
           <input
             type="number"
             aria-label={label}
-            className={`h-10 w-20 rounded-md border border-slate-700/70 bg-slate-950 text-center font-mono text-2xl font-light tracking-tight text-slate-100 transition-colors focus:border-amber-400/60 focus:outline-none ${accent ?? ""}`}
+            className={`h-11 w-20 rounded-md border border-slate-700/70 bg-slate-950 text-center font-mono text-2xl font-light tracking-tight text-slate-100 transition-colors focus:border-amber-400/60 focus:outline-none ${accent ?? ""}`}
             value={value}
             min={min}
             max={max}
@@ -67,7 +67,7 @@ export function Counter({
           <button
             type="button"
             aria-label={`Increase ${label}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+            className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-lg leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
             onClick={() => onAdjust?.(step)}
             disabled={incDisabled || !onAdjust}
           >
@@ -88,7 +88,7 @@ export function Counter({
         <button
           type="button"
           aria-label={`Decrease ${label}`}
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
           onClick={() => onAdjust?.(-step)}
           disabled={decDisabled || !onAdjust}
         >
@@ -97,7 +97,7 @@ export function Counter({
         <input
           type="number"
           aria-label={label}
-          className={`h-8 w-14 rounded-md border border-slate-700/70 bg-slate-950 text-center font-mono text-lg font-light text-slate-100 transition-colors focus:border-amber-400/60 focus:outline-none ${accent ?? ""}`}
+          className={`h-9 w-14 rounded-md border border-slate-700/70 bg-slate-950 text-center font-mono text-lg font-light text-slate-100 transition-colors focus:border-amber-400/60 focus:outline-none ${accent ?? ""}`}
           value={value}
           min={min}
           max={max}
@@ -110,7 +110,7 @@ export function Counter({
         <button
           type="button"
           aria-label={`Increase ${label}`}
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-700/70 bg-slate-900/60 text-base leading-none text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-200 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
           onClick={() => onAdjust?.(step)}
           disabled={incDisabled || !onAdjust}
         >

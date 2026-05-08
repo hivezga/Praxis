@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Crimson_Pro, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
 import { WasmBootstrap } from "./_components/WasmBootstrap";
@@ -26,10 +27,45 @@ const serif = Crimson_Pro({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Praxis — Hegemony companion tracker",
   description:
     "An unofficial fan-made tracker for resources, taxes, payments, population and policies in the Hegemony tabletop game.",
+  applicationName: "Praxis",
+  keywords: ["Hegemony", "board game", "tracker", "companion", "tabletop"],
+  authors: [{ name: "Praxis" }],
+  creator: "Praxis",
+  openGraph: {
+    type: "website",
+    title: "Praxis — Hegemony companion tracker",
+    description:
+      "Resources, taxes, payments, population and policies — kept in order so the evening is spent playing, not doing arithmetic.",
+    siteName: "Praxis",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Praxis — Hegemony companion tracker",
+    description:
+      "Resources, taxes, payments, population and policies — kept in order so the evening is spent playing, not doing arithmetic.",
+  },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Praxis",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0c1019",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${sans.variable} ${mono.variable} ${serif.variable} font-sans min-h-full`}>
         <WasmBootstrap />
         <div className="min-h-screen">{children}</div>
+        <Analytics />
       </body>
     </html>
   );

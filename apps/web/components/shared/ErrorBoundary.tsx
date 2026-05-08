@@ -1,0 +1,60 @@
+"use client";
+
+import { Component, type ErrorInfo, type ReactNode } from "react";
+
+interface Props {
+  fallback: ReactNode | ((error: Error, retry: () => void) => ReactNode);
+  onError?: (error: Error, info: ErrorInfo) => void;
+  children: ReactNode;
+}
+
+interface State {
+  error: Error | null;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { error: null };
+
+  static getDerivedStateFromError(error: Error): State {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    this.props.onError?.(error, info);
+    if (process.env.NODE_ENV !== "production") {
+      console.error("ErrorBoundary caught:", error, info);
+    }
+  }
+
+  retry = () => {
+    this.setState({ error: null });
+  };
+
+  render() {
+    const { error } = this.state;
+    if (error) {
+      const { fallback } = this.props;
+      return typeof fallback === "function" ? fallback(error, this.retry) : fallback;
+    }
+    return this.props.children;
+  }
+}
+
+export function PanelErrorFallback({
+  label,
+  retry,
+}: {
+  label: string;
+  retry: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-rose-700/30 bg-rose-950/20 p-5">
+      <p className="font-serif text-sm italic text-rose-300">
+        The {label} panel hit an unexpected error.
+      </p>
+      <button type="button" className="btn mt-3 text-xs" onClick={retry}>
+        Reload panel
+      </button>
+    </div>
+  );
+}

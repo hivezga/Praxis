@@ -12,6 +12,7 @@ import { StatePanel } from "@/components/classes/StatePanel";
 import { WorkingPanel } from "@/components/classes/WorkingPanel";
 import { EndRoundWizard } from "@/components/endRound/EndRoundWizard";
 import { ScoringPanel } from "@/components/scoring/ScoringPanel";
+import { ErrorBoundary, PanelErrorFallback } from "@/components/shared/ErrorBoundary";
 import { useGame, useGameState } from "@/lib/store";
 import type { ClassId } from "@/lib/types/game";
 
@@ -110,11 +111,31 @@ export default function GamePage() {
           {showAll
             ? activeClasses.map((c) => {
                 const Panel = PANELS[c];
-                return <Panel key={c} />;
+                return (
+                  <ErrorBoundary
+                    key={c}
+                    fallback={(_err, retry) => (
+                      <PanelErrorFallback label={CLASS_LABEL[c]} retry={retry} />
+                    )}
+                  >
+                    <Panel />
+                  </ErrorBoundary>
+                );
               })
             : (() => {
                 const Panel = PANELS[activeTab as ClassId];
-                return <Panel />;
+                return (
+                  <ErrorBoundary
+                    fallback={(_err, retry) => (
+                      <PanelErrorFallback
+                        label={CLASS_LABEL[activeTab as ClassId]}
+                        retry={retry}
+                      />
+                    )}
+                  >
+                    <Panel />
+                  </ErrorBoundary>
+                );
               })()}
         </div>
       </main>

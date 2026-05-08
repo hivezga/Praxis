@@ -80,7 +80,7 @@ body {
 
   /* ── Buttons ──────────────────────────────────────────────────────── */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-950;
+    @apply inline-flex min-h-[36px] items-center justify-center rounded-md border border-slate-700/80 bg-slate-900/60 px-3.5 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-950;
   }
   .btn-primary {
     @apply border-amber-400/40 bg-amber-400/10 text-amber-100 hover:border-amber-300/60 hover:bg-amber-400/20 hover:text-amber-50;

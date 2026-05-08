@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { OnboardingModal } from "./_components/OnboardingModal";
 import { SavedGamesList } from "./_components/SavedGamesList";
 
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
+      <OnboardingModal />
       {/* Masthead */}
       <header className="mb-16 border-b border-slate-800/40 pb-12">
         <p className="editorial-eyebrow">A Companion Tracker</p>

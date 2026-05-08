@@ -71,7 +71,7 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={`Round ${n}`}
                 aria-pressed={round === n}
                 onClick={() => setRound(n)}
-                className={`flex h-7 w-7 items-center justify-center rounded-md border font-serif text-[13px] font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+                className={`flex h-9 w-9 items-center justify-center rounded-md border font-serif text-[15px] font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
                   round === n
                     ? "border-amber-400/50 bg-amber-400/15 text-amber-100"
                     : "border-slate-700/60 bg-slate-900/40 text-slate-500 hover:border-slate-600 hover:text-slate-300"
@@ -96,7 +96,7 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={p.label}
                 aria-pressed={phase === p.id}
                 onClick={() => setPhase(p.id)}
-                className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
+                className={`min-h-[36px] rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
                   phase === p.id
                     ? "border-amber-400/50 bg-amber-400/15 text-amber-100"
                     : "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:text-slate-200"
