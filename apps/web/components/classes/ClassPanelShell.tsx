@@ -17,11 +17,38 @@ interface VpBreakdown {
   capital?: number;
 }
 
-const ACCENT: Record<ClassId, { border: string; headerBg: string; text: string; label: string }> = {
-  working:    { border: "border-working/30",    headerBg: "bg-working/[0.07]",    text: "text-working",    label: "Working Class"    },
-  middle:     { border: "border-middle/30",     headerBg: "bg-middle/[0.07]",     text: "text-middle",     label: "Middle Class"     },
-  capitalist: { border: "border-capitalist/30", headerBg: "bg-capitalist/[0.07]", text: "text-capitalist", label: "Capitalist Class" },
-  state:      { border: "border-state/30",      headerBg: "bg-state/[0.07]",      text: "text-state",      label: "The State"        },
+const ACCENT: Record<
+  ClassId,
+  { rule: string; rail: string; text: string; label: string; subtitle: string }
+> = {
+  working: {
+    rule:     "border-working/25",
+    rail:     "bg-working",
+    text:     "text-working",
+    label:    "Working Class",
+    subtitle: "Labor · unions · welfare",
+  },
+  middle: {
+    rule:     "border-middle/25",
+    rail:     "bg-middle",
+    text:     "text-middle",
+    label:    "Middle Class",
+    subtitle: "Companies · capital · savings",
+  },
+  capitalist: {
+    rule:     "border-capitalist/25",
+    rail:     "bg-capitalist",
+    text:     "text-capitalist",
+    label:    "Capitalist Class",
+    subtitle: "Revenue · capital · industry",
+  },
+  state: {
+    rule:     "border-state/25",
+    rail:     "bg-state",
+    text:     "text-state",
+    label:    "The State",
+    subtitle: "Treasury · legitimacy · policy",
+  },
 };
 
 interface Props {
@@ -32,23 +59,35 @@ interface Props {
 export function ClassPanelShell({ classId, children }: Props) {
   const state = useGameState();
   const accent = ACCENT[classId];
-  const vp = state
-    ? (wasm().compute_vp_wasm(state, classId) as VpBreakdown)
-    : null;
+  const vp = state ? (wasm().compute_vp_wasm(state, classId) as VpBreakdown) : null;
   return (
-    <section className={`overflow-hidden rounded-xl border ${accent.border} bg-slate-900/60`}>
-      <header className={`flex items-center justify-between px-4 py-3 ${accent.headerBg} border-b ${accent.border}`}>
-        <span className={`text-xs font-semibold uppercase tracking-widest ${accent.text}`}>
-          {accent.label}
-        </span>
+    <section
+      className={`relative overflow-hidden rounded-lg border ${accent.rule} bg-slate-900/30`}
+    >
+      <span aria-hidden className={`absolute left-0 top-0 h-full w-[2px] ${accent.rail}`} />
+      <header
+        className={`flex items-end justify-between gap-3 border-b ${accent.rule} px-5 py-4`}
+      >
+        <div className="min-w-0">
+          <h3 className={`font-serif text-2xl font-light leading-none ${accent.text}`}>
+            {accent.label}
+          </h3>
+          <p className="mt-1.5 font-serif text-[11px] uppercase italic tracking-[0.2em] text-slate-500">
+            {accent.subtitle}
+          </p>
+        </div>
         {vp != null ? (
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[9px] uppercase tracking-widest text-slate-500">VP</span>
-            <span className={`font-mono text-2xl font-semibold leading-none ${accent.text}`}>{vp.total}</span>
+          <div className="flex items-baseline gap-2 text-right">
+            <span className="font-serif text-[10px] uppercase italic tracking-[0.25em] text-slate-500">
+              Victory
+            </span>
+            <span className={`font-mono text-3xl font-light leading-none ${accent.text}`}>
+              {vp.total}
+            </span>
           </div>
         ) : null}
       </header>
-      <div className="space-y-3 p-4">{children}</div>
+      <div className="space-y-5 p-5">{children}</div>
     </section>
   );
 }

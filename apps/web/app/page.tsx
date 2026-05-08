@@ -4,75 +4,106 @@ import { SavedGamesList } from "./_components/SavedGamesList";
 
 export default function HomePage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-16">
-      <header className="mb-12">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">
-          Companion tracker
-        </p>
-        <h1 className="text-6xl font-light tracking-tight text-slate-100 sm:text-7xl">
-          Praxis
-        </h1>
-        <p className="mt-4 max-w-lg leading-relaxed text-slate-400">
+    <main className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
+      {/* Masthead */}
+      <header className="mb-16 border-b border-slate-800/40 pb-12">
+        <p className="editorial-eyebrow">A Companion Tracker</p>
+        <h1 className="editorial-h1 mt-4">Praxis</h1>
+        <p className="editorial-lede mt-6 max-w-2xl">
           For{" "}
-          <em className="font-normal not-italic text-slate-300">
-            Hegemony: Lead Your Class to Victory
-          </em>{" "}
-          — keeps resources, taxes, payments, population and policies in order so you can spend
-          the evening playing instead of doing arithmetic.
+          <em className="text-slate-200">Hegemony — Lead Your Class to Victory</em>.
+          Resources, taxes, payments, population and policies — kept in order so the
+          evening is spent playing, not doing arithmetic.
         </p>
-        <p className="mt-2 text-xs text-slate-600">
-          Unofficial fan project · not affiliated with Hegemonic Project Games
+        <p className="mt-4 font-serif text-xs italic text-slate-600">
+          An unaffiliated fan project — not associated with Hegemonic Project Games.
         </p>
       </header>
 
-      <section className="mb-12 grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/play/setup?mode=party"
-          className="group rounded-xl border border-slate-700/60 bg-slate-900/60 p-6 transition-all hover:border-slate-600 hover:bg-slate-900/80"
-        >
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-400">
-            Party mode
-          </p>
-          <h2 className="text-2xl font-semibold text-slate-100">Around one screen</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            2–4 players share a tablet or laptop. Hidden info gets a privacy curtain.
-          </p>
-          <div className="mt-5 flex gap-1.5">
-            <span className="h-1 flex-1 rounded-full bg-working/50" />
-            <span className="h-1 flex-1 rounded-full bg-middle/50" />
-            <span className="h-1 flex-1 rounded-full bg-capitalist/50" />
-            <span className="h-1 flex-1 rounded-full bg-state/50" />
-          </div>
-        </Link>
-        <Link
-          href="/play/setup?mode=solo"
-          className="group rounded-xl border border-slate-700/60 bg-slate-900/60 p-6 transition-all hover:border-slate-600 hover:bg-slate-900/80"
-        >
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-400">
-            Solo mode
-          </p>
-          <h2 className="text-2xl font-semibold text-slate-100">Just me + automa</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            Track your class plus simplified opponent state for Crisis &amp; Control automa play.
-          </p>
-          <p className="mt-5 text-[10px] uppercase tracking-wider text-slate-600">
-            Crisis &amp; Control expansion supported
-          </p>
-        </Link>
+      {/* Two starting paths */}
+      <section className="mb-20">
+        <p className="editorial-eyebrow mb-6">Begin a session</p>
+        <div className="grid gap-px overflow-hidden rounded-lg border border-slate-800/60 bg-slate-800/40 sm:grid-cols-2">
+          <ModeCard
+            href="/play/setup?mode=party"
+            tag="Party mode"
+            title="Around one screen"
+            description="Two to four players share a tablet or laptop. Hidden information receives a privacy curtain."
+            footer={
+              <div className="flex gap-1">
+                <FactionBar className="bg-working" />
+                <FactionBar className="bg-middle" />
+                <FactionBar className="bg-capitalist" />
+                <FactionBar className="bg-state" />
+              </div>
+            }
+          />
+          <ModeCard
+            href="/play/setup?mode=solo"
+            tag="Solo mode"
+            title="Just me & the automa"
+            description="Track your class plus a simplified opponent state for Crisis & Control automa play."
+            footer={
+              <span className="font-serif text-[11px] italic text-slate-500">
+                Crisis &amp; Control expansion supported
+              </span>
+            }
+          />
+        </div>
       </section>
 
+      {/* Saved games */}
       <SavedGamesList />
 
-      <footer className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-800/60 pt-6 text-xs text-slate-600">
+      {/* Footer */}
+      <footer className="mt-20 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-800/40 pt-8 font-serif text-xs italic text-slate-600">
         <Link
           href="/rules-cheatsheet"
           className="text-slate-500 transition-colors hover:text-slate-300"
         >
           Quick rules reference →
         </Link>
-        <span className="hidden text-slate-700 sm:inline">·</span>
-        <span>Rulebooks bundled in /docs/ (v1.2 + C&amp;C v1.1)</span>
+        <span aria-hidden className="text-slate-700">
+          ◆
+        </span>
+        <span>Rulebooks bundled in /docs/ — base v1.2 &amp; Crisis &amp; Control v1.1</span>
       </footer>
     </main>
   );
+}
+
+function ModeCard({
+  href,
+  tag,
+  title,
+  description,
+  footer,
+}: {
+  href: string;
+  tag: string;
+  title: string;
+  description: string;
+  footer: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col justify-between gap-8 bg-slate-950/60 p-8 transition-colors hover:bg-slate-900/60"
+    >
+      <div>
+        <p className="font-serif text-[11px] uppercase italic tracking-[0.3em] text-amber-200/70">
+          {tag}
+        </p>
+        <h2 className="editorial-h2 mt-3">{title}</h2>
+        <p className="mt-4 max-w-md font-serif text-sm leading-relaxed text-slate-400">
+          {description}
+        </p>
+      </div>
+      <div>{footer}</div>
+    </Link>
+  );
+}
+
+function FactionBar({ className }: { className: string }) {
+  return <span className={`h-1 w-10 rounded-full opacity-70 ${className}`} />;
 }

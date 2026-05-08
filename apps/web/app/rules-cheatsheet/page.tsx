@@ -2,24 +2,32 @@ import Link from "next/link";
 
 export default function RulesCheatsheetPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
-      <Link href="/" className="text-xs text-slate-500 transition-colors hover:text-slate-300">
-        ← Back
+    <main className="mx-auto max-w-3xl px-6 py-16">
+      <Link
+        href="/"
+        className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
+      >
+        ← Back to home
       </Link>
-      <h1 className="mt-3 text-3xl font-light tracking-tight text-slate-100">
-        Quick rules reference
-      </h1>
-      <p className="mt-2 text-sm text-slate-500">
-        Distilled from the official rulebooks in <code className="font-mono text-slate-400">/docs/</code>.
-        Use the rulebook for definitive answers.
-      </p>
 
-      <div className="mt-8 space-y-4">
+      <header className="mb-12 mt-6 border-b border-slate-800/40 pb-8">
+        <p className="editorial-eyebrow">A field guide</p>
+        <h1 className="editorial-h1 mt-3">Quick rules reference</h1>
+        <p className="mt-4 max-w-xl font-serif text-sm italic leading-relaxed text-slate-500">
+          Distilled from the official rulebooks bundled in{" "}
+          <code className="not-italic font-mono text-slate-400">/docs/</code>. The
+          rulebook remains the definitive answer.
+        </p>
+      </header>
+
+      <div className="space-y-8">
         <Block title="Tax multiplier">
-          <p className="text-slate-300">
-            Multiplier = <strong className="font-semibold">Tax base</strong> +{" "}
-            <strong className="font-semibold">Health welfare modifier</strong> +{" "}
-            <strong className="font-semibold">Education welfare modifier</strong>
+          <p className="font-serif text-base leading-relaxed text-slate-300">
+            Multiplier ={" "}
+            <strong className="font-medium text-slate-100">Tax base</strong> +{" "}
+            <strong className="font-medium text-slate-100">Health welfare modifier</strong>{" "}
+            +{" "}
+            <strong className="font-medium text-slate-100">Education welfare modifier</strong>
           </p>
           <Table
             headers={["Track position", "Tax base", "Welfare modifier"]}
@@ -29,8 +37,8 @@ export default function RulesCheatsheetPage() {
               ["Section C", "1", "0"],
             ]}
           />
-          <p className="text-xs text-slate-500">
-            Range: 1 (low tax + private welfare) to 7 (high tax + universal welfare)
+          <p className="font-serif text-xs italic text-slate-500">
+            Range: 1 (low tax + private welfare) to 7 (high tax + universal welfare).
           </p>
         </Block>
 
@@ -68,24 +76,24 @@ export default function RulesCheatsheetPage() {
         </Block>
 
         <Block title="VP scoring per round">
-          <ul className="space-y-2 text-slate-300">
+          <ul className="space-y-3 font-serif text-base leading-relaxed text-slate-300">
             <li>
-              <span className="font-semibold text-working">Working class</span> — VP for each
+              <span className="font-medium text-working">Working class</span> — VP for each
               Prosperity step gained (= new value); +2 VP per active Trade Union (≥4 workers);
-              +1 VP per $10 cash
+              +1 VP per $10 cash.
             </li>
             <li>
-              <span className="font-semibold text-middle">Middle class</span> — VP for Prosperity
-              steps; +1 VP per 2 storage goods; +1 VP per $15 cash
+              <span className="font-medium text-middle">Middle class</span> — VP for Prosperity
+              steps; +1 VP per 2 storage goods; +1 VP per $15 cash.
             </li>
             <li>
-              <span className="font-semibold text-capitalist">Capitalist class</span> — VP from
-              Wealth table based on Capital value
+              <span className="font-medium text-capitalist">Capitalist class</span> — VP from
+              the Wealth table based on Capital value.
             </li>
             <li>
-              <span className="font-semibold text-state">State</span> — VP = sum of two lowest
-              Legitimacy values; +1 VP per Political Agenda match; +1 VP per $30 in Treasury
-              at game end
+              <span className="font-medium text-state">The State</span> — VP equal to the sum
+              of the two lowest Legitimacy values; +1 VP per Political Agenda match; +1 VP per
+              $30 in Treasury at game end.
             </li>
           </ul>
         </Block>
@@ -94,8 +102,8 @@ export default function RulesCheatsheetPage() {
           <Table
             headers={["Policies in favored section", "1", "2", "3", "4", "5"]}
             rows={[
-              ["Working (section A)", "1", "4", "8", "12", "18"],
-              ["Middle (section B)",  "1", "3", "6", "10", "15"],
+              ["Working (section A)",    "1", "4", "8", "12", "18"],
+              ["Middle (section B)",     "1", "3", "6", "10", "15"],
               ["Capitalist (section C)", "1", "4", "8", "12", "18"],
             ]}
           />
@@ -107,11 +115,9 @@ export default function RulesCheatsheetPage() {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-      <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-        {title}
-      </h2>
-      <div className="space-y-3 text-sm">{children}</div>
+    <section className="rounded-lg border border-slate-800/60 bg-slate-900/30 p-6">
+      <h2 className="editorial-h3 mb-4 border-b border-slate-800/40 pb-3">{title}</h2>
+      <div className="space-y-4">{children}</div>
     </section>
   );
 }
@@ -121,25 +127,27 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-800">
+          <tr className="border-b border-slate-800/60">
             {headers.map((h) => (
               <th
                 key={h}
-                className="py-1.5 pr-4 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 first:pl-0"
+                className="py-2 pr-4 text-left font-serif text-[11px] font-normal uppercase italic tracking-[0.2em] text-slate-500 first:pl-0"
               >
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800/50">
+        <tbody className="divide-y divide-slate-800/30">
           {rows.map((row, i) => (
             <tr key={i}>
               {row.map((cell, j) => (
                 <td
                   key={j}
-                  className={`py-2 pr-4 first:pl-0 ${
-                    j === 0 ? "text-slate-300" : "font-mono text-slate-400"
+                  className={`py-2.5 pr-4 first:pl-0 ${
+                    j === 0
+                      ? "font-serif text-slate-300"
+                      : "font-mono text-slate-400"
                   }`}
                 >
                   {cell}

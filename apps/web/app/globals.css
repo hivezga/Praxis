@@ -4,6 +4,12 @@
 
 :root {
   color-scheme: dark;
+  --paper:        #0c1019;
+  --ink:          #e8e6e1;
+  --ink-soft:     #b9b4a8;
+  --ink-mute:     #6f6a5e;
+  --rule:         rgba(232, 230, 225, 0.08);
+  --rule-strong:  rgba(232, 230, 225, 0.16);
 }
 
 html,
@@ -12,38 +18,93 @@ body {
 }
 
 body {
-  background: #0b0f17;
-  color: #e5e7eb;
+  background: var(--paper);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "kern";
+}
+
+/* Numerals: tabular figures so columns line up. */
+.font-mono {
+  font-variant-numeric: tabular-nums;
 }
 
 @layer components {
+  /* ── Surfaces ─────────────────────────────────────────────────────── */
   .panel {
-    @apply rounded-xl border border-slate-700/50 bg-slate-900/70 p-4;
+    @apply rounded-lg border border-slate-800/70 bg-slate-900/40 p-5;
+  }
+  .panel-quiet {
+    @apply rounded-lg border border-slate-800/40 bg-slate-950/30 p-4;
   }
   .panel-title {
-    @apply mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500;
+    @apply mb-3 font-serif text-[11px] font-normal uppercase italic tracking-[0.25em] text-slate-500;
   }
+
+  /* ── Typography helpers ───────────────────────────────────────────── */
+  .editorial-h1 {
+    @apply font-serif text-5xl font-light leading-[1.05] tracking-tight text-slate-100 sm:text-6xl;
+  }
+  .editorial-h2 {
+    @apply font-serif text-3xl font-light leading-tight text-slate-100;
+  }
+  .editorial-h3 {
+    @apply font-serif text-xl font-normal italic text-slate-200;
+  }
+  .editorial-eyebrow {
+    @apply font-serif text-[11px] uppercase italic tracking-[0.3em] text-slate-500;
+  }
+  .editorial-lede {
+    @apply font-serif text-lg font-light leading-relaxed text-slate-300;
+  }
+
+  /* ── Stats ────────────────────────────────────────────────────────── */
   .stat-num {
     @apply font-mono text-xl font-semibold text-slate-100;
   }
   .stat-label {
-    @apply text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500;
+    @apply text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500;
   }
+
+  /* Primary stat block — used for hero values like Money, VP */
+  .stat-primary {
+    @apply flex items-baseline gap-3 rounded-md border border-slate-800/60 bg-slate-950/30 px-4 py-3;
+  }
+  .stat-primary-label {
+    @apply font-serif text-xs uppercase italic tracking-[0.25em] text-slate-500;
+  }
+  .stat-primary-value {
+    @apply font-mono text-3xl font-light tracking-tight text-slate-100;
+  }
+
+  /* ── Buttons ──────────────────────────────────────────────────────── */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-950;
+    @apply inline-flex items-center justify-center rounded-md border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-950;
   }
   .btn-primary {
-    @apply border-indigo-600/60 bg-indigo-600 text-white hover:bg-indigo-500 hover:border-indigo-500;
+    @apply border-amber-400/40 bg-amber-400/10 text-amber-100 hover:border-amber-300/60 hover:bg-amber-400/20 hover:text-amber-50;
   }
   .btn-ghost {
-    @apply border-transparent bg-transparent hover:bg-slate-800 hover:border-slate-700;
+    @apply border-transparent bg-transparent hover:bg-slate-800/60 hover:border-slate-700/60;
   }
   .btn-danger {
-    @apply border-rose-700/40 bg-rose-900/20 text-rose-400 hover:bg-rose-800/30 hover:text-rose-300;
+    @apply border-rose-700/40 bg-rose-900/20 text-rose-300 hover:bg-rose-800/30 hover:text-rose-200;
   }
+
+  /* ── Inputs ───────────────────────────────────────────────────────── */
   .input {
-    @apply w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 transition-colors focus:border-indigo-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500;
+    @apply w-full rounded-md border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 transition-colors focus:border-amber-400/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/40;
+  }
+
+  /* ── Ornament ─────────────────────────────────────────────────────── */
+  .ornament {
+    @apply text-slate-700;
+  }
+  .ornament::before {
+    content: "◆";
+  }
+  .rule-soft {
+    @apply border-t border-slate-800/40;
   }
 }

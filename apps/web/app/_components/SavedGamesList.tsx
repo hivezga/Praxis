@@ -25,21 +25,26 @@ export function SavedGamesList() {
   if (!loaded) return null;
   return (
     <section>
-      <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-        Saved games
-      </h3>
+      <p className="editorial-eyebrow mb-6">Saved games</p>
       {metas.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 p-6 text-center text-sm text-slate-600">
-          No saved games yet. Start one above.
+        <div className="rounded-lg border border-dashed border-slate-800/60 bg-slate-900/20 p-8 text-center">
+          <p className="font-serif text-sm italic text-slate-500">
+            No saved games yet — start one above.
+          </p>
         </div>
       ) : (
-        <ul className="divide-y divide-slate-800/60 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60">
+        <ul className="divide-y divide-slate-800/40 overflow-hidden rounded-lg border border-slate-800/60 bg-slate-900/30">
           {metas.map((m) => (
-            <li key={m.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
+            <li
+              key={m.id}
+              className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-900/50"
+            >
               <div className="min-w-0">
-                <div className="truncate font-medium text-slate-100">{m.name}</div>
-                <div className="mt-0.5 truncate text-xs text-slate-500">
-                  {m.mode === "solo" ? "Solo" : "Party"} · {m.playerCount}p · round{" "}
+                <div className="truncate font-serif text-base font-normal text-slate-100">
+                  {m.name}
+                </div>
+                <div className="mt-1 truncate text-xs text-slate-500">
+                  {m.mode === "solo" ? "Solo" : "Party"} · {m.playerCount} players · round{" "}
                   {m.round} · {new Date(m.updatedAt).toLocaleString()}
                 </div>
               </div>
@@ -49,7 +54,7 @@ export function SavedGamesList() {
                 </Link>
                 <button
                   type="button"
-                  className="btn btn-ghost text-xs text-rose-400 hover:text-rose-300"
+                  className="btn btn-ghost text-xs text-rose-400/80 hover:text-rose-300"
                   onClick={() => remove(m.id)}
                 >
                   Delete

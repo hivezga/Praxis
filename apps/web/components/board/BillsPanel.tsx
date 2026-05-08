@@ -28,14 +28,14 @@ export function BillsPanel() {
   if (!state) return null;
   return (
     <section className="panel">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <div className="panel-title m-0">Pending Bills</div>
         <button type="button" className="btn text-xs" onClick={() => setOpen(true)}>
           + Propose
         </button>
       </div>
       {state.bills.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-slate-800 p-3 text-xs text-slate-500">
+        <p className="rounded-md border border-dashed border-slate-800/60 p-3 font-serif text-xs italic text-slate-500">
           No bills proposed for the next election.
         </p>
       ) : (
@@ -43,7 +43,7 @@ export function BillsPanel() {
           {state.bills.map((b) => (
             <li
               key={b.id}
-              className="flex items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2.5"
+              className="flex items-center justify-between gap-2 rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2.5"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">

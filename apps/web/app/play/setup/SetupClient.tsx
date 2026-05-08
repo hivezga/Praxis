@@ -22,39 +22,42 @@ const DEFAULT_EXPANSIONS: ExpansionFlags = {
 
 const ALL_CLASSES: ClassId[] = ["working", "middle", "capitalist", "state"];
 
-const CLASS_META: Record<ClassId, { label: string; desc: string; active: string; inactive: string }> = {
+const CLASS_META: Record<
+  ClassId,
+  { label: string; desc: string; active: string; inactive: string }
+> = {
   working: {
-    label: "Working Class",
-    desc: "Labor, unions & welfare",
+    label:    "Working Class",
+    desc:     "Labor, unions & welfare",
     active:   "border-working/60 bg-working/10 text-working",
-    inactive: "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-600",
+    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
   },
   middle: {
-    label: "Middle Class",
-    desc: "Companies & savings",
+    label:    "Middle Class",
+    desc:     "Companies & savings",
     active:   "border-middle/60 bg-middle/10 text-middle",
-    inactive: "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-600",
+    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
   },
   capitalist: {
-    label: "Capitalist Class",
-    desc: "Capital & revenue",
+    label:    "Capitalist Class",
+    desc:     "Capital & revenue",
     active:   "border-capitalist/60 bg-capitalist/10 text-capitalist",
-    inactive: "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-600",
+    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
   },
   state: {
-    label: "The State",
-    desc: "Treasury & legitimacy",
+    label:    "The State",
+    desc:     "Treasury & legitimacy",
     active:   "border-state/60 bg-state/10 text-state",
-    inactive: "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-600",
+    inactive: "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600",
   },
 };
 
 const MODULE_LABELS: Record<keyof ExpansionFlags["modules"], string> = {
-  automa:              "Automa (solo opponent)",
-  crisisCards:         "Crisis cards",
-  alternativeEvents:   "Alternative events",
-  hiddenAgendas:       "Hidden agendas",
-  newActionCards:      "New action cards",
+  automa:            "Automa (solo opponent)",
+  crisisCards:       "Crisis cards",
+  alternativeEvents: "Alternative events",
+  hiddenAgendas:     "Hidden agendas",
+  newActionCards:    "New action cards",
 };
 
 export function SetupClient() {
@@ -98,28 +101,35 @@ export function SetupClient() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <Link href="/" className="text-xs text-slate-500 transition-colors hover:text-slate-300">
-        ← Back
+    <main className="mx-auto max-w-2xl px-6 py-16">
+      <Link
+        href="/"
+        className="font-serif text-xs italic text-slate-500 transition-colors hover:text-slate-300"
+      >
+        ← Back to home
       </Link>
-      <h1 className="mt-3 text-3xl font-light tracking-tight text-slate-100">New game</h1>
-      <p className="mt-1 text-sm text-slate-500">Configure your session, then start tracking.</p>
 
-      <div className="mt-8 space-y-7">
+      <header className="mb-12 mt-6 border-b border-slate-800/40 pb-8">
+        <p className="editorial-eyebrow">A new session</p>
+        <h1 className="editorial-h2 mt-3">Configure & begin</h1>
+        <p className="mt-3 font-serif text-sm italic leading-relaxed text-slate-500">
+          A few choices first — then Praxis sets up the board state for you.
+        </p>
+      </header>
+
+      <div className="space-y-10">
         {/* Game name */}
-        <div>
-          <div className="panel-title">Game name</div>
+        <Field label="Game name" hint="Optional. A friendly title for your saved sessions.">
           <input
             className="input"
             placeholder="Tuesday night at Sam's"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-        </div>
+        </Field>
 
         {/* Mode */}
-        <div>
-          <div className="panel-title">Mode</div>
+        <Field label="Mode">
           <div className="grid grid-cols-2 gap-3">
             {(["party", "solo"] as GameMode[]).map((m) => (
               <button
@@ -127,26 +137,32 @@ export function SetupClient() {
                 type="button"
                 aria-pressed={mode === m}
                 onClick={() => setMode(m)}
-                className={`rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                className={`rounded-lg border px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
                   mode === m
-                    ? "border-indigo-500/60 bg-indigo-600/15 text-slate-100"
-                    : "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-600"
+                    ? "border-amber-400/40 bg-amber-400/10 text-amber-100"
+                    : "border-slate-700/60 bg-slate-900/40 text-slate-400 hover:border-slate-600"
                 }`}
               >
-                <div className="font-medium capitalize">
+                <div className="font-serif text-lg font-normal capitalize">
                   {m === "party" ? "Party" : "Solo"}
                 </div>
-                <div className="mt-0.5 text-xs text-slate-500">
-                  {m === "party" ? "One screen, 2–4 players" : "One player + automa"}
+                <div className="mt-1 font-serif text-xs italic text-slate-500">
+                  {m === "party" ? "One screen, two to four players" : "One player against an automa"}
                 </div>
               </button>
             ))}
           </div>
-        </div>
+        </Field>
 
         {/* Player count */}
-        <div>
-          <div className="panel-title">Player count</div>
+        <Field
+          label="Player count"
+          hint={
+            playerCount < 4
+              ? "The State class is only used in 4-player games. Toggle it off below."
+              : undefined
+          }
+        >
           <div className="flex gap-2">
             {([2, 3, 4] as const).map((n) => (
               <button
@@ -160,16 +176,10 @@ export function SetupClient() {
               </button>
             ))}
           </div>
-          {playerCount < 4 ? (
-            <p className="mt-2 text-xs text-slate-600">
-              The State class is only used in 4-player games. Toggle it off below.
-            </p>
-          ) : null}
-        </div>
+        </Field>
 
         {/* Classes */}
-        <div>
-          <div className="panel-title">Classes in play</div>
+        <Field label="Classes in play">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {ALL_CLASSES.map((c) => {
               const active = classes.has(c);
@@ -180,24 +190,27 @@ export function SetupClient() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => toggleClass(c)}
-                  className={`rounded-xl border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                  className={`rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ${
                     active ? meta.active : meta.inactive
                   }`}
                 >
-                  <div className="text-sm font-medium">{meta.label}</div>
-                  <div className={`mt-0.5 text-[10px] ${active ? "opacity-70" : "text-slate-600"}`}>
+                  <div className="font-serif text-sm font-normal">{meta.label}</div>
+                  <div
+                    className={`mt-1 font-serif text-[11px] italic ${
+                      active ? "opacity-70" : "text-slate-600"
+                    }`}
+                  >
                     {meta.desc}
                   </div>
                 </button>
               );
             })}
           </div>
-        </div>
+        </Field>
 
         {/* Expansion */}
-        <div>
-          <div className="panel-title">Expansion: Crisis &amp; Control</div>
-          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-sm text-slate-300 transition-colors hover:border-slate-600">
+        <Field label="Expansion: Crisis & Control">
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700/60 bg-slate-900/40 px-4 py-3 text-sm text-slate-300 transition-colors hover:border-slate-600">
             <input
               type="checkbox"
               className="rounded border-slate-600"
@@ -206,43 +219,65 @@ export function SetupClient() {
                 setExpansions((p) => ({ ...p, crisisAndControl: e.target.checked }))
               }
             />
-            Enable Crisis &amp; Control
+            <span className="font-serif text-base">Enable Crisis &amp; Control</span>
           </label>
           {expansions.crisisAndControl ? (
-            <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-              {(Object.keys(expansions.modules) as (keyof ExpansionFlags["modules"])[]).map((k) => (
-                <label
-                  key={k}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-300 transition-colors hover:border-slate-700"
-                >
-                  <input
-                    type="checkbox"
-                    className="rounded border-slate-600"
-                    checked={expansions.modules[k]}
-                    onChange={(e) => setExp(k, e.target.checked)}
-                  />
-                  {MODULE_LABELS[k]}
-                </label>
-              ))}
+            <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+              {(Object.keys(expansions.modules) as (keyof ExpansionFlags["modules"])[]).map(
+                (k) => (
+                  <label
+                    key={k}
+                    className="flex cursor-pointer items-center gap-2.5 rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2 text-xs text-slate-300 transition-colors hover:border-slate-700"
+                  >
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-600"
+                      checked={expansions.modules[k]}
+                      onChange={(e) => setExp(k, e.target.checked)}
+                    />
+                    {MODULE_LABELS[k]}
+                  </label>
+                ),
+              )}
             </div>
           ) : null}
-        </div>
+        </Field>
 
         {/* CTA */}
-        <div className="pt-2">
+        <div className="border-t border-slate-800/40 pt-6">
           <button
             type="button"
-            className="btn btn-primary px-6 py-2.5 text-base"
+            className="btn btn-primary px-6 py-3 font-serif text-base"
             onClick={start}
             disabled={classes.size === 0}
           >
             Start game →
           </button>
           {classes.size === 0 ? (
-            <p className="mt-2 text-xs text-slate-600">Select at least one class to start.</p>
+            <p className="mt-2 font-serif text-xs italic text-slate-500">
+              Select at least one class to start.
+            </p>
           ) : null}
         </div>
       </div>
     </main>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="editorial-eyebrow mb-3">{label}</p>
+      {children}
+      {hint ? <p className="mt-2 font-serif text-xs italic text-slate-500">{hint}</p> : null}
+    </div>
   );
 }

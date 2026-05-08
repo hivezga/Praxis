@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Crimson_Pro, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
 import "./globals.css";
 import { WasmBootstrap } from "./_components/WasmBootstrap";
@@ -18,6 +18,14 @@ const mono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const serif = Crimson_Pro({
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Praxis — Hegemony companion tracker",
   description:
@@ -27,7 +35,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${mono.variable} font-sans min-h-full`}>
+      <body className={`${sans.variable} ${mono.variable} ${serif.variable} font-sans min-h-full`}>
         <WasmBootstrap />
         <div className="min-h-screen">{children}</div>
       </body>

@@ -92,11 +92,13 @@ export function EndRoundWizard({ open, onClose }: Props) {
         </>
       }
     >
-      <div className="space-y-5 text-sm">
-        <p className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-400">
+      <div className="space-y-6 text-sm">
+        <p className="rounded-md border border-slate-800/60 bg-slate-950/40 px-4 py-3 font-serif text-[13px] italic leading-relaxed text-slate-400">
           Tax multiplier this round:{" "}
-          <strong className="font-mono text-slate-200">×{suggestion.taxes.multiplier}</strong>.{" "}
-          Editable fields (highlighted) override the computed suggestions.
+          <strong className="not-italic font-mono text-slate-200">
+            ×{suggestion.taxes.multiplier}
+          </strong>
+          . Editable fields (highlighted) override the computed suggestions.
         </p>
 
         <Section title="Taxes → Treasury">
@@ -135,8 +137,8 @@ export function EndRoundWizard({ open, onClose }: Props) {
           </p>
         </Section>
 
-        <section className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-          <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+        <section className="rounded-md border border-slate-800/60 bg-slate-950/40 p-5">
+          <h4 className="mb-4 font-serif text-[11px] uppercase italic tracking-[0.25em] text-slate-500">
             Net cash impact
           </h4>
           <div className="grid grid-cols-4 gap-3 text-center">
@@ -154,7 +156,9 @@ export function EndRoundWizard({ open, onClose }: Props) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">{title}</h4>
+      <h4 className="mb-3 font-serif text-[11px] uppercase italic tracking-[0.25em] text-slate-500">
+        {title}
+      </h4>
       {children}
     </section>
   );
@@ -162,9 +166,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2.5">
+    <div className="rounded-md border border-slate-800/60 bg-slate-950/30 px-3 py-2.5">
       <div className="stat-label">{label}</div>
-      <div className="mt-0.5 font-mono text-base font-semibold text-slate-200">{value}</div>
+      <div className="mt-0.5 font-mono text-base font-light text-slate-200">{value}</div>
     </div>
   );
 }
@@ -179,11 +183,13 @@ function EditableStat({
   onChange: (next: number | null) => void;
 }) {
   return (
-    <div className="rounded-lg border border-indigo-700/40 bg-indigo-950/30 px-3 py-2.5">
-      <div className="stat-label text-indigo-300/70">{label}</div>
+    <div className="rounded-md border border-amber-400/30 bg-amber-400/[0.04] px-3 py-2.5">
+      <div className="font-serif text-[10px] uppercase italic tracking-[0.2em] text-amber-200/70">
+        {label}
+      </div>
       <input
         type="number"
-        className="input mt-1 border-indigo-700/30 bg-transparent font-mono focus:border-indigo-500"
+        className="input mt-1.5 border-amber-400/20 bg-transparent font-mono focus:border-amber-400/60"
         value={value}
         onChange={(e) => {
           const n = Number(e.target.value);
@@ -197,10 +203,17 @@ function EditableStat({
 function NetCell({ label, value }: { label: string; value: number }) {
   const positive = value >= 0;
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/30 py-2">
-      <div className="stat-label">{label}</div>
-      <div className={`mt-0.5 font-mono text-xl font-semibold ${positive ? "text-emerald-400" : "text-rose-400"}`}>
-        {positive ? "+" : ""}{value}
+    <div className="rounded-md border border-slate-800/60 bg-slate-950/40 py-3">
+      <div className="font-serif text-[10px] uppercase italic tracking-[0.2em] text-slate-500">
+        {label}
+      </div>
+      <div
+        className={`mt-1 font-mono text-2xl font-light ${
+          positive ? "text-emerald-400" : "text-rose-400"
+        }`}
+      >
+        {positive ? "+" : ""}
+        {value}
       </div>
     </div>
   );

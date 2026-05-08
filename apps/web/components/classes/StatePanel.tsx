@@ -23,10 +23,18 @@ export function StatePanel() {
   const sc = state.classes.state;
   return (
     <ClassPanelShell classId="state">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Counter label="Treasury"          value={sc.treasury}             onAdjust={(d) => adjust("state", "treasury", d)}             onSet={(v) => setVal("state", "treasury", v)} max={9999} />
-        <Counter label="VP track"          value={sc.vp}                   onAdjust={(d) => adjust("state", "vp", d)}                   onSet={(v) => setVal("state", "vp", v)} />
+      {/* Primary stats */}
+      <div className="grid gap-2 sm:grid-cols-2">
         <Counter
+          size="lg"
+          label="Treasury"
+          value={sc.treasury}
+          onAdjust={(d) => adjust("state", "treasury", d)}
+          onSet={(v) => setVal("state", "treasury", v)}
+          max={9999}
+        />
+        <Counter
+          size="lg"
           label="Personal influence"
           value={sc.storage.influence}
           onAdjust={(d) =>
@@ -36,9 +44,17 @@ export function StatePanel() {
             apply({ type: "adjustStorage", classId: "state", good: "influence", delta: v - sc.storage.influence }, `state.storage.influence = ${v}`)
           }
         />
-        <Counter label="Loans"        value={sc.loans}               onAdjust={(d) => adjust("state", "loans", d)}               onSet={(v) => setVal("state", "loans", v)} />
-        <Counter label="Bill markers" value={sc.billMarkersAvailable} onAdjust={(d) => adjust("state", "billMarkersAvailable", d)} onSet={(v) => setVal("state", "billMarkersAvailable", v)} max={3} />
       </div>
+
+      <div>
+        <div className="panel-title">Action economy</div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <Counter label="VP track"     value={sc.vp}                   onAdjust={(d) => adjust("state", "vp", d)}                   onSet={(v) => setVal("state", "vp", v)} />
+          <Counter label="Loans"        value={sc.loans}                onAdjust={(d) => adjust("state", "loans", d)}               onSet={(v) => setVal("state", "loans", v)} />
+          <Counter label="Bill markers" value={sc.billMarkersAvailable} onAdjust={(d) => adjust("state", "billMarkersAvailable", d)} onSet={(v) => setVal("state", "billMarkersAvailable", v)} max={3} />
+        </div>
+      </div>
+
       <div>
         <div className="panel-title">Legitimacy (current)</div>
         <div className="grid grid-cols-3 gap-2">
@@ -58,6 +74,7 @@ export function StatePanel() {
           ))}
         </div>
       </div>
+
       <div>
         <div className="panel-title">Legitimacy tokens (permanent)</div>
         <div className="grid grid-cols-3 gap-2">
@@ -76,6 +93,7 @@ export function StatePanel() {
           ))}
         </div>
       </div>
+
       <div>
         <div className="panel-title">Storage</div>
         <div className="grid grid-cols-2 gap-2">
@@ -101,6 +119,7 @@ export function StatePanel() {
           />
         </div>
       </div>
+
       <div>
         <div className="panel-title">Notes</div>
         <textarea
