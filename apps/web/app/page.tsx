@@ -5,41 +5,56 @@ import { SavedGamesList } from "./_components/SavedGamesList";
 import { ThemeToggle } from "./_components/ThemeToggle";
 
 export default function HomePage() {
+  const today = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
   return (
-    <main id="main" className="mx-auto max-w-5xl px-5 py-12 sm:px-6 sm:py-20">
+    <main id="main" className="mx-auto max-w-5xl px-5 py-12 sm:px-6 sm:py-16">
       <OnboardingModal />
 
-      {/* Masthead — civic-poster */}
-      <header className="relative mb-12 border-b-2 border-rule/60 pb-10 sm:mb-16 sm:pb-12">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="h-2 w-10 bg-working" aria-hidden />
-          <span className="h-2 w-10 bg-middle" aria-hidden />
-          <span className="h-2 w-10 bg-capitalist" aria-hidden />
-          <span className="h-2 w-10 bg-state" aria-hidden />
-          <span className="poster-eyebrow ml-2">Companion tracker</span>
+      {/* Masthead — broadsheet drop folio with hairline strip + italic byline */}
+      <header className="relative mb-12 sm:mb-16">
+        {/* Strip: descriptor · date · disclaimer */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-b border-rule/40 pb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-inkMute">
+          <span>Companion tracker</span>
+          <span className="hidden sm:inline">{today}</span>
+          <span className="sm:text-right">An unaffiliated fan project</span>
         </div>
-        <h1 className="poster-h1">Praxis</h1>
-        <p className="editorial-lede mt-5 max-w-2xl">
-          For{" "}
-          <em className="text-ink">Hegemony — Lead Your Class to Victory</em>.
-          Resources, taxes, payments, population and policies — kept in order so the
-          evening is spent playing, not doing arithmetic.
+
+        <h1 className="poster-h1 mt-3 text-center sm:mt-4">Praxis</h1>
+
+        <hr className="mt-2 border-0 border-t-2 border-rule/60" />
+
+        <p className="mx-auto mt-4 max-w-2xl text-center font-serif text-fluid-base italic leading-relaxed text-inkSoft text-pretty sm:mt-5 sm:text-fluid-lg">
+          A bookkeeper for{" "}
+          <em className="not-italic text-ink">Hegemony — Lead Your Class to Victory</em>.
+          Resources, taxes, payments and policies — kept in order so the evening
+          is spent playing.
         </p>
-        <p className="mt-4 font-serif text-fluid-xs italic text-inkMute">
-          An unaffiliated fan project — not associated with Hegemonic Project Games.
-        </p>
+
+        {/* Four-bar palette ribbon */}
+        <div className="mt-5 flex justify-center gap-1.5" aria-hidden>
+          <span className="h-2 w-12 bg-working sm:w-14" />
+          <span className="h-2 w-12 bg-middle sm:w-14" />
+          <span className="h-2 w-12 bg-capitalist sm:w-14" />
+          <span className="h-2 w-12 bg-state sm:w-14" />
+        </div>
       </header>
 
       {/* Two starting paths */}
-      <section className="mb-16 sm:mb-20">
-        <p className="poster-eyebrow mb-6">Begin a session</p>
+      <section className="mb-14 sm:mb-20">
+        <p className="poster-eyebrow mb-4">Begin a session</p>
         <div className="grid gap-px overflow-hidden rounded-md border border-rule/60 bg-surfaceSoft/40 sm:grid-cols-2">
           <ModeCard
             href="/play/setup?mode=party"
             tag="Party mode"
             title="Around one screen"
             description="Two to four players share a tablet or laptop. Hidden information receives a privacy curtain."
-            accent="bg-accent"
+            accentClass="bg-working"
+            tagClass="text-working"
             footer={
               <div className="flex gap-1" aria-hidden>
                 <FactionBar className="bg-working" />
@@ -54,7 +69,8 @@ export default function HomePage() {
             tag="Solo mode"
             title="Just me & the automa"
             description="Track your class plus a simplified opponent state for Crisis & Control automa play."
-            accent="bg-accentSoft"
+            accentClass="bg-capitalist"
+            tagClass="text-capitalist"
             footer={
               <span className="font-serif text-fluid-xs italic text-inkMute">
                 Crisis &amp; Control expansion supported
@@ -108,14 +124,16 @@ function ModeCard({
   tag,
   title,
   description,
-  accent,
+  accentClass,
+  tagClass,
   footer,
 }: {
   href: string;
   tag: string;
   title: string;
   description: string;
-  accent: string;
+  accentClass: string;
+  tagClass: string;
   footer: React.ReactNode;
 }) {
   return (
@@ -123,9 +141,9 @@ function ModeCard({
       href={href}
       className="group relative flex min-w-0 flex-col justify-between gap-6 bg-paper/60 p-6 transition-colors hover:bg-surface/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper sm:p-8"
     >
-      <span aria-hidden className={`absolute left-0 top-0 h-1.5 w-full ${accent} opacity-90`} />
+      <span aria-hidden className={`absolute left-0 top-0 h-1.5 w-full ${accentClass}`} />
       <div className="min-w-0">
-        <p className="poster-eyebrow text-accentInk">{tag}</p>
+        <p className={`poster-eyebrow ${tagClass}`}>{tag}</p>
         <h2 className="poster-h2 mt-3 text-balance">{title}</h2>
         <p className="mt-4 max-w-md font-serif text-fluid-base leading-relaxed text-inkSoft text-pretty">
           {description}
@@ -137,5 +155,5 @@ function ModeCard({
 }
 
 function FactionBar({ className }: { className: string }) {
-  return <span className={`h-1.5 w-10 rounded-sm opacity-80 ${className}`} />;
+  return <span className={`h-1.5 w-10 rounded-sm opacity-90 ${className}`} />;
 }

@@ -13,8 +13,9 @@ import { StatePanel } from "@/components/classes/StatePanel";
 import { WorkingPanel } from "@/components/classes/WorkingPanel";
 import { ScoringPanel } from "@/components/scoring/ScoringPanel";
 import { ErrorBoundary, PanelErrorFallback } from "@/components/shared/ErrorBoundary";
+import { wasm } from "@/lib/wasm";
 import { useGame, useGameState } from "@/lib/store";
-import type { ClassId } from "@/lib/types/game";
+import type { ClassId, GameState } from "@/lib/types/game";
 
 // Lazy-load the wizard — it's only opened on demand and pulls in WASM phase logic.
 const EndRoundWizard = dynamic(
@@ -88,7 +89,7 @@ export default function GamePage() {
       <RoundPhaseHeader onOpenEndRound={() => setEndRoundOpen(true)} />
       <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-3 py-4 sm:px-5 sm:py-5">
         {/* Game identity row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule/40 pb-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-b border-rule/40 pb-4">
           <div className="min-w-0">
             <h1 className="font-display text-fluid-xl uppercase tracking-tight text-ink">
               {state.meta.name}
@@ -98,7 +99,8 @@ export default function GamePage() {
               {state.meta.expansions.crisisAndControl ? " · Crisis & Control" : ""}
             </p>
           </div>
-          <Link href="/" className="btn btn-ghost">
+          <ScoreLine state={state} classes={state.meta.classesInPlay} />
+          <Link href="/" className="btn btn-ghost shrink-0">
             ← Saved games
           </Link>
         </div>
@@ -160,6 +162,34 @@ export default function GamePage() {
         </div>
       </main>
       <EndRoundWizard open={endRoundOpen} onClose={() => setEndRoundOpen(false)} />
+    </div>
+  );
+}
+
+const SCORE_RAIL: Record<ClassId, string> = {
+  working:    "bg-working",
+  middle:     "bg-middle",
+  capitalist: "bg-capitalist",
+  state:      "bg-state",
+};
+
+function ScoreLine({ state, classes }: { state: GameState; classes: ClassId[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Victory points by class">
+      {classes.map((c) => {
+        const vp = wasm().compute_vp_wasm(state, c) as { total: number };
+        return (
+          <div key={c} className="flex items-center gap-2">
+            <span aria-hidden className={`block h-7 w-2 ${SCORE_RAIL[c]}`} />
+            <span className="font-mono text-fluid-lg font-medium leading-none text-ink">
+              {vp.total}
+            </span>
+            <span className="font-display text-[10px] uppercase tracking-[0.18em] text-inkMute">
+              vp
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

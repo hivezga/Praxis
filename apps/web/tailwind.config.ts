@@ -11,16 +11,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Faction accents — picked to read on both light and dark backgrounds.
-        // Doctrinal hex values; do not change.
-        // DEFAULT is the doctrinal hex — used for stripes, rails, identity
-        // marks. `-deep` is a darker AA-passing shade for text/headers on
-        // light surfaces. `-soft` is the pastel tint. `-ink` is the
-        // text-on-deep contrast colour (near-white but tinted to match).
-        working:    { DEFAULT: "#dc2626", deep: "#991b1b", soft: "#fee2e2", ink: "#fef2f2" }, // red-600 / red-800
-        middle:     { DEFAULT: "#16a34a", deep: "#166534", soft: "#dcfce7", ink: "#f0fdf4" }, // green-600 / green-800
-        capitalist: { DEFAULT: "#2563eb", deep: "#1e40af", soft: "#dbeafe", ink: "#eff6ff" }, // blue-600 / blue-800
-        state:      { DEFAULT: "#9333ea", deep: "#6b21a8", soft: "#f3e8ff", ink: "#faf5ff" }, // purple-600 / purple-800
+        // Faction accents — Civic poster palette (oklch-derived, hex-encoded
+        // so Tailwind alpha modifiers like bg-working/15 keep working).
+        // DEFAULT = brand swatch (full saturation) used for bands, stripes,
+        // rails. `-deep` is the darker shade for chips on neutral surfaces.
+        // `-soft` is the pale tint. `-ink` is the contrast text colour for
+        // headers placed directly on DEFAULT.
+        working:    { DEFAULT: "#c73c2c", deep: "#9b2a1d", soft: "#f7d6cb", ink: "#fefaf8" }, // oxblood / madder
+        middle:     { DEFAULT: "#d59b35", deep: "#ad781a", soft: "#f5e8cf", ink: "#2a2218" }, // ochre — text is dark
+        capitalist: { DEFAULT: "#2d3aa9", deep: "#1f2880", soft: "#dde1f5", ink: "#fafbff" }, // ink-navy
+        state:      { DEFAULT: "#1e7349", deep: "#145731", soft: "#d6ecdc", ink: "#f8fcf9" }, // olive
 
         // Semantic tokens backed by CSS vars in globals.css.
         // Format: rgb triplet without alpha, so Tailwind's /<alpha> still works.

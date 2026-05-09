@@ -43,33 +43,32 @@ function JoinPageInner() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-md px-5 py-12 sm:px-6 sm:py-16">
+    <main
+      id="main"
+      className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-[460px] flex-col justify-center px-5 py-10 sm:px-6"
+    >
       <Link
         href="/"
-        className="inline-flex min-h-tap items-center font-serif text-fluid-sm italic text-inkMute transition-colors hover:text-inkSoft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="inline-flex min-h-tap items-center self-start font-serif text-fluid-sm italic text-inkMute transition-colors hover:text-inkSoft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         ← Back to home
       </Link>
 
-      <header className="mb-10 mt-6 border-b border-rule/40 pb-8">
-        <p className="poster-eyebrow">A friend has invited you</p>
-        <h1 className="poster-h2 mt-3">Join a party room</h1>
-        <p className="mt-3 font-serif text-fluid-sm italic leading-relaxed text-inkMute">
-          Enter the six-character code your host shared. You’ll see the game live as
-          changes happen — only the host can edit values.
+      <header className="mt-8 text-center">
+        <p className="poster-eyebrow">Joining a friend</p>
+        <h1 className="poster-h2 mt-3">Enter room code</h1>
+        <p className="mx-auto mt-3 max-w-sm font-serif text-fluid-sm italic leading-relaxed text-inkMute">
+          Six characters. Case insensitive. Only the host can edit values.
         </p>
       </header>
 
-      <div className="space-y-5">
-        <div>
-          <p className="poster-eyebrow mb-3">Room code</p>
-          <JoinCodeInput
-            value={code}
-            disabled={busy}
-            onChange={setCode}
-            onComplete={(c) => attempt(c)}
-          />
-        </div>
+      <div className="mt-8 space-y-5">
+        <JoinCodeInput
+          value={code}
+          disabled={busy}
+          onChange={setCode}
+          onComplete={(c) => attempt(c)}
+        />
 
         {error ? (
           <p
@@ -86,7 +85,7 @@ function JoinPageInner() {
           onClick={() => attempt(code)}
           disabled={code.length !== 6 || busy}
         >
-          {busy ? "Connecting…" : "Join room"}
+          {busy ? "Connecting…" : "Join session →"}
         </button>
 
         <p className="text-center font-serif text-fluid-xs italic text-inkMute">

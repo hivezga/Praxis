@@ -22,29 +22,29 @@ const ACCENT: Record<
   { band: string; rail: string; tint: string; label: string; subtitle: string }
 > = {
   working: {
-    band:     "bg-working-deep text-working-ink",
-    rail:     "bg-working",
+    band:     "bg-working text-working-ink",
+    rail:     "bg-working-deep",
     tint:     "bg-working/[0.04]",
     label:    "Working Class",
     subtitle: "Labor · unions · welfare",
   },
   middle: {
-    band:     "bg-middle-deep text-middle-ink",
-    rail:     "bg-middle",
+    band:     "bg-middle text-middle-ink",
+    rail:     "bg-middle-deep",
     tint:     "bg-middle/[0.04]",
     label:    "Middle Class",
     subtitle: "Companies · capital · savings",
   },
   capitalist: {
-    band:     "bg-capitalist-deep text-capitalist-ink",
-    rail:     "bg-capitalist",
+    band:     "bg-capitalist text-capitalist-ink",
+    rail:     "bg-capitalist-deep",
     tint:     "bg-capitalist/[0.04]",
     label:    "Capitalist Class",
     subtitle: "Revenue · capital · industry",
   },
   state: {
-    band:     "bg-state-deep text-state-ink",
-    rail:     "bg-state",
+    band:     "bg-state text-state-ink",
+    rail:     "bg-state-deep",
     tint:     "bg-state/[0.04]",
     label:    "The State",
     subtitle: "Treasury · legitimacy · policy",

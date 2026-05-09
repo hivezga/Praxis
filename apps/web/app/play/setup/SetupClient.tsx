@@ -138,10 +138,11 @@ export function SetupClient() {
         ← Back to home
       </Link>
 
-      <header className="mb-12 mt-6 border-b border-rule/40 pb-8">
-        <p className="poster-eyebrow">A new session</p>
-        <h1 className="poster-h2 mt-3">Configure & begin</h1>
-        <p className="mt-3 font-serif text-fluid-sm italic leading-relaxed text-inkMute">
+      <header className="mb-12 mt-6">
+        <p className="poster-eyebrow">Set up the table</p>
+        <h1 className="poster-h1 mt-3">New session</h1>
+        <hr className="mt-4 border-0 border-t-2 border-rule/60" />
+        <p className="mt-4 max-w-xl font-serif text-fluid-base italic leading-relaxed text-inkSoft text-pretty">
           A few choices first — then Praxis sets up the board state for you.
         </p>
       </header>
@@ -197,18 +198,27 @@ export function SetupClient() {
               : undefined
           }
         >
-          <div className="flex flex-wrap gap-2">
-            {([2, 3, 4] as const).map((n) => (
-              <button
-                key={n}
-                type="button"
-                aria-pressed={playerCount === n}
-                onClick={() => setPlayerCount(n)}
-                className={`btn ${playerCount === n ? "btn-primary" : ""}`}
-              >
-                {n} players
-              </button>
-            ))}
+          <div className="flex overflow-hidden rounded-sharp border-2 border-rule/60">
+            {([2, 3, 4] as const).map((n, i) => {
+              const active = playerCount === n;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setPlayerCount(n)}
+                  className={`min-h-tap flex-1 px-4 py-4 font-display text-fluid-xl uppercase tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
+                    i > 0 ? "border-l-2 border-rule/60" : ""
+                  } ${
+                    active
+                      ? "bg-ink text-paper"
+                      : "bg-surface/40 text-inkSoft hover:bg-surface/60"
+                  }`}
+                >
+                  {n}
+                </button>
+              );
+            })}
           </div>
         </Field>
 
