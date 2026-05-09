@@ -76,47 +76,58 @@ jobs:
         #   wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm
         #   git add packages/hegemony-wasm && git commit
         run: |
-          set -euo pipefail
+          set -uo pipefail
           WASM=packages/hegemony-wasm/hegemony_core_bg.wasm
           if [ ! -f "$WASM" ]; then
             echo "::error::Committed WASM not found at $WASM"
             exit 1
           fi
-          # Extract Mutation variant names. Variants are PascalCase one per
-          # line, between `pub enum Mutation {` and the closing `}`. Skip
-          # comments, struct-field lines, and blank lines.
-          variants=$(awk '
-            /^pub enum Mutation \{/ { capture=1; next }
-            capture && /^\}/ { exit }
-            capture && /^[[:space:]]*\/\// { next }
-            capture && /^[[:space:]]*[A-Z][A-Za-z0-9_]+/ {
-              # Strip leading whitespace, then take the identifier up to first non-word char.
-              line=$0
-              sub(/^[[:space:]]+/, "", line)
-              match(line, /^[A-Z][A-Za-z0-9_]+/)
-              if (RLENGTH > 0) print substr(line, RSTART, RLENGTH)
-            }
-          ' crates/hegemony-core/src/mutations.rs | sort -u)
-          if [ -z "$variants" ]; then
-            echo "::error::Could not extract Mutation variants from mutations.rs"
+          # Extract Mutation variant names via grep (more portable than awk
+          # capture-block state machines). Variants are unique within the
+          # file: lines that start with PascalCase identifier followed by
+          # `{` or `,` or whitespace, INSIDE the `pub enum Mutation { ... }`
+          # block. We use sed to clip just that block first, then grep.
+          block=$(sed -n '/^pub enum Mutation {/,/^}/p' crates/hegemony-core/src/mutations.rs)
+          if [ -z "$block" ]; then
+            echo "::error::Could not locate 'pub enum Mutation' block in mutations.rs"
             exit 1
           fi
-          missing=()
+          variants=$(printf '%s\n' "$block" \
+            | grep -E '^[[:space:]]+[A-Z][A-Za-z0-9_]+' \
+            | sed -E 's/^[[:space:]]+([A-Z][A-Za-z0-9_]+).*/\1/' \
+            | sort -u)
+          variant_count=$(printf '%s\n' "$variants" | grep -c .)
+          if [ "$variant_count" -eq 0 ]; then
+            echo "::error::Extracted 0 Mutation variants — extraction logic broken"
+            exit 1
+          fi
+          echo "Extracted $variant_count Mutation variants:"
+          printf '  - %s\n' $variants
+          echo ""
+          missing=""
+          missing_count=0
           for v in $variants; do
             # PascalCase → camelCase (lowercase first letter, rest unchanged).
-            camel="$(printf '%s' "${v:0:1}" | tr 'A-Z' 'a-z')${v:1}"
-            if ! grep -aoq -E "(^|[^A-Za-z0-9])${camel}([^A-Za-z0-9]|$)" "$WASM"; then
-              missing+=("$camel")
+            head_lower=$(printf '%s' "$v" | cut -c1 | tr 'A-Z' 'a-z')
+            tail=$(printf '%s' "$v" | cut -c2-)
+            camel="${head_lower}${tail}"
+            # `grep -aoq` is portable across BSD and GNU; binary content
+            # treated as text via -a. Plain string match (no regex anchors)
+            # avoids false-negatives from oddly-aligned bytes around the
+            # discriminator inside the wasm data section.
+            if ! grep -aFq "$camel" "$WASM"; then
+              missing="$missing $camel"
+              missing_count=$((missing_count + 1))
             fi
           done
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Committed WASM is stale — missing Mutation discriminators: ${missing[*]}"
+          if [ "$missing_count" -gt 0 ]; then
+            echo "::error::Committed WASM is stale — missing Mutation discriminators:$missing"
             echo "Rebuild locally:"
             echo "  wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm"
             echo "  git add packages/hegemony-wasm && git commit"
             exit 1
           fi
-          echo "All ${#variants[@]} Mutation variants present as discriminator strings in committed WASM."
+          echo "All $variant_count Mutation variants present as discriminator strings in committed WASM."
       - name: Build WASM (artifact for downstream web job)
         working-directory: crates/hegemony-core
         run: wasm-pack build --target web --out-dir ../../packages/hegemony-wasm
