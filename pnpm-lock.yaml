@@ -71,12 +71,20 @@ importers:
       '@types/react':
         specifier: ~18.3.12
         version: 18.3.28
+      autoprefixer:
+        specifier: ^10.4.19
+        version: 10.5.0(postcss@8.5.12)
+      postcss:
+        specifier: ^8.4.39
+        version: 8.5.12
       tailwindcss:
         specifier: ^3.4.15
         version: 3.4.19(yaml@2.8.4)
       typescript:
-        specifier: ~5.3.3
-        version: 5.3.3
+        specifier: ~5.5.3
+        version: 5.5.4
+
+  apps/mobile/modules/hegemony: {}
 
   apps/web:
     dependencies:
@@ -6183,8 +6191,8 @@ packages:
     resolution: {integrity: sha512-3KS2b+kL7fsuk/eJZ7EQdnEmQoaho/r6KUef7hxvltNA5DR8NAUM+8wJMbJyZ4G9/7i3v5zPBIMN5aybAh2/Jg==}
     engines: {node: '>= 0.4'}
 
-  typescript@5.3.3:
-    resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
+  typescript@5.5.4:
+    resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -13618,7 +13626,7 @@ snapshots:
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
 
-  typescript@5.3.3: {}
+  typescript@5.5.4: {}
 
   typescript@5.9.3: {}
 
