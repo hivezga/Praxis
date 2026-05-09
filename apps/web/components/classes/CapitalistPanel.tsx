@@ -50,15 +50,21 @@ export function CapitalistPanel() {
             hint="Spaces 0-15: 10/25/50/75/100/125/150/175/200/250/300/350/400/450/500¥"
             value={c.wealthMarkerPosition ?? 0}
             max={15}
-            onAdjust={(d) =>
+            onAdjust={(d) => {
+              // Read fresh state at click-time to avoid stale-closure bug:
+              // back-to-back clicks otherwise compute every delta against
+              // the render-time `c.wealthMarkerPosition` and converge on
+              // the same target instead of accumulating.
+              const fresh =
+                useGame.getState().state?.classes.capitalist.wealthMarkerPosition ?? 0;
               apply(
                 {
                   type: "setWealthMarker",
-                  position: Math.min(15, Math.max(0, (c.wealthMarkerPosition ?? 0) + d)),
+                  position: Math.min(15, Math.max(0, fresh + d)),
                 },
                 `capitalist.wealthMarker ${d}`,
-              )
-            }
+              );
+            }}
             onSet={(v) =>
               apply(
                 { type: "setWealthMarker", position: Math.min(15, Math.max(0, v)) },
