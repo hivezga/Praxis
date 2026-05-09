@@ -142,10 +142,12 @@ jobs:
     needs: wasm-build
     steps:
       - uses: actions/checkout@v4
-      # Pinned to a specific tag rather than floating @v4 — the latter
-      # occasionally 502s during action download (web job flake on
-      # commits 4fd5877..e952c8a).
-      - uses: pnpm/action-setup@v4.0.0
+      # v4.0.0 was the previous pin; failed because modern pnpm/action-setup
+      # requires either a `version:` input or a `packageManager` field in
+      # root package.json. We added the packageManager field; v4.1.0 honors
+      # it via Corepack. Pinning a specific minor avoids the floating
+      # `@v4` 502 flakes seen on 4fd5877..10f76c0.
+      - uses: pnpm/action-setup@v4.1.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -164,10 +166,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Pinned to a specific tag rather than floating @v4 — the latter
-      # occasionally 502s during action download (web job flake on
-      # commits 4fd5877..e952c8a).
-      - uses: pnpm/action-setup@v4.0.0
+      # v4.0.0 was the previous pin; failed because modern pnpm/action-setup
+      # requires either a `version:` input or a `packageManager` field in
+      # root package.json. We added the packageManager field; v4.1.0 honors
+      # it via Corepack. Pinning a specific minor avoids the floating
+      # `@v4` 502 flakes seen on 4fd5877..10f76c0.
+      - uses: pnpm/action-setup@v4.1.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -180,10 +184,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Pinned to a specific tag rather than floating @v4 — the latter
-      # occasionally 502s during action download (web job flake on
-      # commits 4fd5877..e952c8a).
-      - uses: pnpm/action-setup@v4.0.0
+      # v4.0.0 was the previous pin; failed because modern pnpm/action-setup
+      # requires either a `version:` input or a `packageManager` field in
+      # root package.json. We added the packageManager field; v4.1.0 honors
+      # it via Corepack. Pinning a specific minor avoids the floating
+      # `@v4` 502 flakes seen on 4fd5877..10f76c0.
+      - uses: pnpm/action-setup@v4.1.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
