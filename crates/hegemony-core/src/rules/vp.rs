@@ -16,10 +16,28 @@ fn capital_vp(capital: i32) -> i32 {
     }
 }
 
+// Per-class breakdowns for the running scoreboard. Only includes per-round
+// Scoring Phase contributions per Hegemony rulebook v1.2:
+//   Working   (page 13): 2 VP per Trade Union (≥4 workers).
+//   Middle    (page 21): nothing per round; Scoring is a free Prosperity
+//                        bump opportunity. Prosperity itself is event-driven
+//                        and awarded by the prosperity-up mutation, not
+//                        re-summed each round.
+//   Capitalist (page 21): VP from the Wealth table on current Capital.
+//   State     (page 28): sum of two lowest Legitimacy values.
+//
+// Cash, storage, treasury, capital (Working / Middle / Capitalist / State)
+// and policy-section bonuses are *game-end only* per the rulebook and are
+// excluded from `total` here. They remain populated as Option<i32> on the
+// breakdown for UI projection, but do not contribute to the running total.
+//
+// `total` therefore equals what the running scoreboard would show after
+// this round's Scoring Phase resolves.
+
 pub fn working_vp(state: &GameState) -> VpBreakdown {
     let w = &state.classes.working;
     let trade_unions = w.trade_unions.iter().filter(|t| t.workers_assigned >= 4).count() as i32 * 2;
-    let cash = w.money / 10;
+    let cash = w.money / 10; // Game-end only — informational, not added to total.
     VpBreakdown {
         base: w.vp,
         prosperity: Some(w.prosperity),
@@ -28,7 +46,7 @@ pub fn working_vp(state: &GameState) -> VpBreakdown {
         legitimacy: None,
         cash: Some(cash),
         capital: None,
-        total: w.vp + w.prosperity + trade_unions + cash,
+        total: w.vp + trade_unions,
     }
 }
 
@@ -36,16 +54,16 @@ pub fn middle_vp(state: &GameState) -> VpBreakdown {
     let m = &state.classes.middle;
     let s = &m.storage;
     let storage = (s.food + s.luxury + s.health + s.education + s.influence) / 2;
-    let cash = m.money / 15;
+    let cash = m.money / 15; // Game-end only.
     VpBreakdown {
         base: m.vp,
         prosperity: Some(m.prosperity),
         trade_unions: None,
-        storage: Some(storage),
+        storage: Some(storage), // Game-end only.
         legitimacy: None,
         cash: Some(cash),
         capital: None,
-        total: m.vp + m.prosperity + storage + cash,
+        total: m.vp,
     }
 }
 
@@ -73,7 +91,7 @@ pub fn state_vp(state: &GameState) -> VpBreakdown {
     ];
     values.sort_unstable();
     let legitimacy = values[0] + values[1];
-    let cash = s.treasury / 30;
+    let cash = s.treasury / 30; // Game-end only.
     VpBreakdown {
         base: s.vp,
         prosperity: None,
@@ -82,7 +100,7 @@ pub fn state_vp(state: &GameState) -> VpBreakdown {
         legitimacy: Some(legitimacy),
         cash: Some(cash),
         capital: None,
-        total: s.vp + legitimacy + cash,
+        total: s.vp + legitimacy,
     }
 }
 
@@ -144,12 +162,14 @@ mod tests {
     fn working_vp_at_start() {
         let state = create_starting_state(default_input());
         let vp = working_vp(&state);
-        // vp=0, prosperity=0, trade_unions: 0 (all workers_assigned=0), cash: floor(30/10)=3
+        // Per rulebook v1.2 page 13: per-round = trade_unions * 2 only.
+        // Cash is game-end (informational on breakdown but excluded from total).
+        // base=0, trade_unions=0 (all workers_assigned=0) → total=0.
         assert_eq!(vp.base, 0);
         assert_eq!(vp.prosperity, Some(0));
         assert_eq!(vp.trade_unions, Some(0));
-        assert_eq!(vp.cash, Some(3));
-        assert_eq!(vp.total, 3);
+        assert_eq!(vp.cash, Some(3)); // floor(30/10) — game-end only
+        assert_eq!(vp.total, 0);
     }
 
     #[test]
@@ -161,20 +181,22 @@ mod tests {
         let vp = working_vp(&state);
         // 2 unions * 2 VP = 4
         assert_eq!(vp.trade_unions, Some(4));
+        assert_eq!(vp.total, 4); // base 0 + trade_unions 4
     }
 
     #[test]
     fn middle_vp_at_start() {
         let state = create_starting_state(default_input());
         let vp = middle_vp(&state);
-        // vp=0, prosperity=0
-        // storage: food=1, luxury=0, health=1, education=0, influence=1 → sum=3, floor(3/2)=1
-        // cash: floor(40/15)=2
+        // Per rulebook v1.2 page 21: Middle's Scoring Phase is a free
+        // Prosperity-bump opportunity, not a per-round VP source. Storage
+        // and cash are game-end only.
+        // base=0 → total=0.
         assert_eq!(vp.base, 0);
         assert_eq!(vp.prosperity, Some(0));
-        assert_eq!(vp.storage, Some(1));
-        assert_eq!(vp.cash, Some(2));
-        assert_eq!(vp.total, 3);
+        assert_eq!(vp.storage, Some(1)); // game-end only
+        assert_eq!(vp.cash, Some(2));    // floor(40/15) — game-end only
+        assert_eq!(vp.total, 0);
     }
 
     #[test]
@@ -214,11 +236,13 @@ mod tests {
     fn state_vp_at_start() {
         let state = create_starting_state(default_input());
         let vp = state_vp(&state);
-        // legitimacy: working=2, middle=2, capitalist=2 → sorted [2,2,2], two lowest = 4
-        // cash: floor(120/30) = 4
+        // Per rulebook v1.2 page 28: per-round = sum of two lowest Legitimacies.
+        // Treasury cash is game-end only (rulebook page 29: "1 VP per 30¥
+        // remaining in the State Treasury" — Game End section).
+        // legitimacy {2,2,2} → two lowest = 4. Treasury 120 → 4 cash (game-end).
         assert_eq!(vp.legitimacy, Some(4));
-        assert_eq!(vp.cash, Some(4));
-        assert_eq!(vp.total, 8);
+        assert_eq!(vp.cash, Some(4)); // game-end only
+        assert_eq!(vp.total, 4);      // base 0 + legitimacy 4
     }
 
     #[test]

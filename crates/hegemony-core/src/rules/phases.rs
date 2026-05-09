@@ -427,18 +427,12 @@ mod tests {
 
     #[test]
     fn scoring_five_rounds_matches_hand_computed_table() {
-        // Deterministic per-round delta scenario: Working has 30¥ cash
-        // (3 cash VP), 0 prosperity, no trade unions = +3 VP/round.
-        // After 5 rounds at constant state: 0 + 5×3 = 15 VP.
-        // Capitalist starts with 0 capital → 0 capital VP/round → 0 total.
-        // State legitimacy starts {2,2,2}; two-lowest=4. But Legitimacy
-        // is HALVED each round, so per-round legit VP varies:
-        //   R1: 2+2 = 4 → halve → all 1
-        //   R2: 1+1 = 2 → halve → all 1
-        //   R3: 1+1 = 2
-        //   R4: 1+1 = 2
-        //   R5: 1+1 = 2
-        // State legit total = 4+2+2+2+2 = 12.
+        // Per rulebook v1.2 page 13: Working scores per-round only from
+        // Trade Unions (2 VP each, requires ≥4 workers). Cash is game-end
+        // only. Default starting state has 0 trade unions with workers
+        // assigned, so Working scores 0 per round at constant starting
+        // state. After 5 rounds: 0 VP. State legitimacy halves each round
+        // but is not relevant to this Working assertion.
         let mut state = create_starting_state(default_input());
         let starting_working_vp = state.classes.working.vp;
         let mut working_running = starting_working_vp;
@@ -458,7 +452,21 @@ mod tests {
             state.meta.phase = Phase::Scoring;
             state.meta.round = 1;
         }
-        // 5 rounds × 3 cash VP = 15.
-        assert_eq!(working_running - starting_working_vp, 15);
+        // No per-round VP for Working at constant zero-trade-union state.
+        assert_eq!(working_running - starting_working_vp, 0);
+    }
+
+    #[test]
+    fn scoring_working_per_round_from_trade_unions_only() {
+        // Working scores 2 VP per Trade Union with ≥4 workers each round.
+        let mut state = create_starting_state(default_input());
+        state.classes.working.trade_unions[0].workers_assigned = 4;
+        state.classes.working.trade_unions[1].workers_assigned = 5;
+        // Stash starting VP and the legitimacy contribution that scoring
+        // also gives the State (independent of Working).
+        let starting = state.classes.working.vp;
+        let r = apply_scoring_phase(&state);
+        // 2 unions × 2 VP = 4
+        assert_eq!(r.state.classes.working.vp - starting, 4);
     }
 }

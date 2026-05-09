@@ -13,7 +13,6 @@ import { StatePanel } from "@/components/classes/StatePanel";
 import { WorkingPanel } from "@/components/classes/WorkingPanel";
 import { ScoringPanel } from "@/components/scoring/ScoringPanel";
 import { ErrorBoundary, PanelErrorFallback } from "@/components/shared/ErrorBoundary";
-import { wasm } from "@/lib/wasm";
 import { useGame, useGameState } from "@/lib/store";
 import type { ClassId, GameState } from "@/lib/types/game";
 
@@ -176,20 +175,17 @@ const SCORE_RAIL: Record<ClassId, string> = {
 function ScoreLine({ state, classes }: { state: GameState; classes: ClassId[] }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Victory points by class">
-      {classes.map((c) => {
-        const vp = wasm().compute_vp_wasm(state, c) as { total: number };
-        return (
-          <div key={c} className="flex items-center gap-2">
-            <span aria-hidden className={`block h-7 w-2 ${SCORE_RAIL[c]}`} />
-            <span className="font-mono text-fluid-lg font-medium leading-none text-ink">
-              {vp.total}
-            </span>
-            <span className="font-display text-[10px] uppercase tracking-[0.18em] text-inkMute">
-              vp
-            </span>
-          </div>
-        );
-      })}
+      {classes.map((c) => (
+        <div key={c} className="flex items-center gap-2">
+          <span aria-hidden className={`block h-7 w-2 ${SCORE_RAIL[c]}`} />
+          <span className="font-mono text-fluid-lg font-medium leading-none text-ink">
+            {state.classes[c].vp}
+          </span>
+          <span className="font-display text-[10px] uppercase tracking-[0.18em] text-inkMute">
+            vp
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
