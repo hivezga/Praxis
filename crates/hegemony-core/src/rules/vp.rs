@@ -126,6 +126,7 @@ mod tests {
                     new_action_cards: false,
                 },
             },
+            local_player_class: None,
         }
     }
 

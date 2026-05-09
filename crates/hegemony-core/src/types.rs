@@ -223,6 +223,8 @@ pub struct GameMeta {
     pub phase: Phase,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active_class: Option<ClassId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub local_player_class: Option<ClassId>,
 }
 
 // ---------------------------------------------------------------------------
@@ -556,6 +558,7 @@ pub struct NewGameInput {
     pub player_count: u8,
     pub classes_in_play: Vec<ClassId>,
     pub expansions: ExpansionFlags,
+    pub local_player_class: Option<ClassId>,
 }
 
 // ---------------------------------------------------------------------------

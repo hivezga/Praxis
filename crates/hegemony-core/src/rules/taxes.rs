@@ -517,15 +517,16 @@ mod tests {
                     new_action_cards: false,
                 },
             },
+            local_player_class: None,
         });
 
         let s = suggest_taxes(&state);
 
-        // Starting policies: Tax=A, H&B=C, Edu=C -> mult = 3
-        assert_eq!(s.multiplier, 3);
+        // Starting policies (rulebook page 8): Tax=A, H&B=B, Edu=C -> mult = 3 + 2*(1+0) = 5
+        assert_eq!(s.multiplier, 5);
 
-        // Working: pop 10 * income_tax(LM=C, Tax=A) = 10 * 1 = 10
-        assert_eq!(s.working_income_tax, 10);
+        // Working: pop 10 * income_tax(LM=B, Tax=A) = 10 * 4 = 40
+        assert_eq!(s.working_income_tax, 40);
 
         // Starting Middle has 2 Companies (Convenience Store + Doctor's Office)
         // each with 1 worker assigned but S(s) config needs 2 workers -> non-operational.

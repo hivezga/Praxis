@@ -170,7 +170,7 @@ fn make_state() -> StateClassState {
         public_companies: vec![],
         storage: StateStorage { food: 0, luxury: 0, influence: 1 },
         welfare: WelfareState {
-            health: PolicySection::C,
+            health: PolicySection::B,
             education: PolicySection::C,
         },
         event_card_ids: vec![],
@@ -187,12 +187,12 @@ pub fn create_starting_state(input: NewGameInput) -> GameState {
 
     let policies = Policies {
         fiscal_policy: PolicyState { id: PolicyId::FiscalPolicy, position: PolicySection::C },
-        labor_market: PolicyState { id: PolicyId::LaborMarket, position: PolicySection::C },
+        labor_market: PolicyState { id: PolicyId::LaborMarket, position: PolicySection::B },
         taxation: PolicyState { id: PolicyId::Taxation, position: PolicySection::A },
-        health_benefits: PolicyState { id: PolicyId::HealthBenefits, position: PolicySection::C },
+        health_benefits: PolicyState { id: PolicyId::HealthBenefits, position: PolicySection::B },
         education_welfare: PolicyState { id: PolicyId::EducationWelfare, position: PolicySection::C },
-        foreign_trade: PolicyState { id: PolicyId::ForeignTrade, position: PolicySection::C },
-        immigration: PolicyState { id: PolicyId::Immigration, position: PolicySection::A },
+        foreign_trade: PolicyState { id: PolicyId::ForeignTrade, position: PolicySection::B },
+        immigration: PolicyState { id: PolicyId::Immigration, position: PolicySection::B },
     };
 
     let automa = if input.mode == GameMode::Solo
@@ -266,6 +266,7 @@ pub fn create_starting_state(input: NewGameInput) -> GameState {
             round: 1,
             phase: Phase::Preparation,
             active_class: None,
+            local_player_class: input.local_player_class,
         },
         policies,
         market: MarketState { food: 0, luxury: 0, health_goods: 0, education_goods: 0 },
@@ -313,19 +314,22 @@ mod tests {
                     new_action_cards: false,
                 },
             },
+            local_player_class: None,
         }
     }
 
     #[test]
     fn policy_defaults_are_correct() {
         let state = create_starting_state(default_input());
-        assert_eq!(state.policies.taxation.position, PolicySection::A);
-        assert_eq!(state.policies.immigration.position, PolicySection::A);
         assert_eq!(state.policies.fiscal_policy.position, PolicySection::C);
-        assert_eq!(state.policies.labor_market.position, PolicySection::C);
-        assert_eq!(state.policies.health_benefits.position, PolicySection::C);
+        assert_eq!(state.policies.labor_market.position, PolicySection::B);
+        assert_eq!(state.policies.taxation.position, PolicySection::A);
+        assert_eq!(state.policies.health_benefits.position, PolicySection::B);
         assert_eq!(state.policies.education_welfare.position, PolicySection::C);
-        assert_eq!(state.policies.foreign_trade.position, PolicySection::C);
+        assert_eq!(state.policies.foreign_trade.position, PolicySection::B);
+        assert_eq!(state.policies.immigration.position, PolicySection::B);
+        assert_eq!(state.classes.state.welfare.health, PolicySection::B);
+        assert_eq!(state.classes.state.welfare.education, PolicySection::C);
     }
 
     #[test]
@@ -368,6 +372,7 @@ mod tests {
                     new_action_cards: false,
                 },
             },
+            local_player_class: Some(ClassId::Working),
         };
         let state = create_starting_state(input);
         assert!(state.crisis.unwrap().automa.is_some());

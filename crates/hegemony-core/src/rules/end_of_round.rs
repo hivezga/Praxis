@@ -324,6 +324,7 @@ mod tests {
                     new_action_cards: false,
                 },
             },
+            local_player_class: None,
         }
     }
 
@@ -331,8 +332,8 @@ mod tests {
     fn round_suggestion_starting_state() {
         let state = create_starting_state(default_input());
         let s = compute_round_suggestion(&state);
-        // Starting Tax=A, H=C, E=C -> mult = 3
-        assert_eq!(s.taxes.multiplier, 3);
+        // Starting policies (rulebook page 8): Tax=A, H=B, E=C -> mult = 3 + 2*(1+0) = 5
+        assert_eq!(s.taxes.multiplier, 5);
         // Capitalist starting Cos have workers_assigned=0 -> non-operational, no wages.
         assert_eq!(s.wages.from_capitalist, 0);
         // Middle Cos at start: Convenience Store + Doctor's Office both have
