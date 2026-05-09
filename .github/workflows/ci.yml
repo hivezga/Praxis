@@ -62,23 +62,64 @@ jobs:
           curl -sSL https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz \
             | tar -xz --strip-components=1 -C /usr/local/bin --wildcards '*/wasm-pack'
           wasm-pack --version
-      - name: Build WASM
-        working-directory: crates/hegemony-core
-        run: wasm-pack build --target web --out-dir ../../packages/hegemony-wasm
       - name: Detect stale committed WASM
-        # Fails the job if the rebuilt artifacts differ from what's committed.
-        # Catches "edited Rust core, forgot to rebuild + commit packages/hegemony-wasm".
-        # Local fix: run
+        # Pure byte-diff between local build and CI rebuild is unreliable
+        # (wasm-opt output varies across host architectures even with a
+        # pinned wasm-pack), so we check semantically: every Mutation enum
+        # variant declared in mutations.rs MUST appear as a literal
+        # discriminator string in the committed WASM binary. Serde tag
+        # emission guarantees these strings are baked into the .wasm at
+        # compile time. Missing string ⇒ committed WASM was built before
+        # that variant was added ⇒ rebuild + commit required.
+        #
+        # Local fix:
         #   wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm
-        # then `git add packages/hegemony-wasm && git commit`.
+        #   git add packages/hegemony-wasm && git commit
         run: |
-          if ! git diff --exit-code -- packages/hegemony-wasm; then
-            echo ""
-            echo "::error::Committed packages/hegemony-wasm is stale. Rebuild locally:"
-            echo "  wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm"
-            echo "Then 'git add packages/hegemony-wasm && git commit'."
+          set -euo pipefail
+          WASM=packages/hegemony-wasm/hegemony_core_bg.wasm
+          if [ ! -f "$WASM" ]; then
+            echo "::error::Committed WASM not found at $WASM"
             exit 1
           fi
+          # Extract Mutation variant names. Variants are PascalCase one per
+          # line, between `pub enum Mutation {` and the closing `}`. Skip
+          # comments, struct-field lines, and blank lines.
+          variants=$(awk '
+            /^pub enum Mutation \{/ { capture=1; next }
+            capture && /^\}/ { exit }
+            capture && /^[[:space:]]*\/\// { next }
+            capture && /^[[:space:]]*[A-Z][A-Za-z0-9_]+/ {
+              # Strip leading whitespace, then take the identifier up to first non-word char.
+              line=$0
+              sub(/^[[:space:]]+/, "", line)
+              match(line, /^[A-Z][A-Za-z0-9_]+/)
+              if (RLENGTH > 0) print substr(line, RSTART, RLENGTH)
+            }
+          ' crates/hegemony-core/src/mutations.rs | sort -u)
+          if [ -z "$variants" ]; then
+            echo "::error::Could not extract Mutation variants from mutations.rs"
+            exit 1
+          fi
+          missing=()
+          for v in $variants; do
+            # PascalCase → camelCase (lowercase first letter, rest unchanged).
+            camel="$(printf '%s' "${v:0:1}" | tr 'A-Z' 'a-z')${v:1}"
+            if ! grep -aoq -E "(^|[^A-Za-z0-9])${camel}([^A-Za-z0-9]|$)" "$WASM"; then
+              missing+=("$camel")
+            fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Committed WASM is stale — missing Mutation discriminators: ${missing[*]}"
+            echo "Rebuild locally:"
+            echo "  wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm"
+            echo "  git add packages/hegemony-wasm && git commit"
+            exit 1
+          fi
+          echo "All ${#variants[@]} Mutation variants present as discriminator strings in committed WASM."
+      - name: Build WASM (artifact for downstream web job)
+        working-directory: crates/hegemony-core
+        run: wasm-pack build --target web --out-dir ../../packages/hegemony-wasm
       - uses: actions/upload-artifact@v4
         with:
           name: hegemony-wasm
