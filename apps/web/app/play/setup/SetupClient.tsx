@@ -343,7 +343,7 @@ export function SetupClient() {
             </p>
           ) : mode === "solo" && classes.size > 1 && !localPlayerClass ? (
             <p className="mt-2 font-serif text-xs italic text-inkMute">
-              Pick which class you'll play to start.
+              Pick which class you&rsquo;ll play to start.
             </p>
           ) : null}
           {partyError ? (
