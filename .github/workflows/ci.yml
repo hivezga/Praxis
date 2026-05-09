@@ -45,19 +45,40 @@ jobs:
         run: cargo check --target aarch64-linux-android
 
   wasm-build:
-    name: WASM — wasm-pack build
+    name: WASM — wasm-pack build + freshness check
     runs-on: ubuntu-latest
+    env:
+      # Pin wasm-pack so the freshness diff is reproducible across CI runs.
+      # Bump in lockstep with local dev installs.
+      WASM_PACK_VERSION: "0.13.1"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: crates/hegemony-core
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Install pinned wasm-pack
+        run: |
+          curl -sSL https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz --strip-components=1 -C /usr/local/bin --wildcards '*/wasm-pack'
+          wasm-pack --version
       - name: Build WASM
         working-directory: crates/hegemony-core
         run: wasm-pack build --target web --out-dir ../../packages/hegemony-wasm
+      - name: Detect stale committed WASM
+        # Fails the job if the rebuilt artifacts differ from what's committed.
+        # Catches "edited Rust core, forgot to rebuild + commit packages/hegemony-wasm".
+        # Local fix: run
+        #   wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm
+        # then `git add packages/hegemony-wasm && git commit`.
+        run: |
+          if ! git diff --exit-code -- packages/hegemony-wasm; then
+            echo ""
+            echo "::error::Committed packages/hegemony-wasm is stale. Rebuild locally:"
+            echo "  wasm-pack build crates/hegemony-core --target web --out-dir packages/hegemony-wasm"
+            echo "Then 'git add packages/hegemony-wasm && git commit'."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: hegemony-wasm
