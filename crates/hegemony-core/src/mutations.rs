@@ -76,7 +76,14 @@ fn advance_phase(state: &mut GameState) {
 // ---------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase", tag = "type")]
+// `rename_all` only renames the variant TAGS (SetPolicy → setPolicy).
+// `rename_all_fields` is required to rename the FIELDS inside struct
+// variants (class_id → classId, policy_id → policyId, bill_id → billId,
+// from_class → fromClass). Without this, TS payloads using camelCase
+// field names fail to deserialize with "missing field `class_id`" — a
+// silent bug that affected every adjust*/set*/passBill variant ever
+// dispatched from the UI. Detected via Playwright on 2026-05-09.
+#[serde(rename_all = "camelCase", rename_all_fields = "camelCase", tag = "type")]
 pub enum Mutation {
     SetPolicy { policy_id: PolicyId, position: PolicySection },
     AdvancePhase,
