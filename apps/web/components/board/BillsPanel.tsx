@@ -20,6 +20,8 @@ export function BillsPanel() {
   const state = useGameState();
   const propose = useGame((s) => s.proposeBill);
   const remove = useGame((s) => s.removeBill);
+  const passBill = useGame((s) => s.passBill);
+  const failBill = useGame((s) => s.failBill);
   const [open, setOpen] = useState(false);
   const [policyId, setPolicyId] = useState<PolicyId>("taxation");
   const [section, setSection] = useState<PolicySection>("B");
@@ -61,13 +63,32 @@ export function BillsPanel() {
                   ) : null}
                 </div>
               </div>
-              <button
-                type="button"
-                className="btn btn-ghost shrink-0 text-xs text-danger hover:text-danger"
-                onClick={() => remove(b.id)}
-              >
-                Remove
-              </button>
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  className="btn btn-ghost text-xs text-emerald-700 hover:text-emerald-800"
+                  title="Bill passed: move marker, return bill, +3 VP to proposer"
+                  onClick={() => passBill(b.id)}
+                >
+                  Pass
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost text-xs text-inkSoft hover:text-ink"
+                  title="Bill failed: return bill, no VP"
+                  onClick={() => failBill(b.id)}
+                >
+                  Fail
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost text-xs text-danger hover:text-danger"
+                  title="Discard without resolving"
+                  onClick={() => remove(b.id)}
+                >
+                  ✕
+                </button>
+              </div>
             </li>
           ))}
         </ul>
