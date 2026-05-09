@@ -45,6 +45,27 @@ export function CapitalistPanel() {
           <Counter label="Loans"        value={c.loans}               onAdjust={(d) => adjust("capitalist", "loans", d)}               onSet={(v) => setVal("capitalist", "loans", v)} />
           <Counter label="Voting cubes" value={c.votingCubesInBag}    onAdjust={(d) => adjust("capitalist", "votingCubesInBag", d)}    onSet={(v) => setVal("capitalist", "votingCubesInBag", v)} />
           <Counter label="Bill markers" value={c.billMarkersAvailable} onAdjust={(d) => adjust("capitalist", "billMarkersAvailable", d)} onSet={(v) => setVal("capitalist", "billMarkersAvailable", v)} max={3} />
+          <Counter
+            label="Wealth marker"
+            hint="Spaces 0-15: 10/25/50/75/100/125/150/175/200/250/300/350/400/450/500¥"
+            value={c.wealthMarkerPosition ?? 0}
+            max={15}
+            onAdjust={(d) =>
+              apply(
+                {
+                  type: "setWealthMarker",
+                  position: Math.min(15, Math.max(0, (c.wealthMarkerPosition ?? 0) + d)),
+                },
+                `capitalist.wealthMarker ${d}`,
+              )
+            }
+            onSet={(v) =>
+              apply(
+                { type: "setWealthMarker", position: Math.min(15, Math.max(0, v)) },
+                `capitalist.wealthMarker = ${v}`,
+              )
+            }
+          />
         </div>
       </div>
 

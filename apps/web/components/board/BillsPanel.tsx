@@ -27,7 +27,28 @@ export function BillsPanel() {
   const [section, setSection] = useState<PolicySection>("B");
   const [proposer, setProposer] = useState<ClassId>("working");
   const [immediateVote, setImmediateVote] = useState(false);
+  // Per-bill supporter selection: bill-id → set of contributing classes
+  // (excluding the proposer, who always gets +3 VP and never +1).
+  const [pendingPass, setPendingPass] = useState<string | null>(null);
+  const [supporters, setSupporters] = useState<ClassId[]>([]);
   if (!state) return null;
+  const toggleSupporter = (c: ClassId) =>
+    setSupporters((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
+    );
+  const startPass = (id: string) => {
+    setPendingPass(id);
+    setSupporters([]);
+  };
+  const cancelPass = () => {
+    setPendingPass(null);
+    setSupporters([]);
+  };
+  const confirmPass = (id: string) => {
+    passBill(id, supporters);
+    setPendingPass(null);
+    setSupporters([]);
+  };
   return (
     <section className="panel">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -42,62 +63,115 @@ export function BillsPanel() {
         </p>
       ) : (
         <ul className="space-y-2">
-          {state.bills.map((b) => (
-            <li
-              key={b.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-sharp border border-rule/60 bg-paper/30 px-3 py-2.5"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-1.5 text-fluid-sm">
-                  <span className="font-mono text-[10px] text-inkMute">
-                    {POLICIES_BY_ID[b.policyId].number}.
-                  </span>
-                  <span className="text-ink">{POLICIES_BY_ID[b.policyId].name}</span>
-                  <span className="text-inkMute">→</span>
-                  <span className="font-mono font-semibold text-accentInk">
-                    {b.proposedSection}
-                  </span>
+          {state.bills.map((b) => {
+            const isPending = pendingPass === b.id;
+            const supporterCandidates = CLASSES.filter((c) => c !== b.proposedBy);
+            return (
+              <li
+                key={b.id}
+                className="rounded-sharp border border-rule/60 bg-paper/30 px-3 py-2.5"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 text-fluid-sm">
+                      <span className="font-mono text-[10px] text-inkMute">
+                        {POLICIES_BY_ID[b.policyId].number}.
+                      </span>
+                      <span className="text-ink">{POLICIES_BY_ID[b.policyId].name}</span>
+                      <span className="text-inkMute">→</span>
+                      <span className="font-mono font-semibold text-accentInk">
+                        {b.proposedSection}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`rounded-sharp border px-1.5 py-0.5 font-display text-[9px] uppercase tracking-wider ${CLASS_BADGE[b.proposedBy]}`}
+                      >
+                        {b.proposedBy}
+                      </span>
+                      {b.immediateVote ? (
+                        <span className="text-[10px] text-inkMute">· immediate vote</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-1">
+                    {!isPending && (
+                      <button
+                        type="button"
+                        className="btn btn-positive"
+                        title="Bill passed: move marker, +3 VP to proposer, +1 VP to supporters"
+                        onClick={() => startPass(b.id)}
+                      >
+                        Pass
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      title="Bill failed: return bill, no VP"
+                      onClick={() => failBill(b.id)}
+                    >
+                      Fail
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      aria-label="Discard bill"
+                      title="Discard without resolving"
+                      onClick={() => remove(b.id)}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span
-                    className={`rounded-sharp border px-1.5 py-0.5 font-display text-[9px] uppercase tracking-wider ${CLASS_BADGE[b.proposedBy]}`}
-                  >
-                    {b.proposedBy}
-                  </span>
-                  {b.immediateVote ? (
-                    <span className="text-[10px] text-inkMute">· immediate vote</span>
-                  ) : null}
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center gap-1">
-                <button
-                  type="button"
-                  className="btn btn-positive"
-                  title="Bill passed: move marker, return bill, +3 VP to proposer"
-                  onClick={() => passBill(b.id)}
-                >
-                  Pass
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  title="Bill failed: return bill, no VP"
-                  onClick={() => failBill(b.id)}
-                >
-                  Fail
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  aria-label="Discard bill"
-                  title="Discard without resolving"
-                  onClick={() => remove(b.id)}
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          ))}
+                {isPending && (
+                  <div className="mt-3 rounded-sharp border border-accent/40 bg-accent/5 p-2.5">
+                    <div className="stat-label mb-1.5">
+                      Supporters who contributed (cube or Influence)
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {supporterCandidates.map((c) => (
+                        <label
+                          key={c}
+                          className={`flex cursor-pointer items-center gap-1.5 rounded-sharp border px-2 py-1 text-fluid-sm ${
+                            supporters.includes(c)
+                              ? CLASS_BADGE[c]
+                              : "border-rule/60 text-inkSoft"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-3 w-3"
+                            checked={supporters.includes(c)}
+                            onChange={() => toggleSupporter(c)}
+                          />
+                          <span className="font-display text-[10px] uppercase tracking-wider">
+                            {c}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        onClick={cancelPass}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-positive"
+                        onClick={() => confirmPass(b.id)}
+                      >
+                        Confirm pass{supporters.length > 0 ? ` (+${supporters.length})` : ""}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
       <Modal

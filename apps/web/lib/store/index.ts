@@ -77,7 +77,12 @@ function ownerOfMutation(m: Mutation): ClassId | null {
     case "adjustTradeUnion":
       return "working";
     case "adjustFreeTradeZone":
+    case "setWealthMarker":
       return "capitalist";
+    case "sellWelfare":
+      // State performs the sale; party-mode ownership lock should
+      // belong to the State seat regardless of buyer choice.
+      return "state";
     default:
       return null;
   }
@@ -243,8 +248,12 @@ interface GameStore {
 
   proposeBill(bill: Omit<Bill, "id">): void;
   removeBill(id: string): void;
-  /** Resolve a proposed bill: move policy marker, return bill marker, +3 VP to proposer. */
-  passBill(id: string): void;
+  /**
+   * Resolve a proposed bill: move policy marker, return bill marker, +3 VP
+   * to proposer, +1 VP to each supporter that contributed (cube or
+   * Influence). Pass an empty array if no supporters contributed (rulebook p.13).
+   */
+  passBill(id: string, supporters?: ClassId[]): void;
   /** Resolve a proposed bill as failed: just return the bill marker, no VP. */
   failBill(id: string): void;
 
@@ -342,12 +351,16 @@ export const useGame = create<GameStore>((set, get) => ({
     get().apply({ type: "removeBill", id }, "Remove bill");
   },
 
-  passBill(id) {
+  passBill(id, supporters = []) {
     const current = get().state;
     if (!current) return;
     const bill = current.bills.find((b) => b.id === id);
     if (!bill) return;
-    get().apply({ type: "passBill", billId: id }, `Bill passed: ${bill.policyId} → ${bill.proposedSection}`);
+    const tail = supporters.length > 0 ? ` (+${supporters.length} supporter)` : "";
+    get().apply(
+      { type: "passBill", billId: id, supporters },
+      `Bill passed: ${bill.policyId} → ${bill.proposedSection}${tail}`,
+    );
   },
 
   failBill(id) {
