@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 
 import { wasm } from "@/lib/wasm";
-import { useGameState } from "@/lib/store";
+import { useClassNickname, useGameState } from "@/lib/store";
 import type { ClassId } from "@/lib/types/game";
 
 interface VpBreakdown {
@@ -59,6 +59,7 @@ interface Props {
 export function ClassPanelShell({ classId, children }: Props) {
   const state = useGameState();
   const accent = ACCENT[classId];
+  const nickname = useClassNickname(classId);
   const vp = state ? (wasm().compute_vp_wasm(state, classId) as VpBreakdown) : null;
   return (
     <section
@@ -71,6 +72,9 @@ export function ClassPanelShell({ classId, children }: Props) {
         <div className="min-w-0">
           <h3 className={`font-serif text-2xl font-light leading-none ${accent.text}`}>
             {accent.label}
+            {nickname ? (
+              <span className="ml-2 font-serif text-base italic text-inkMute">· {nickname}</span>
+            ) : null}
           </h3>
           <p className="mt-1.5 font-serif text-[11px] uppercase italic tracking-[0.2em] text-inkMute">
             {accent.subtitle}
