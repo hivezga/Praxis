@@ -142,7 +142,10 @@ jobs:
     needs: wasm-build
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      # Pinned to a specific tag rather than floating @v4 — the latter
+      # occasionally 502s during action download (web job flake on
+      # commits 4fd5877..e952c8a).
+      - uses: pnpm/action-setup@v4.0.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -161,7 +164,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      # Pinned to a specific tag rather than floating @v4 — the latter
+      # occasionally 502s during action download (web job flake on
+      # commits 4fd5877..e952c8a).
+      - uses: pnpm/action-setup@v4.0.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -174,14 +180,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      # Pinned to a specific tag rather than floating @v4 — the latter
+      # occasionally 502s during action download (web job flake on
+      # commits 4fd5877..e952c8a).
+      - uses: pnpm/action-setup@v4.0.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-audit
-        run: cargo install cargo-audit --locked
+      # Cache cargo-audit binary AND the RustSec advisory-db git clone.
+      # cargo-audit otherwise re-clones https://github.com/RustSec/advisory-db
+      # on every run; that's hit Actions runner network flakes / GitHub
+      # rate limits before. Cache key uses a yyyymm bucket so the DB
+      # refreshes monthly.
+      - name: Cache cargo-audit + advisory-db
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/cargo-audit
+            ~/.cargo/advisory-db
+          key: cargo-audit-${{ runner.os }}-$(date -u +%Y%m)
+          restore-keys: cargo-audit-${{ runner.os }}-
+      - name: Install cargo-audit (skip if cached)
+        run: |
+          if ! command -v cargo-audit >/dev/null 2>&1; then
+            cargo install cargo-audit --locked
+          fi
       - run: pnpm install --frozen-lockfile
       # Soft-fail on PRs (informational), hard-fail on main pushes (alerts).
       - name: pnpm audit (production, high+)
@@ -189,5 +214,12 @@ jobs:
         continue-on-error: ${{ github.event_name == 'pull_request' }}
       - name: cargo audit
         working-directory: crates/hegemony-core
-        run: cargo audit
+        # `-n` skips the network fetch when the advisory-db is restored
+        # from cache; falls back to fetch when cache is cold.
+        run: |
+          if [ -d ~/.cargo/advisory-db ]; then
+            cargo audit -n
+          else
+            cargo audit
+          fi
         continue-on-error: ${{ github.event_name == 'pull_request' }}
