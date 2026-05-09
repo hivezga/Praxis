@@ -1,0 +1,7 @@
+{
+  "name": "praxis-hegemony-module",
+  "version": "1.0.0",
+  "description": "Local Expo native module bridging Praxis to the hegemony-core Rust crate (Android JNI).",
+  "main": "index.ts",
+  "private": true
+}

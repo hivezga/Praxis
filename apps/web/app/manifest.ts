@@ -19,10 +19,11 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
       {
+        // `purpose: "any"` until we ship a properly safe-zone-padded
+        // maskable variant — masking will currently crop the artwork.
         src: "/apple-icon",
         sizes: "180x180",
         type: "image/png",
-        purpose: "maskable",
       },
     ],
   };

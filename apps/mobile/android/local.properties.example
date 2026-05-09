@@ -1,0 +1,14 @@
+# Local Android signing config — copy to local.properties (gitignored) for
+# release builds. For EAS Cloud builds, set the same names as EAS secrets.
+#
+# Generate the upload keystore once, then keep it out of git:
+#   keytool -genkeypair -v \
+#     -storetype PKCS12 \
+#     -keystore upload.keystore \
+#     -alias praxis-upload \
+#     -keyalg RSA -keysize 2048 -validity 10000
+
+# MYAPP_UPLOAD_STORE_FILE=/absolute/path/to/upload.keystore
+# MYAPP_UPLOAD_KEY_ALIAS=praxis-upload
+# MYAPP_UPLOAD_STORE_PASSWORD=<store-password>
+# MYAPP_UPLOAD_KEY_PASSWORD=<key-password>

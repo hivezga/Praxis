@@ -95,6 +95,16 @@ pub fn vp_for(class_id: ClassId, state: &GameState) -> VpBreakdown {
     }
 }
 
+/// Per-round VP increment for a class — total minus the running base.
+///
+/// Used by `apply_scoring_phase` so each round adds only the round's
+/// own contribution (prosperity, trade unions, cash, etc.), without
+/// double-counting the previously accumulated `vp` baseline.
+pub fn vp_round_delta_for(class_id: ClassId, state: &GameState) -> i32 {
+    let breakdown = vp_for(class_id, state);
+    breakdown.total - breakdown.base
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------

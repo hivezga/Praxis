@@ -47,4 +47,6 @@ export type Mutation =
       welfareCost: number;
       workingProsperitySteps: number;
       middleProsperitySteps: number;
-    };
+    }
+  | { type: "passBill"; billId: string }
+  | { type: "failBill"; billId: string };

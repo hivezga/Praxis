@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 
 import { wasm } from "@/lib/wasm";
 import { useClassNickname, useGameState } from "@/lib/store";
@@ -60,7 +60,12 @@ export function ClassPanelShell({ classId, children }: Props) {
   const state = useGameState();
   const accent = ACCENT[classId];
   const nickname = useClassNickname(classId);
-  const vp = state ? (wasm().compute_vp_wasm(state, classId) as VpBreakdown) : null;
+  // Memoize per state+classId so 4 mounted panels = 4 VP calls per state
+  // change, not 16.
+  const vp = useMemo<VpBreakdown | null>(
+    () => (state ? (wasm().compute_vp_wasm(state, classId) as VpBreakdown) : null),
+    [state, classId],
+  );
   return (
     <section
       aria-label={accent.label}

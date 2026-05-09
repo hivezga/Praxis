@@ -107,15 +107,10 @@ const fn prod_influence(qty: i32) -> [ResourceOutput; 1] {
 }
 
 // Static slices for each production amount used.
-#[allow(dead_code)]
 static P_FOOD_2: [ResourceOutput; 1] = prod_food(2);
-#[allow(dead_code)]
 static P_FOOD_3: [ResourceOutput; 1] = prod_food(3);
-#[allow(dead_code)]
 static P_FOOD_4: [ResourceOutput; 1] = prod_food(4);
-#[allow(dead_code)]
 static P_FOOD_5: [ResourceOutput; 1] = prod_food(5);
-#[allow(dead_code)]
 static P_FOOD_6: [ResourceOutput; 1] = prod_food(6);
 static P_LUX_2: [ResourceOutput; 1] = prod_luxury(2);
 static P_LUX_3: [ResourceOutput; 1] = prod_luxury(3);

@@ -217,7 +217,7 @@ pub fn apply_production_phase(state: &GameState, mode: ProductionMode) -> PhaseR
 /// State-specific scoring (Legitimacy halving, Political Agenda) is
 /// also applied here.
 pub fn apply_scoring_phase(state: &GameState) -> PhaseResult {
-    use crate::rules::vp::vp_for;
+    use crate::rules::vp::vp_round_delta_for;
     use crate::types::{ClassId, LegitimacyMap};
 
     let mut next = state.clone();
@@ -229,7 +229,7 @@ pub fn apply_scoring_phase(state: &GameState) -> PhaseResult {
     let mut values = [leg.working, leg.middle, leg.capitalist];
     values.sort();
     let leg_vp = values[0] + values[1];
-    next.classes.state.vp += leg_vp;
+    next.classes.state.vp = next.classes.state.vp.saturating_add(leg_vp);
     entries.push(format!("State scores {} VP from 2 lowest Legitimacies.", leg_vp));
 
     // Halve Legitimacy markers (rounded up).
@@ -240,17 +240,19 @@ pub fn apply_scoring_phase(state: &GameState) -> PhaseResult {
     };
     entries.push("Legitimacy markers halved (rounded up).".to_string());
 
-    // Per-Class total VP (uses vp_for which already covers prosperity,
-    // trade unions, wealth table, etc.).
-    let w = vp_for(ClassId::Working, &next).total;
-    let m = vp_for(ClassId::Middle, &next).total;
-    let c = vp_for(ClassId::Capitalist, &next).total;
-    entries.push(format!("Working class total VP: {}", w));
-    entries.push(format!("Middle class total VP: {}", m));
-    entries.push(format!("Capitalist class total VP: {}", c));
-    next.classes.working.vp = w;
-    next.classes.middle.vp = m;
-    next.classes.capitalist.vp = c;
+    // Per-Class round delta — only the round-incremental components
+    // (prosperity, trade unions, capital wealth, cash). Adds to the
+    // running `vp` baseline rather than replacing it, so prior
+    // pass-bill / scoring awards are preserved.
+    let w_delta = vp_round_delta_for(ClassId::Working, &next);
+    let m_delta = vp_round_delta_for(ClassId::Middle, &next);
+    let c_delta = vp_round_delta_for(ClassId::Capitalist, &next);
+    entries.push(format!("Working class scores {} VP this round.", w_delta));
+    entries.push(format!("Middle class scores {} VP this round.", m_delta));
+    entries.push(format!("Capitalist class scores {} VP this round.", c_delta));
+    next.classes.working.vp = next.classes.working.vp.saturating_add(w_delta);
+    next.classes.middle.vp = next.classes.middle.vp.saturating_add(m_delta);
+    next.classes.capitalist.vp = next.classes.capitalist.vp.saturating_add(c_delta);
 
     // Round transition: advance round, set phase back to Preparation.
     if next.meta.round < 5 {
@@ -403,5 +405,60 @@ mod tests {
         let r = apply_scoring_phase(&state);
         // Two lowest = 4+5 = 9
         assert!(r.state.classes.state.vp >= starting_state_vp + 9);
+    }
+
+    #[test]
+    fn scoring_preserves_pre_existing_vp() {
+        // Regression: before fix, scoring computed total = base + delta and
+        // then assigned `vp = total`, which equals `vp + delta`. With
+        // saturating_add we now add `delta` directly. Both produce the
+        // same value, but this test pins the invariant: a pass-bill
+        // award (working.vp = 12) must remain in the running total
+        // after scoring runs.
+        let mut state = create_starting_state(default_input());
+        state.classes.working.vp = 12; // simulate prior bill awards
+        let r = apply_scoring_phase(&state);
+        assert!(
+            r.state.classes.working.vp >= 12,
+            "scoring must not erase prior VP; got {} from base 12",
+            r.state.classes.working.vp
+        );
+    }
+
+    #[test]
+    fn scoring_five_rounds_matches_hand_computed_table() {
+        // Deterministic per-round delta scenario: Working has 30¥ cash
+        // (3 cash VP), 0 prosperity, no trade unions = +3 VP/round.
+        // After 5 rounds at constant state: 0 + 5×3 = 15 VP.
+        // Capitalist starts with 0 capital → 0 capital VP/round → 0 total.
+        // State legitimacy starts {2,2,2}; two-lowest=4. But Legitimacy
+        // is HALVED each round, so per-round legit VP varies:
+        //   R1: 2+2 = 4 → halve → all 1
+        //   R2: 1+1 = 2 → halve → all 1
+        //   R3: 1+1 = 2
+        //   R4: 1+1 = 2
+        //   R5: 1+1 = 2
+        // State legit total = 4+2+2+2+2 = 12.
+        let mut state = create_starting_state(default_input());
+        let starting_working_vp = state.classes.working.vp;
+        let mut working_running = starting_working_vp;
+        for _ in 0..5 {
+            let prev_working = state.classes.working.vp;
+            let r = apply_scoring_phase(&state);
+            // Monotonically non-decreasing.
+            assert!(
+                r.state.classes.working.vp >= prev_working,
+                "VP regressed: {} -> {}",
+                prev_working,
+                r.state.classes.working.vp
+            );
+            working_running = r.state.classes.working.vp;
+            state = r.state;
+            // Reset round + phase so we can call scoring again deterministically.
+            state.meta.phase = Phase::Scoring;
+            state.meta.round = 1;
+        }
+        // 5 rounds × 3 cash VP = 15.
+        assert_eq!(working_running - starting_working_vp, 15);
     }
 }

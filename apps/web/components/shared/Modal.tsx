@@ -17,13 +17,19 @@ const FOCUSABLE =
 export function Modal({ open, onClose, title, children, footer, widthClass }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const lastActiveRef = useRef<Element | null>(null);
+  // Hold onClose in a ref so the focus-trap effect doesn't re-run on every
+  // parent render (the prop is rarely useCallback'd by callers).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
     lastActiveRef.current = document.activeElement;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !dialogRef.current) return;
@@ -53,7 +59,7 @@ export function Modal({ open, onClose, title, children, footer, widthClass }: Pr
       const previous = lastActiveRef.current;
       if (previous instanceof HTMLElement) previous.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (

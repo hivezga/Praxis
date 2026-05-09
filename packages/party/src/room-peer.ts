@@ -77,10 +77,20 @@ export class RoomPeer {
     return inst;
   }
 
+  private knownHostId: string | null = null;
+
   private bindConnection(conn: DataConnection) {
+    // Pin the host's PeerJS ID from the first data-channel message — every
+    // legitimate message comes from the same DataConnection.peer. PeerJS
+    // doesn't multiplex peers on a single channel, but a client could open
+    // its own connection back to us and spoof control messages; pinning the
+    // expected sender lets us reject those.
+    this.knownHostId = conn.peer;
     conn.on("data", (data) => {
       const msg = data as PartyMessage | null;
       if (!msg || typeof msg.type !== "string") return;
+      // Reject control messages that don't come from the pinned host.
+      if (this.knownHostId && conn.peer !== this.knownHostId) return;
       if (msg.type === "host_leaving") {
         for (const cb of this.hostLeavingListeners) cb();
       }

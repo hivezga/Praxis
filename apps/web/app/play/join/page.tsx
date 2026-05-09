@@ -15,11 +15,17 @@ function JoinPageInner() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-fill from /play/join?code=ABC234 (web "deep link" equivalent).
+  // Pre-fill from /play/join#code=ABC234 (preferred — keeps code out of
+  // Referer headers + access logs). Fall back to ?code=ABC234 for old
+  // share URLs that haven't been refreshed yet.
   useEffect(() => {
-    const fromUrl = params.get("code");
-    if (fromUrl && fromUrl.length > 0) {
-      setCode(fromUrl.toUpperCase().slice(0, 6));
+    const hash = typeof window === "undefined" ? "" : window.location.hash.replace(/^#/, "");
+    const hashParams = new URLSearchParams(hash);
+    const fromHash = hashParams.get("code");
+    const fromQuery = params.get("code");
+    const raw = fromHash ?? fromQuery;
+    if (raw && raw.length > 0) {
+      setCode(raw.toUpperCase().slice(0, 6));
     }
   }, [params]);
 

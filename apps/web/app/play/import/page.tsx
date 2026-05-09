@@ -7,13 +7,12 @@ import { useEffect, useState } from "react";
 import { useGame } from "@/lib/store";
 import { localStorageAdapter } from "@/lib/store/persistence/localStorage";
 import type { GameState } from "@/lib/types/game";
+import { decode as decodeBase64Utf8 } from "@/lib/util/base64-utf8";
 
 function decodePayload(hash: string): GameState {
   const trimmed = hash.replace(/^#/, "");
   if (!trimmed) throw new Error("No save data in URL.");
-  // Decode base64 → URL-encoded UTF-8 → string
-  const binary = atob(trimmed);
-  const json = decodeURIComponent(escape(binary));
+  const json = decodeBase64Utf8(trimmed);
   const state = JSON.parse(json) as GameState;
   if (!state?.meta?.id || !state?.classes) {
     throw new Error("This link doesn’t contain a valid Praxis save.");

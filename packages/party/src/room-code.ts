@@ -8,11 +8,17 @@ const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const NAMESPACE = "praxis-hegemony";
 
 export function makeRoomCode(): string {
+  // Rejection sampling: bytes ≥ MAX_VALID would skew the distribution
+  // toward the lower part of ALPHABET (modulo bias), so resample them.
+  const N = ALPHABET.length;
+  const MAX_VALID = Math.floor(256 / N) * N;
   let out = "";
-  const buf = new Uint8Array(6);
-  crypto.getRandomValues(buf);
-  for (let i = 0; i < 6; i++) {
-    out += ALPHABET[buf[i] % ALPHABET.length];
+  const buf = new Uint8Array(1);
+  while (out.length < 6) {
+    crypto.getRandomValues(buf);
+    if (buf[0] < MAX_VALID) {
+      out += ALPHABET[buf[0] % N];
+    }
   }
   return out;
 }

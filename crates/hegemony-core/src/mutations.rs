@@ -1,25 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::error::MutationError;
+use crate::time::now_ms;
 use crate::types::*;
-
-// ---------------------------------------------------------------------------
-// Timestamp helper
-// ---------------------------------------------------------------------------
-
-#[cfg(not(target_arch = "wasm32"))]
-fn now_ms() -> u64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0)
-}
-
-#[cfg(target_arch = "wasm32")]
-fn now_ms() -> u64 {
-    0
-}
 
 // ---------------------------------------------------------------------------
 // Snapshot helper
@@ -40,7 +24,7 @@ struct StateSnapshot {
     crisis: Option<CrisisState>,
 }
 
-fn take_snapshot(state: &GameState, label: &str) -> HistoryEntry {
+fn take_snapshot(state: &GameState, label: &str) -> Result<HistoryEntry, MutationError> {
     let snap = StateSnapshot {
         meta: state.meta.clone(),
         policies: state.policies.clone(),
@@ -52,12 +36,14 @@ fn take_snapshot(state: &GameState, label: &str) -> HistoryEntry {
         classes: state.classes.clone(),
         crisis: state.crisis.clone(),
     };
-    HistoryEntry {
+    let prev_snapshot = serde_json::to_string(&snap)
+        .map_err(|e| MutationError::SerializationFailed { reason: e.to_string() })?;
+    Ok(HistoryEntry {
         id: Uuid::new_v4().to_string(),
         ts: now_ms(),
         label: label.to_string(),
-        prev_snapshot: serde_json::to_string(&snap).expect("snapshot serialisation failed"),
-    }
+        prev_snapshot,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -123,16 +109,26 @@ pub enum Mutation {
     AdjustPublicService { service: ServiceId, delta: i32 },
     AdjustLegitimacyTokens { from_class: ClassId, delta: i32 },
     ApplyEndRound(EndRoundPayload),
+    /// Resolve a proposed Bill atomically: move the Policy marker, award
+    /// +3 VP to the proposer, and remove the Bill from the queue. Replaces
+    /// the prior TS-side three-step orchestration to keep all rules in Rust.
+    PassBill { bill_id: String },
+    /// Fail a proposed Bill: simply remove it from the queue.
+    FailBill { bill_id: String },
 }
 
 // ---------------------------------------------------------------------------
 // apply_mutation
 // ---------------------------------------------------------------------------
 
-pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> GameState {
+pub fn apply_mutation(
+    state: &GameState,
+    mutation: Mutation,
+    label: &str,
+) -> Result<GameState, MutationError> {
     const HISTORY_LIMIT: usize = 30;
 
-    let entry = take_snapshot(state, label);
+    let entry = take_snapshot(state, label)?;
     let mut next = state.clone();
 
     match mutation {
@@ -183,10 +179,16 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                         (next.classes.middle.money as i64 + delta).max(0) as i32;
                 }
                 ClassId::Capitalist => {
-                    panic!("Use AdjustRevenue for Capitalist");
+                    return Err(MutationError::InvalidClass {
+                        class: ClassId::Capitalist,
+                        reason: "Use AdjustRevenue for Capitalist".to_string(),
+                    });
                 }
                 ClassId::State => {
-                    panic!("Use AdjustTreasury for State");
+                    return Err(MutationError::InvalidClass {
+                        class: ClassId::State,
+                        reason: "Use AdjustTreasury for State".to_string(),
+                    });
                 }
             }
         }
@@ -211,7 +213,12 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                     next.classes.capitalist.capital =
                         (next.classes.capitalist.capital as i64 + delta).max(0) as i32;
                 }
-                other => panic!("AdjustCapital not valid for {:?}", other),
+                other => {
+                    return Err(MutationError::InvalidClass {
+                        class: other,
+                        reason: "AdjustCapital not valid for this class".to_string(),
+                    });
+                }
             }
         }
 
@@ -242,7 +249,12 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                     next.classes.middle.prosperity =
                         (next.classes.middle.prosperity + delta).max(0);
                 }
-                other => panic!("AdjustProsperity not valid for {:?}", other),
+                other => {
+                    return Err(MutationError::InvalidClass {
+                        class: other,
+                        reason: "AdjustProsperity not valid for this class".to_string(),
+                    });
+                }
             }
         }
 
@@ -256,7 +268,12 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                     next.classes.middle.population =
                         (next.classes.middle.population + delta).max(0);
                 }
-                other => panic!("AdjustPopulation not valid for {:?}", other),
+                other => {
+                    return Err(MutationError::InvalidClass {
+                        class: other,
+                        reason: "AdjustPopulation not valid for this class".to_string(),
+                    });
+                }
             }
         }
 
@@ -298,7 +315,11 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                         Good::Food => s.food = (s.food + delta).max(0),
                         Good::Luxury => s.luxury = (s.luxury + delta).max(0),
                         Good::Influence => s.influence = (s.influence + delta).max(0),
-                        other => panic!("State storage does not have {:?}", other),
+                        other => {
+                            return Err(MutationError::InvalidArgument {
+                                reason: format!("State storage does not have {:?}", other),
+                            });
+                        }
                     }
                 }
             }
@@ -337,7 +358,11 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                         (next.classes.state.legitimacy.capitalist + delta).max(0);
                 }
                 ClassId::State => {
-                    panic!("AdjustLegitimacy: State does not have its own legitimacy track");
+                    return Err(MutationError::InvalidClass {
+                        class: ClassId::State,
+                        reason: "AdjustLegitimacy: State does not have its own legitimacy track"
+                            .to_string(),
+                    });
                 }
             }
         }
@@ -361,7 +386,12 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                     next.classes.middle.unemployed_workers =
                         (next.classes.middle.unemployed_workers + delta).max(0);
                 }
-                other => panic!("AdjustUnemployedWorkers not valid for {:?}", other),
+                other => {
+                    return Err(MutationError::InvalidClass {
+                        class: other,
+                        reason: "AdjustUnemployedWorkers not valid for this class".to_string(),
+                    });
+                }
             }
         }
 
@@ -375,7 +405,12 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                     next.classes.middle.unemployed_skilled_workers =
                         (next.classes.middle.unemployed_skilled_workers + delta).max(0);
                 }
-                other => panic!("AdjustSkilledWorkers not valid for {:?}", other),
+                other => {
+                    return Err(MutationError::InvalidClass {
+                        class: other,
+                        reason: "AdjustSkilledWorkers not valid for this class".to_string(),
+                    });
+                }
             }
         }
 
@@ -393,7 +428,12 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                     next.classes.capitalist.voting_cubes_in_bag =
                         (next.classes.capitalist.voting_cubes_in_bag + delta).max(0);
                 }
-                ClassId::State => panic!("AdjustVotingCubes: State does not have voting cubes"),
+                ClassId::State => {
+                    return Err(MutationError::InvalidClass {
+                        class: ClassId::State,
+                        reason: "AdjustVotingCubes: State does not have voting cubes".to_string(),
+                    });
+                }
             }
         }
 
@@ -455,7 +495,11 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
             match good {
                 Good::Food => ftz.food = (ftz.food + delta).max(0),
                 Good::Luxury => ftz.luxury = (ftz.luxury + delta).max(0),
-                other => panic!("FreeTradeZone does not support {:?}", other),
+                other => {
+                    return Err(MutationError::InvalidArgument {
+                        reason: format!("FreeTradeZone does not support {:?}", other),
+                    });
+                }
             }
         }
 
@@ -469,7 +513,11 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                 Good::Education => {
                     next.market.education_goods = (next.market.education_goods + delta).max(0)
                 }
-                Good::Influence => panic!("Market does not have influence goods"),
+                Good::Influence => {
+                    return Err(MutationError::InvalidArgument {
+                        reason: "Market does not have influence goods".to_string(),
+                    });
+                }
             }
         }
 
@@ -516,9 +564,62 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
                         (next.classes.state.legitimacy_tokens.capitalist + delta).max(0);
                 }
                 ClassId::State => {
-                    panic!("AdjustLegitimacyTokens: State does not have its own token track");
+                    return Err(MutationError::InvalidClass {
+                        class: ClassId::State,
+                        reason: "AdjustLegitimacyTokens: State does not have its own token track"
+                            .to_string(),
+                    });
                 }
             }
+        }
+
+        Mutation::PassBill { bill_id } => {
+            let bill = match next.bills.iter().find(|b| b.id == bill_id) {
+                Some(b) => b.clone(),
+                None => {
+                    return Err(MutationError::InvalidArgument {
+                        reason: format!("PassBill: no bill with id {}", bill_id),
+                    });
+                }
+            };
+            // 1. Move the Policy marker.
+            match bill.policy_id {
+                PolicyId::FiscalPolicy => next.policies.fiscal_policy.position = bill.proposed_section.clone(),
+                PolicyId::LaborMarket => next.policies.labor_market.position = bill.proposed_section.clone(),
+                PolicyId::Taxation => next.policies.taxation.position = bill.proposed_section.clone(),
+                PolicyId::HealthBenefits => next.policies.health_benefits.position = bill.proposed_section.clone(),
+                PolicyId::EducationWelfare => next.policies.education_welfare.position = bill.proposed_section.clone(),
+                PolicyId::ForeignTrade => next.policies.foreign_trade.position = bill.proposed_section.clone(),
+                PolicyId::Immigration => next.policies.immigration.position = bill.proposed_section.clone(),
+            }
+            // 2. Award +3 VP to the proposing class (rulebook).
+            const PASS_BILL_VP: i32 = 3;
+            match bill.proposed_by {
+                ClassId::Working => {
+                    next.classes.working.vp = next.classes.working.vp.saturating_add(PASS_BILL_VP);
+                }
+                ClassId::Middle => {
+                    next.classes.middle.vp = next.classes.middle.vp.saturating_add(PASS_BILL_VP);
+                }
+                ClassId::Capitalist => {
+                    next.classes.capitalist.vp = next.classes.capitalist.vp.saturating_add(PASS_BILL_VP);
+                }
+                ClassId::State => {
+                    next.classes.state.vp = next.classes.state.vp.saturating_add(PASS_BILL_VP);
+                }
+            }
+            // 3. Remove the bill from the queue.
+            next.bills.retain(|b| b.id != bill_id);
+        }
+
+        Mutation::FailBill { bill_id } => {
+            let existed = next.bills.iter().any(|b| b.id == bill_id);
+            if !existed {
+                return Err(MutationError::InvalidArgument {
+                    reason: format!("FailBill: no bill with id {}", bill_id),
+                });
+            }
+            next.bills.retain(|b| b.id != bill_id);
         }
 
         Mutation::ApplyEndRound(p) => {
@@ -567,23 +668,27 @@ pub fn apply_mutation(state: &GameState, mutation: Mutation, label: &str) -> Gam
         .take(HISTORY_LIMIT)
         .collect();
 
-    next
+    Ok(next)
 }
 
 // ---------------------------------------------------------------------------
 // undo
 // ---------------------------------------------------------------------------
 
-pub fn undo(state: &GameState) -> Option<GameState> {
+pub fn undo(state: &GameState) -> Result<Option<GameState>, MutationError> {
     if state.history.is_empty() {
-        return None;
+        return Ok(None);
     }
-    let (entry, rest) = state.history.split_first()?;
+    let (entry, rest) = match state.history.split_first() {
+        Some(parts) => parts,
+        None => return Ok(None),
+    };
 
-    let snap: StateSnapshot = serde_json::from_str(&entry.prev_snapshot)
-        .expect("undo: failed to deserialise prev_snapshot");
+    let snap: StateSnapshot = serde_json::from_str(&entry.prev_snapshot).map_err(|e| {
+        MutationError::HistoryCorrupt { reason: e.to_string() }
+    })?;
 
-    Some(GameState {
+    Ok(Some(GameState {
         meta: snap.meta,
         policies: snap.policies,
         market: snap.market,
@@ -594,7 +699,7 @@ pub fn undo(state: &GameState) -> Option<GameState> {
         classes: snap.classes,
         crisis: snap.crisis,
         history: rest.to_vec(),
-    })
+    }))
 }
 
 // ---------------------------------------------------------------------------
@@ -635,10 +740,14 @@ mod tests {
         create_starting_state(default_input())
     }
 
+    fn apply_mutation_unwrap(state: &GameState, mutation: Mutation, label: &str) -> GameState {
+        apply_mutation(state, mutation, label).expect("mutation should succeed in test")
+    }
+
     #[test]
     fn set_policy_changes_position() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::SetPolicy {
                 policy_id: PolicyId::Taxation,
@@ -654,7 +763,7 @@ mod tests {
     fn advance_phase_preparation_to_action() {
         let state = base_state();
         assert_eq!(state.meta.phase, Phase::Preparation);
-        let next = apply_mutation(&state, Mutation::AdvancePhase, "advance");
+        let next = apply_mutation_unwrap(&state, Mutation::AdvancePhase, "advance");
         assert_eq!(next.meta.phase, Phase::Action);
     }
 
@@ -663,7 +772,7 @@ mod tests {
         let mut state = base_state();
         state.meta.phase = Phase::Scoring;
         state.meta.round = 1;
-        let next = apply_mutation(&state, Mutation::AdvancePhase, "wrap");
+        let next = apply_mutation_unwrap(&state, Mutation::AdvancePhase, "wrap");
         assert_eq!(next.meta.phase, Phase::Preparation);
         assert_eq!(next.meta.round, 2);
     }
@@ -673,7 +782,7 @@ mod tests {
         let mut state = base_state();
         state.meta.phase = Phase::Scoring;
         state.meta.round = 5;
-        let next = apply_mutation(&state, Mutation::AdvancePhase, "wrap");
+        let next = apply_mutation_unwrap(&state, Mutation::AdvancePhase, "wrap");
         assert_eq!(next.meta.round, 5);
         assert_eq!(next.meta.phase, Phase::Preparation);
     }
@@ -681,7 +790,7 @@ mod tests {
     #[test]
     fn set_round_changes_round() {
         let state = base_state();
-        let next = apply_mutation(&state, Mutation::SetRound { round: 3 }, "round");
+        let next = apply_mutation_unwrap(&state, Mutation::SetRound { round: 3 }, "round");
         assert_eq!(next.meta.round, 3);
     }
 
@@ -694,7 +803,7 @@ mod tests {
             proposed_by: ClassId::Working,
             immediate_vote: false,
         };
-        let next = apply_mutation(&state, Mutation::ProposeBill(bill), "propose");
+        let next = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "propose");
         assert_eq!(next.bills.len(), 1);
         assert_eq!(next.bills[0].policy_id, PolicyId::Taxation);
     }
@@ -708,10 +817,10 @@ mod tests {
             proposed_by: ClassId::Middle,
             immediate_vote: true,
         };
-        let with_bill = apply_mutation(&state, Mutation::ProposeBill(bill), "propose");
+        let with_bill = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "propose");
         let bill_id = with_bill.bills[0].id.clone();
         let without_bill =
-            apply_mutation(&with_bill, Mutation::RemoveBill { id: bill_id }, "remove");
+            apply_mutation_unwrap(&with_bill, Mutation::RemoveBill { id: bill_id }, "remove");
         assert_eq!(without_bill.bills.len(), 0);
     }
 
@@ -719,7 +828,7 @@ mod tests {
     fn adjust_money_working() {
         let state = base_state();
         assert_eq!(state.classes.working.money, 30);
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustMoney { class_id: ClassId::Working, delta: 10 },
             "money",
@@ -730,7 +839,7 @@ mod tests {
     #[test]
     fn adjust_money_clamps_to_zero() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustMoney { class_id: ClassId::Working, delta: -1000 },
             "money",
@@ -742,14 +851,14 @@ mod tests {
     fn adjust_revenue_capitalist() {
         let state = base_state();
         assert_eq!(state.classes.capitalist.revenue, 120);
-        let next = apply_mutation(&state, Mutation::AdjustRevenue { delta: -20 }, "revenue");
+        let next = apply_mutation_unwrap(&state, Mutation::AdjustRevenue { delta: -20 }, "revenue");
         assert_eq!(next.classes.capitalist.revenue, 100);
     }
 
     #[test]
     fn adjust_vp_working() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustVp { class_id: ClassId::Working, delta: 5 },
             "vp",
@@ -760,7 +869,7 @@ mod tests {
     #[test]
     fn adjust_storage_working_food() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustStorage {
                 class_id: ClassId::Working,
@@ -775,7 +884,7 @@ mod tests {
     #[test]
     fn adjust_loans_middle() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustLoans { class_id: ClassId::Middle, delta: 2 },
             "loans",
@@ -786,27 +895,27 @@ mod tests {
     #[test]
     fn undo_restores_previous_state() {
         let state = base_state();
-        let mutated = apply_mutation(
+        let mutated = apply_mutation_unwrap(
             &state,
             Mutation::AdjustMoney { class_id: ClassId::Working, delta: 50 },
             "test",
         );
         assert_eq!(mutated.classes.working.money, 80);
-        let restored = undo(&mutated).unwrap();
+        let restored = undo(&mutated).unwrap().unwrap();
         assert_eq!(restored.classes.working.money, 30);
     }
 
     #[test]
     fn undo_on_empty_history_returns_none() {
         let state = base_state();
-        assert!(undo(&state).is_none());
+        assert!(undo(&state).unwrap().is_none());
     }
 
     #[test]
     fn history_is_capped_at_30() {
         let mut state = base_state();
         for i in 0..35 {
-            state = apply_mutation(
+            state = apply_mutation_unwrap(
                 &state,
                 Mutation::AdjustMoney { class_id: ClassId::Working, delta: 1 },
                 &format!("step {}", i),
@@ -818,7 +927,7 @@ mod tests {
     #[test]
     fn set_notes_working() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::SetNotes { class_id: ClassId::Working, text: "hello world".to_string() },
             "notes",
@@ -829,7 +938,7 @@ mod tests {
     #[test]
     fn adjust_legitimacy_working() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustLegitimacy { from_class: ClassId::Working, delta: 3 },
             "legit",
@@ -840,21 +949,21 @@ mod tests {
     #[test]
     fn set_phase_direct() {
         let state = base_state();
-        let next = apply_mutation(&state, Mutation::SetPhase { phase: Phase::Elections }, "phase");
+        let next = apply_mutation_unwrap(&state, Mutation::SetPhase { phase: Phase::Elections }, "phase");
         assert_eq!(next.meta.phase, Phase::Elections);
     }
 
     #[test]
     fn adjust_treasury() {
         let state = base_state();
-        let next = apply_mutation(&state, Mutation::AdjustTreasury { delta: 30 }, "treasury");
+        let next = apply_mutation_unwrap(&state, Mutation::AdjustTreasury { delta: 30 }, "treasury");
         assert_eq!(next.classes.state.treasury, 150);
     }
 
     #[test]
     fn adjust_capital_capitalist() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustCapital { class_id: ClassId::Capitalist, delta: 50 },
             "capital",
@@ -865,7 +974,7 @@ mod tests {
     #[test]
     fn adjust_trade_union() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustTradeUnion { index: 0, delta: 3 },
             "tu",
@@ -876,7 +985,7 @@ mod tests {
     #[test]
     fn adjust_market_food() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustMarket { good: Good::Food, delta: 5 },
             "market",
@@ -887,7 +996,7 @@ mod tests {
     #[test]
     fn adjust_pool_workers() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustPool { pool: PoolId::Workers, delta: 2 },
             "pool",
@@ -898,7 +1007,7 @@ mod tests {
     #[test]
     fn adjust_legitimacy_tokens() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::AdjustLegitimacyTokens { from_class: ClassId::Working, delta: 1 },
             "tokens",
@@ -909,7 +1018,7 @@ mod tests {
     #[test]
     fn apply_end_round_basic() {
         let state = base_state();
-        let next = apply_mutation(
+        let next = apply_mutation_unwrap(
             &state,
             Mutation::ApplyEndRound(EndRoundPayload {
                 wages_from_capitalist: 20,
@@ -938,5 +1047,108 @@ mod tests {
         assert_eq!(next.classes.capitalist.capital, 70);
         // State treasury: 120 + 50 (taxes) - 10 (welfare) = 160
         assert_eq!(next.classes.state.treasury, 160);
+    }
+
+    #[test]
+    fn adjust_money_capitalist_returns_invalid_class_error() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::AdjustMoney { class_id: ClassId::Capitalist, delta: 10 },
+            "bad",
+        );
+        match result {
+            Err(MutationError::InvalidClass { class, .. }) => {
+                assert_eq!(class, ClassId::Capitalist);
+            }
+            other => panic!("expected InvalidClass error, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn adjust_legitimacy_state_returns_invalid_class_error() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::AdjustLegitimacy { from_class: ClassId::State, delta: 1 },
+            "bad",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidClass { class: ClassId::State, .. })));
+    }
+
+    #[test]
+    fn adjust_capital_state_returns_invalid_class_error() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::AdjustCapital { class_id: ClassId::State, delta: 1 },
+            "bad",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidClass { class: ClassId::State, .. })));
+    }
+
+    #[test]
+    fn pass_bill_moves_policy_awards_vp_removes_bill() {
+        let state = base_state();
+        let bill = NewBill {
+            policy_id: PolicyId::Taxation,
+            proposed_section: PolicySection::C,
+            proposed_by: ClassId::Working,
+            immediate_vote: false,
+        };
+        let proposed = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "p");
+        let bill_id = proposed.bills[0].id.clone();
+        let starting_working_vp = proposed.classes.working.vp;
+        let next = apply_mutation_unwrap(
+            &proposed,
+            Mutation::PassBill { bill_id },
+            "pass",
+        );
+        assert_eq!(next.policies.taxation.position, PolicySection::C);
+        assert_eq!(next.classes.working.vp, starting_working_vp + 3);
+        assert_eq!(next.bills.len(), 0);
+    }
+
+    #[test]
+    fn pass_bill_unknown_id_returns_error() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::PassBill { bill_id: "nope".to_string() },
+            "pass",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidArgument { .. })));
+    }
+
+    #[test]
+    fn fail_bill_removes_without_vp() {
+        let state = base_state();
+        let bill = NewBill {
+            policy_id: PolicyId::Immigration,
+            proposed_section: PolicySection::B,
+            proposed_by: ClassId::Middle,
+            immediate_vote: false,
+        };
+        let proposed = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "p");
+        let bill_id = proposed.bills[0].id.clone();
+        let starting_vp = proposed.classes.middle.vp;
+        let next = apply_mutation_unwrap(
+            &proposed,
+            Mutation::FailBill { bill_id },
+            "fail",
+        );
+        assert_eq!(next.classes.middle.vp, starting_vp);
+        assert_eq!(next.bills.len(), 0);
+    }
+
+    #[test]
+    fn market_influence_returns_invalid_argument_error() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::AdjustMarket { good: Good::Influence, delta: 1 },
+            "bad",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidArgument { .. })));
     }
 }

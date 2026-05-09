@@ -10,12 +10,17 @@ use crate::rules::vp::vp_for;
 use crate::starting_state::create_starting_state;
 use crate::types::{ClassId, GameState, NewGameInput};
 
-fn jstring_to_rust(env: &mut JNIEnv, s: &JString) -> String {
-    env.get_string(s).expect("invalid JString").into()
+fn jstring_to_rust(env: &mut JNIEnv, s: &JString) -> Result<String, String> {
+    env.get_string(s)
+        .map(|js| js.into())
+        .map_err(|e| format!("invalid JString: {}", e))
 }
 
 fn rust_to_jstring(env: &mut JNIEnv, s: &str) -> jstring {
-    env.new_string(s).expect("could not create JString").into_raw()
+    match env.new_string(s) {
+        Ok(js) => js.into_raw(),
+        Err(_) => std::ptr::null_mut(),
+    }
 }
 
 fn error_jstring(env: &mut JNIEnv, msg: &str) -> jstring {
@@ -29,7 +34,10 @@ pub extern "C" fn Java_expo_modules_hegemony_HegemonyBridge_nativeCreateStarting
     _class: JClass,
     input_json: JString,
 ) -> jstring {
-    let json = jstring_to_rust(&mut env, &input_json);
+    let json = match jstring_to_rust(&mut env, &input_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
     match serde_json::from_str::<NewGameInput>(&json) {
         Ok(input) => {
             let state = create_starting_state(input);
@@ -50,9 +58,18 @@ pub extern "C" fn Java_expo_modules_hegemony_HegemonyBridge_nativeApplyMutation(
     mutation_json: JString,
     label_jstr: JString,
 ) -> jstring {
-    let state_s = jstring_to_rust(&mut env, &state_json);
-    let mutation_s = jstring_to_rust(&mut env, &mutation_json);
-    let label = jstring_to_rust(&mut env, &label_jstr);
+    let state_s = match jstring_to_rust(&mut env, &state_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
+    let mutation_s = match jstring_to_rust(&mut env, &mutation_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
+    let label = match jstring_to_rust(&mut env, &label_jstr) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
     let state = match serde_json::from_str::<GameState>(&state_s) {
         Ok(v) => v,
         Err(e) => return error_jstring(&mut env, &e.to_string()),
@@ -61,7 +78,10 @@ pub extern "C" fn Java_expo_modules_hegemony_HegemonyBridge_nativeApplyMutation(
         Ok(v) => v,
         Err(e) => return error_jstring(&mut env, &e.to_string()),
     };
-    let next = apply_mutation(&state, mutation, &label);
+    let next = match apply_mutation(&state, mutation, &label) {
+        Ok(v) => v,
+        Err(e) => return error_jstring(&mut env, &e.to_string()),
+    };
     match serde_json::to_string(&next) {
         Ok(s) => rust_to_jstring(&mut env, &s),
         Err(e) => error_jstring(&mut env, &e.to_string()),
@@ -74,12 +94,18 @@ pub extern "C" fn Java_expo_modules_hegemony_HegemonyBridge_nativeUndo(
     _class: JClass,
     state_json: JString,
 ) -> jstring {
-    let json = jstring_to_rust(&mut env, &state_json);
+    let json = match jstring_to_rust(&mut env, &state_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
     let state = match serde_json::from_str::<GameState>(&json) {
         Ok(v) => v,
         Err(e) => return error_jstring(&mut env, &e.to_string()),
     };
-    let result = undo(&state);
+    let result = match undo(&state) {
+        Ok(v) => v,
+        Err(e) => return error_jstring(&mut env, &e.to_string()),
+    };
     match serde_json::to_string(&result) {
         Ok(s) => rust_to_jstring(&mut env, &s),
         Err(e) => error_jstring(&mut env, &e.to_string()),
@@ -92,7 +118,10 @@ pub extern "C" fn Java_expo_modules_hegemony_HegemonyBridge_nativeComputeRoundSu
     _class: JClass,
     state_json: JString,
 ) -> jstring {
-    let json = jstring_to_rust(&mut env, &state_json);
+    let json = match jstring_to_rust(&mut env, &state_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
     let state = match serde_json::from_str::<GameState>(&json) {
         Ok(v) => v,
         Err(e) => return error_jstring(&mut env, &e.to_string()),
@@ -111,8 +140,14 @@ pub extern "C" fn Java_expo_modules_hegemony_HegemonyBridge_nativeComputeVp(
     state_json: JString,
     class_id_json: JString,
 ) -> jstring {
-    let state_s = jstring_to_rust(&mut env, &state_json);
-    let class_s = jstring_to_rust(&mut env, &class_id_json);
+    let state_s = match jstring_to_rust(&mut env, &state_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
+    let class_s = match jstring_to_rust(&mut env, &class_id_json) {
+        Ok(s) => s,
+        Err(e) => return error_jstring(&mut env, &e),
+    };
     let state = match serde_json::from_str::<GameState>(&state_s) {
         Ok(v) => v,
         Err(e) => return error_jstring(&mut env, &e.to_string()),

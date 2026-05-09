@@ -19,3 +19,7 @@ apps/web/public/swe-worker-*.js
 # Rust
 target/
 Cargo.lock
+!crates/hegemony-core/Cargo.lock
+
+# Playwright MCP runtime traces (untracked; never want to commit)
+.playwright-mcp/

@@ -45,10 +45,14 @@ export default function GamePage() {
   const [activeTab, setActiveTab] = useState<ClassId | "all">("all");
 
   useEffect(() => {
-    if (!state || state.meta.id !== params.gameId) {
+    // `state` deliberately omitted from deps — putting it here re-ran the
+    // effect on every counter tap. Read the latest state from the store
+    // imperatively so the guard still works.
+    const current = useGame.getState().state;
+    if (!current || current.meta.id !== params.gameId) {
       void load(params.gameId);
     }
-  }, [params.gameId, state, load]);
+  }, [params.gameId, load]);
 
   if (loading) {
     return (

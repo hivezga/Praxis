@@ -134,8 +134,8 @@ proptest! {
             &state,
             Mutation::AdjustMoney { class_id: ClassId::Working, delta },
             "test",
-        );
-        let restored = undo(&mutated).unwrap();
+        ).unwrap();
+        let restored = undo(&mutated).unwrap().unwrap();
         prop_assert_eq!(restored.classes.working.money, state.classes.working.money);
     }
 
@@ -147,7 +147,7 @@ proptest! {
             &state,
             Mutation::AdjustMoney { class_id: ClassId::Working, delta },
             "test",
-        );
+        ).unwrap();
         prop_assert_eq!(next.history.len(), before_len + 1);
     }
 
@@ -158,7 +158,7 @@ proptest! {
             &state,
             Mutation::AdjustMoney { class_id: ClassId::Working, delta },
             "test",
-        );
+        ).unwrap();
         prop_assert!(next.classes.working.money >= 0);
     }
 
@@ -169,7 +169,55 @@ proptest! {
             &state,
             Mutation::AdjustVp { class_id: ClassId::Working, delta },
             "test",
-        );
+        ).unwrap();
         prop_assert!(next.classes.working.vp >= 0);
+    }
+
+    /// Property: every Mutation variant either succeeds or returns an
+    /// `InvalidClass`/`InvalidArgument` Result — never panics. Covers
+    /// the C1 audit finding (mutations.rs panic arms now Err).
+    #[test]
+    fn no_mutation_variant_panics(
+        class in 0u8..4,
+        delta in -100i32..100i32,
+        good in 0u8..5,
+    ) {
+        use Mutation::*;
+        let state = create_starting_state(default_input());
+        let cls = match class % 4 {
+            0 => ClassId::Working,
+            1 => ClassId::Middle,
+            2 => ClassId::Capitalist,
+            _ => ClassId::State,
+        };
+        let g = match good % 5 {
+            0 => Good::Food,
+            1 => Good::Luxury,
+            2 => Good::Health,
+            3 => Good::Education,
+            _ => Good::Influence,
+        };
+        let candidates: Vec<Mutation> = vec![
+            AdjustMoney { class_id: cls.clone(), delta: delta as i64 },
+            AdjustCapital { class_id: cls.clone(), delta: delta as i64 },
+            AdjustProsperity { class_id: cls.clone(), delta },
+            AdjustPopulation { class_id: cls.clone(), delta },
+            AdjustVp { class_id: cls.clone(), delta },
+            AdjustLoans { class_id: cls.clone(), delta },
+            AdjustLegitimacy { from_class: cls.clone(), delta },
+            AdjustLegitimacyTokens { from_class: cls.clone(), delta },
+            AdjustUnemployedWorkers { class_id: cls.clone(), delta },
+            AdjustSkilledWorkers { class_id: cls.clone(), delta },
+            AdjustVotingCubes { class_id: cls.clone(), delta },
+            AdjustBillMarkers { class_id: cls.clone(), delta },
+            AdjustHandSize { class_id: cls.clone(), delta },
+            AdjustStorage { class_id: cls.clone(), good: g.clone(), delta },
+            AdjustMarket { good: g.clone(), delta },
+            AdjustFreeTradeZone { good: g, delta },
+        ];
+        for m in candidates {
+            // Returning either Ok or Err is acceptable; panicking is not.
+            let _ = apply_mutation(&state, m, "fuzz");
+        }
     }
 }

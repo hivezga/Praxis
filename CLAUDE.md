@@ -4,15 +4,25 @@ Companion tracker for **Hegemony: Lead Your Class to Victory** (base game + Cris
 
 ## Project status
 
-Currently in **Step 2: UI redesign**. Rust core and WASM integration are complete. Now designing and implementing polished UI directly in code (Phase 3 Claude Design spike is skipped — design and implementation are combined).
+Web complete through party mode + launch polish (Phases 1–9). Mobile (Expo)
+rehab finished the audit-2026-05-09 unblock pass: PostCSS wired, workspace
+includes the native module, release signing config switched off the debug
+keystore. Mobile bundle and on-device verification still pending — see
+`memory/project_phase5_mobile_status.md`.
+
+The audit remediation plan (`docs/AUDIT-PLAN-2026-05-09.md`) landed in full:
+VP scoring fix, Rust panic→Result, Next.js 15 upgrade, party-mode hardening,
+`passBill` moved into Rust, base64-utf8 share-link util, CI for host +
+Android-target Rust + WASM + web + mobile + dep audits.
 
 ## Build sequence
 
 | Step | Tool | Work |
 |---|---|---|
 | 1 ✅ | Claude Code | Migrate game logic to `hegemony-core` Rust crate + WASM integration |
-| 2 (current) | Claude Code + frontend-design | Design and implement polished UI directly into Next.js (web) + Expo (mobile) |
-| 3 | Claude Code | WebRTC party mode, AdMob, one-time IAP |
+| 2 ✅ (web) | Claude Code + frontend-design | Polished UI in Next.js |
+| 2.5 (mobile, in progress) | Claude Code | Expo rehab — bundle, on-device verify, release signing |
+| 3 | Claude Code | AdMob, one-time IAP |
 
 ## Architecture
 
@@ -41,15 +51,33 @@ Currently in **Step 2: UI redesign**. Rust core and WASM integration are complet
 - **Monetization**: Google AdMob (free tier) + one-time IAP to remove ads
 - **Monorepo**: pnpm workspaces
 
-## Key domain files (current codebase)
+## Key domain files
 
-All game logic now lives in Rust. TypeScript files are UI-only:
+All game logic lives in Rust. TS files are UI-only:
 
-- `apps/web/lib/types/game.ts` — TypeScript mirror of Rust GameState (for type safety in TS)
-- `apps/web/lib/types/mutations.ts` — TypeScript discriminated union mirroring Rust Mutation enum
-- `apps/web/lib/store/index.ts` — Zustand store; all mutations delegate to `wasm().apply_mutation_wasm()`
-- `apps/web/lib/wasm.ts` — WASM bootstrap and accessor
-- `crates/hegemony-core/src/` — All game rules live here (Rust)
+- `crates/hegemony-core/src/` — game rules (Rust). `mutations.rs` returns
+  `Result<GameState, MutationError>`; `rules/phases.rs` per-round VP delta;
+  `rules/vp.rs` includes `vp_round_delta_for`. `error.rs` defines the
+  serde-friendly `MutationError` enum surfaced to JS.
+- `packages/party/` — WebRTC transport. Host enforces `MAX_PEERS=8`,
+  payload size cap (`MAX_MESSAGE_BYTES=32_768`), token-bucket rate limit
+  (20 msg/sec, 40 burst). Peer pins host-id on first message.
+- `apps/web/lib/types/game.ts` — TS mirror of Rust GameState.
+- `apps/web/lib/types/mutations.ts` — discriminated union mirroring Rust
+  `Mutation` enum (incl. `passBill`, `failBill`).
+- `apps/web/lib/types/mutation-validator.ts` — host-side allow-list of
+  known mutation `type` discriminators (defense before WASM).
+- `apps/web/lib/store/index.ts` — Zustand store; mutations delegate to
+  `wasm().apply_mutation_wasm()` and pass through `assertGameState()`.
+- `apps/web/lib/party/state-projection.ts` — host→peer state redaction
+  seam. Today no fields are private; future hidden info redacts here.
+- `apps/web/lib/util/base64-utf8.ts` — UTF-8-safe share-link encoder.
+- `apps/web/lib/wasm.ts` — WASM bootstrap and accessor.
+- `apps/web/app/_components/WasmBootstrap.tsx` — surfaces init failures
+  via `WasmFallback` instead of swallowing them.
+- `apps/web/app/global-error.tsx` — root-layout-bypass error page.
+- `apps/mobile/modules/hegemony/` — Expo native module wrapping Rust
+  via JNI (`crates/hegemony-core/src/jni_exports.rs`).
 
 ## Game domain summary
 

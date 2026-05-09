@@ -1,0 +1,6 @@
+.vercel
+
+# Belt-and-suspenders: root .gitignore already covers .env*, but pin
+# locally too so a stray cwd-relative add doesn't slip a secret in.
+.env*
+!.env.example

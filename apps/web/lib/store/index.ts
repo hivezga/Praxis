@@ -6,6 +6,8 @@ import { RoomHost, RoomPeer } from "@praxis/party";
 import type { LobbySnapshot, PartyMessage } from "@praxis/party";
 
 import { wasm } from "@/lib/wasm";
+import { stateForPeer } from "@/lib/party/state-projection";
+import { assertGameState } from "@/lib/util/assert-game-state";
 import { localStorageAdapter } from "./persistence/localStorage";
 import type { PersistenceAdapter } from "./persistence/adapter";
 import type {
@@ -21,6 +23,7 @@ import type {
   WorkingClassState,
 } from "../types/game";
 import type { Mutation } from "../types/mutations";
+import { isKnownMutationShape } from "../types/mutation-validator";
 
 let adapter: PersistenceAdapter = localStorageAdapter;
 export function setPersistenceAdapter(next: PersistenceAdapter): void {
@@ -36,6 +39,15 @@ let peerInstance: RoomPeer | null = null;
  * Returns null for global mutations (phase, policy, market, pools, etc.)
  * that any seat can apply.
  */
+function isFactionTakenByOther(
+  lobby: LobbySnapshot | null,
+  faction: ClassId | null,
+  exceptPeerId: string,
+): boolean {
+  if (!faction || !lobby) return false;
+  return lobby.players.some((p) => p.faction === faction && p.peerId !== exceptPeerId);
+}
+
 function ownerOfMutation(m: Mutation): ClassId | null {
   switch (m.type) {
     case "proposeBill":
@@ -128,13 +140,38 @@ function commitMutation(
 ): void {
   const { state: current, party } = get();
   if (!current) return;
-  const next = wasm().apply_mutation_wasm(current, mutation, label) as GameState;
+  const raw = wasm().apply_mutation_wasm(current, mutation, label) as unknown;
+  assertGameState(raw);
+  const next = raw;
   next.meta.updatedAt = Date.now();
   set({ state: next });
   persist(next, false);
   if (party.role === "host" && hostInstance) {
-    hostInstance.broadcastState(next);
+    broadcastStatePerPeer(hostInstance, party.lobby, next);
   }
+}
+
+/**
+ * Send the per-peer state projection to each connected peer. Today this
+ * sends the same payload to every seat, but routing through `stateForPeer`
+ * is the seam where any future private fields get redacted.
+ */
+function broadcastStatePerPeer(
+  host: RoomHost,
+  lobby: LobbySnapshot | null,
+  state: GameState,
+): void {
+  const players = lobby?.players ?? [];
+  const seen = new Set<string>();
+  for (const p of players) {
+    if (p.peerId === host.hostPeerId) continue; // host runs locally
+    seen.add(p.peerId);
+    const projected = stateForPeer(state, (p.faction as ClassId | null) ?? null);
+    host.sendToPeer(p.peerId, { type: "state", payload: projected, ts: Date.now() });
+  }
+  // Belt: any peer not yet in the lobby snapshot still gets a default view
+  // via the host's own broadcastState (cached for new joiners).
+  host.broadcastState(stateForPeer(state, null));
 }
 
 export interface PhaseRunResult {
@@ -163,6 +200,13 @@ interface PartyState {
   gameStarted: boolean;
   /** Peer-only: host has signalled it's leaving — show promote/wait UI. */
   hostLeavingPending: boolean;
+  /**
+   * This client's PeerJS ID (host: own peer.id; peer: own peer.id). Mirror
+   * of `hostInstance.hostPeerId` / `peerInstance.peerId` in Zustand state so
+   * selectors can react to host/peer lifecycle without polling module-level
+   * refs.
+   */
+  localPeerId: string | null;
   error: string | null;
 }
 
@@ -176,6 +220,7 @@ const PARTY_IDLE: PartyState = {
   localFaction: null,
   gameStarted: false,
   hostLeavingPending: false,
+  localPeerId: null,
   error: null,
 };
 
@@ -243,7 +288,7 @@ export const useGame = create<GameStore>((set, get) => ({
       const loaded = await adapter.load(gameId);
       set({ state: loaded, loading: false });
       if (loaded && get().party.role === "host" && hostInstance) {
-        hostInstance.broadcastState(loaded);
+        broadcastStatePerPeer(hostInstance, get().party.lobby, loaded);
       }
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
@@ -254,7 +299,7 @@ export const useGame = create<GameStore>((set, get) => ({
     set({ state });
     persist(state, get().party.role === "peer");
     if (get().party.role === "host" && hostInstance) {
-      hostInstance.broadcastState(state);
+      broadcastStatePerPeer(hostInstance, get().party.lobby, state);
     }
   },
 
@@ -302,11 +347,7 @@ export const useGame = create<GameStore>((set, get) => ({
     if (!current) return;
     const bill = current.bills.find((b) => b.id === id);
     if (!bill) return;
-    const policyName = bill.policyId;
-    const apply = get().apply;
-    apply({ type: "setPolicy", policyId: bill.policyId, position: bill.proposedSection }, `Bill passed: ${policyName} → ${bill.proposedSection}`);
-    apply({ type: "adjustVp", classId: bill.proposedBy, delta: 3 }, `+3 VP to ${bill.proposedBy} (bill passed)`);
-    apply({ type: "removeBill", id }, "Remove passed bill");
+    get().apply({ type: "passBill", billId: id }, `Bill passed: ${bill.policyId} → ${bill.proposedSection}`);
   },
 
   failBill(id) {
@@ -314,7 +355,7 @@ export const useGame = create<GameStore>((set, get) => ({
     if (!current) return;
     const bill = current.bills.find((b) => b.id === id);
     if (!bill) return;
-    get().apply({ type: "removeBill", id }, `Bill failed: ${bill.policyId} → ${bill.proposedSection}`);
+    get().apply({ type: "failBill", billId: id }, `Bill failed: ${bill.policyId} → ${bill.proposedSection}`);
   },
 
   adjustClassNumber(classId, path, delta) {
@@ -327,7 +368,9 @@ export const useGame = create<GameStore>((set, get) => ({
     if (!current) return;
     const cls = current.classes[classId] as unknown as Record<string, unknown>;
     const currentVal = (getByPath(cls, path) as number) ?? 0;
-    const delta = Math.max(0, value) - currentVal;
+    // Don't clamp here — Rust enforces bounds (saturating to 0 on negative).
+    // Clamping in TS hid genuine "user typed -5" inputs as silent zeros.
+    const delta = value - currentVal;
     if (delta === 0) return;
     const label = `${classId}.${path} = ${value}`;
     get().apply(classPathToMutation(classId, path, delta), label);
@@ -349,7 +392,7 @@ export const useGame = create<GameStore>((set, get) => ({
     set({ state: restored });
     persist(restored, false);
     if (party.role === "host" && hostInstance) {
-      hostInstance.broadcastState(restored);
+      broadcastStatePerPeer(hostInstance, party.lobby, restored);
     }
   },
 
@@ -364,7 +407,8 @@ export const useGame = create<GameStore>((set, get) => ({
     result.state.meta.updatedAt = Date.now();
     set({ state: result.state });
     persist(result.state, false);
-    if (party.role === "host" && hostInstance) hostInstance.broadcastState(result.state);
+    if (party.role === "host" && hostInstance)
+      broadcastStatePerPeer(hostInstance, party.lobby, result.state);
     return { log: result.log };
   },
 
@@ -379,7 +423,8 @@ export const useGame = create<GameStore>((set, get) => ({
     result.state.meta.updatedAt = Date.now();
     set({ state: result.state });
     persist(result.state, false);
-    if (party.role === "host" && hostInstance) hostInstance.broadcastState(result.state);
+    if (party.role === "host" && hostInstance)
+      broadcastStatePerPeer(hostInstance, party.lobby, result.state);
     return { log: result.log };
   },
 
@@ -394,7 +439,8 @@ export const useGame = create<GameStore>((set, get) => ({
     result.state.meta.updatedAt = Date.now();
     set({ state: result.state });
     persist(result.state, false);
-    if (party.role === "host" && hostInstance) hostInstance.broadcastState(result.state);
+    if (party.role === "host" && hostInstance)
+      broadcastStatePerPeer(hostInstance, party.lobby, result.state);
     return { log: result.log };
   },
 
@@ -426,6 +472,7 @@ export const useGame = create<GameStore>((set, get) => ({
           lobby: initialLobby,
           localFaction: null,
           gameStarted: false,
+          localPeerId: host.hostPeerId,
         },
       });
       host.broadcastLobby(initialLobby);
@@ -454,19 +501,59 @@ export const useGame = create<GameStore>((set, get) => ({
       });
 
       host.onMessage((peerId, msg) => {
+        const gameStarted = get().party.gameStarted;
         if (msg.type === "hello") {
+          // Block lobby-shape changes once the game starts: no faction or
+          // nickname rewrites mid-game.
+          if (gameStarted) {
+            host.sendToPeer(peerId, {
+              type: "lobby_locked" as never,
+              payload: { reason: "game-started" },
+              ts: Date.now(),
+            } as never);
+            return;
+          }
           const payload = msg.payload as { faction?: string | null; name?: string } | undefined;
+          const requested = (payload?.faction as ClassId | null | undefined) ?? null;
+          const taken = isFactionTakenByOther(get().party.lobby, requested, peerId);
           updateLobbyPlayer(peerId, (p) => ({
             ...p,
             name: payload?.name ?? p.name,
-            faction: (payload?.faction as ClassId | null | undefined) ?? p.faction,
+            faction: taken ? p.faction : requested ?? p.faction,
           }));
+          if (taken) {
+            host.sendToPeer(peerId, {
+              type: "select_faction_rejected" as never,
+              payload: { reason: "taken", faction: requested },
+              ts: Date.now(),
+            } as never);
+          }
         } else if (msg.type === "select_faction") {
+          if (gameStarted) {
+            host.sendToPeer(peerId, {
+              type: "lobby_locked" as never,
+              payload: { reason: "game-started" },
+              ts: Date.now(),
+            } as never);
+            return;
+          }
           const payload = msg.payload as { faction: string | null };
-          updateLobbyPlayer(peerId, (p) => ({ ...p, faction: payload.faction as ClassId | null }));
+          const requested = payload.faction as ClassId | null;
+          if (isFactionTakenByOther(get().party.lobby, requested, peerId)) {
+            host.sendToPeer(peerId, {
+              type: "select_faction_rejected" as never,
+              payload: { reason: "taken", faction: requested },
+              ts: Date.now(),
+            } as never);
+            return;
+          }
+          updateLobbyPlayer(peerId, (p) => ({ ...p, faction: requested }));
         } else if (msg.type === "mutation_request") {
-          const payload = msg.payload as { mutation: Mutation; label?: string };
-          if (!get().party.gameStarted) return;
+          if (!gameStarted) return;
+          const payload = msg.payload as { mutation?: unknown; label?: string };
+          // Whitelist mutation type before WASM gets a look. Keeps unknown /
+          // future-protocol variants out of the engine.
+          if (!isKnownMutationShape(payload.mutation)) return;
           // Validate the requesting peer is allowed to mutate this class.
           const owner = ownerOfMutation(payload.mutation);
           if (owner) {
@@ -480,7 +567,7 @@ export const useGame = create<GameStore>((set, get) => ({
       });
 
       const cur = get().state;
-      if (cur) host.broadcastState(cur);
+      if (cur) broadcastStatePerPeer(host, get().party.lobby, cur);
       return host.code;
 
       function updateLobbyPlayer(
@@ -525,6 +612,7 @@ export const useGame = create<GameStore>((set, get) => ({
           peerCount: 0,
           connected: true,
           transport: "connected",
+          localPeerId: peer.peerId,
         },
         state: null,
       });
@@ -626,7 +714,7 @@ export const useGame = create<GameStore>((set, get) => ({
     hostInstance.broadcastLobby(started);
     const startMsg: PartyMessage = { type: "start_game", ts: Date.now() };
     hostInstance.broadcast(startMsg);
-    if (state) hostInstance.broadcastState(state);
+    if (state) broadcastStatePerPeer(hostInstance, get().party.lobby, state);
   },
 
   async promoteToHost() {
@@ -638,7 +726,7 @@ export const useGame = create<GameStore>((set, get) => ({
     if (!state) return null;
     const code = await get().startHosting();
     // Re-broadcast current state so any future joiners are in sync.
-    hostInstance?.broadcastState(state);
+    if (hostInstance) broadcastStatePerPeer(hostInstance, get().party.lobby, state);
     set((prev) => ({ party: { ...prev.party, gameStarted: true, lobby: prev.party.lobby ? { ...prev.party.lobby, started: true } : null } }));
     return code;
   },
@@ -682,9 +770,8 @@ export function useClassNickname(classId: ClassId): string | undefined {
 /** Local seat's own nickname, for editing in the lobby. */
 export function useLocalNickname(): string {
   return useGame((s) => {
-    if (!s.party.lobby || !hostInstance && !peerInstance) return "";
-    const myPeerId = hostInstance?.hostPeerId ?? peerInstance?.peerId ?? null;
-    if (!myPeerId) return "";
+    const myPeerId = s.party.localPeerId;
+    if (!s.party.lobby || !myPeerId) return "";
     return s.party.lobby.players.find((p) => p.peerId === myPeerId)?.name ?? "";
   });
 }

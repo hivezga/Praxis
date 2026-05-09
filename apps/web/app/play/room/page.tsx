@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 
 import { GlobalBoardPanel } from "@/components/board/GlobalBoardPanel";
 import { RoundPhaseHeader } from "@/components/board/RoundPhaseHeader";
@@ -107,7 +107,7 @@ export default function RoomPage() {
   );
 }
 
-function PeerObserverBanner() {
+const PeerObserverBanner = memo(function PeerObserverBanner() {
   return (
     <div
       role="status"
@@ -118,4 +118,4 @@ function PeerObserverBanner() {
       </p>
     </div>
   );
-}
+});

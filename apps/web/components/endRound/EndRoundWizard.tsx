@@ -17,10 +17,15 @@ export function EndRoundWizard({ open, onClose }: Props) {
   const apply = useGame((s) => s.apply);
   const advancePhase = useGame((s) => s.advancePhase);
 
-  const suggestion = useMemo(
-    () => (state ? (wasm().compute_round_suggestion_wasm(state) as RoundSuggestion) : null),
-    [state],
-  );
+  const suggestion = useMemo(() => {
+    if (!state) return null;
+    // Guard against the wasm() throw on slow-network init resolves.
+    try {
+      return wasm().compute_round_suggestion_wasm(state) as RoundSuggestion;
+    } catch {
+      return null;
+    }
+  }, [state]);
 
   const [taxToTreasury, setTaxToTreasury] = useState<number | null>(null);
   const [wagesToWorking, setWagesToWorking] = useState<number | null>(null);

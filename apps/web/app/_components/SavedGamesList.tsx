@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { localStorageAdapter } from "@/lib/store/persistence/localStorage";
 import type { GameMeta, GameState } from "@/lib/types/game";
+import { encode as encodeBase64Utf8 } from "@/lib/util/base64-utf8";
 
 export function SavedGamesList() {
   const [metas, setMetas] = useState<GameMeta[]>([]);
@@ -33,7 +34,7 @@ export function SavedGamesList() {
     if (!state) return;
     const stripped = { ...state, history: [] };
     const json = JSON.stringify(stripped);
-    const b64 = btoa(unescape(encodeURIComponent(json)));
+    const b64 = encodeBase64Utf8(json);
     const url = `${window.location.origin}/play/import#${b64}`;
     try {
       await navigator.clipboard.writeText(url);

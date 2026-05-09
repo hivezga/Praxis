@@ -8,6 +8,10 @@ interface Props {
   startHidden?: boolean;
 }
 
+// NOTE: this is a UX privacy curtain, not a security boundary. The hidden
+// content is still rendered to the DOM and visible in DevTools — anyone with
+// physical access to the device can inspect it. Use only for casual
+// shoulder-surfing protection between trusted players at the same table.
 export function HideCurtain({ label = "Hidden info", children, startHidden = true }: Props) {
   const [hidden, setHidden] = useState(startHidden);
   return (

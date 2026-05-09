@@ -45,7 +45,9 @@ export default function LobbyPage() {
   const joinUrl = useMemo(() => {
     if (!party.code) return "";
     const base = origin || "";
-    return `${base}/play/join?code=${party.code}`;
+    // Use the URL fragment so the room code never lands in Referer
+    // headers, server access logs, or Web History entries.
+    return `${base}/play/join#code=${party.code}`;
   }, [origin, party.code]);
 
   // No room → bounce home.

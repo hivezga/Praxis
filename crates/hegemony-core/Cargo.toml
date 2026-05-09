@@ -16,9 +16,11 @@ wasm-bindgen = "0.2"
 serde-wasm-bindgen = "0.6"
 getrandom = { version = "0.2", features = ["js"] }
 uuid = { version = "1", features = ["v4", "js"] }
+console_error_panic_hook = "0.1"
+js-sys = "0.3"
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = { version = "0.21", default-features = false }
 
 [dev-dependencies]
-proptest = "1"
+proptest = "1.4"

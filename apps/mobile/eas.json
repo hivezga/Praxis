@@ -1,0 +1,52 @@
+{
+  "cli": {
+    "version": ">= 14.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "RUST_TARGETS": "arm64-v8a"
+      },
+      "cache": {
+        "paths": [
+          "~/.cargo/registry",
+          "~/.cargo/git"
+        ]
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "RUST_TARGETS": "arm64-v8a,x86_64"
+      },
+      "cache": {
+        "paths": [
+          "~/.cargo/registry",
+          "~/.cargo/git"
+        ]
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "RUST_TARGETS": "arm64-v8a,x86_64"
+      },
+      "cache": {
+        "paths": [
+          "~/.cargo/registry",
+          "~/.cargo/git"
+        ]
+      }
+    }
+  }
+}

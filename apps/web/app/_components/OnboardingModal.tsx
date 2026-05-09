@@ -51,14 +51,13 @@ export function OnboardingModal() {
         <div className="flex w-full flex-wrap items-center justify-between gap-3">
           <div
             className="flex gap-1.5"
-            role="tablist"
+            role="group"
             aria-label={`Onboarding step ${step + 1} of ${STEPS.length}`}
           >
             {STEPS.map((_, i) => (
               <span
                 key={i}
-                role="tab"
-                aria-selected={i === step}
+                aria-current={i === step ? "step" : undefined}
                 aria-label={`Step ${i + 1}`}
                 className={`h-1.5 w-6 rounded-sm transition-colors ${
                   i === step ? "bg-accent" : "bg-surfaceMute/60"
