@@ -69,6 +69,7 @@ export function SetupClient() {
   const [name, setName] = useState("");
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
   const [classes, setClasses] = useState<Set<ClassId>>(new Set(ALL_CLASSES));
+  const [localPlayerClass, setLocalPlayerClass] = useState<ClassId | null>(null);
   const [expansions, setExpansions] = useState<ExpansionFlags>(DEFAULT_EXPANSIONS);
   const [hostParty, setHostParty] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -76,12 +77,14 @@ export function SetupClient() {
 
   const hydrate = useGame((s) => s.hydrate);
   const startHosting = useGame((s) => s.startHosting);
+  const selectFaction = useGame((s) => s.selectFaction);
 
   function toggleClass(c: ClassId) {
     const next = new Set(classes);
     if (next.has(c)) next.delete(c);
     else next.add(c);
     setClasses(next);
+    if (localPlayerClass && !next.has(localPlayerClass)) setLocalPlayerClass(null);
   }
 
   function setExp<K extends keyof ExpansionFlags["modules"]>(key: K, value: boolean) {
@@ -101,18 +104,23 @@ export function SetupClient() {
         playerCount,
         classesInPlay: Array.from(classes),
         expansions,
+        localPlayerClass: mode === "solo" ? localPlayerClass ?? undefined : undefined,
       }) as GameState;
       await localStorageAdapter.save(state);
       hydrate(state);
+      if (mode === "solo" && localPlayerClass) selectFaction(localPlayerClass);
       if (hostParty) {
         try {
           await startHosting();
+          router.push("/play/lobby");
+          return;
         } catch (err) {
           setPartyError(
             err instanceof Error
               ? err.message
               : "Couldn’t start the party room. The game is still saved locally.",
           );
+          return;
         }
       }
       router.push(`/play/${state.meta.id}`);
@@ -229,6 +237,41 @@ export function SetupClient() {
           </div>
         </Field>
 
+        {/* Solo: which class am I playing */}
+        {mode === "solo" && classes.size > 0 ? (
+          <Field
+            label="Which class are you playing?"
+            hint="Other classes' private info (cards in hand, notes) will stay hidden behind a curtain."
+          >
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {Array.from(classes).map((c) => {
+                const meta = CLASS_META[c];
+                const active = localPlayerClass === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setLocalPlayerClass(active ? null : c)}
+                    className={`rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+                      active ? meta.active : meta.inactive
+                    }`}
+                  >
+                    <div className="font-serif text-sm font-normal">{meta.label}</div>
+                    <div
+                      className={`mt-1 font-serif text-[11px] italic ${
+                        active ? "opacity-70" : "text-inkMute"
+                      }`}
+                    >
+                      {meta.desc}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+        ) : null}
+
         {/* Expansion */}
         <Field label="Expansion: Crisis & Control">
           <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-rule/60 bg-surface/40 px-4 py-3 text-sm text-inkSoft transition-colors hover:border-rule">
@@ -286,13 +329,21 @@ export function SetupClient() {
             type="button"
             className="btn btn-primary px-6 py-3 font-serif text-base"
             onClick={start}
-            disabled={classes.size === 0 || starting}
+            disabled={
+              classes.size === 0 ||
+              starting ||
+              (mode === "solo" && classes.size > 1 && !localPlayerClass)
+            }
           >
             {starting ? (hostParty ? "Opening room…" : "Starting…") : "Start game →"}
           </button>
           {classes.size === 0 ? (
             <p className="mt-2 font-serif text-xs italic text-inkMute">
               Select at least one class to start.
+            </p>
+          ) : mode === "solo" && classes.size > 1 && !localPlayerClass ? (
+            <p className="mt-2 font-serif text-xs italic text-inkMute">
+              Pick which class you'll play to start.
             </p>
           ) : null}
           {partyError ? (

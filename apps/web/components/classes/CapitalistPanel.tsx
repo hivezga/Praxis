@@ -3,19 +3,19 @@
 import { ClassPanelShell } from "./ClassPanelShell";
 import { Counter } from "@/components/shared/Counter";
 import { HideCurtain } from "@/components/shared/HideCurtain";
+import { NotesField } from "./NotesField";
 import { StorageGrid } from "./StorageGrid";
-import { useGame, useGameState } from "@/lib/store";
+import { useClassState, useGame, useShouldHideClass } from "@/lib/store";
 import type { Good } from "@/lib/types/game";
 
 export function CapitalistPanel() {
-  const state = useGameState();
+  const c = useClassState("capitalist");
   const adjust = useGame((s) => s.adjustClassNumber);
   const setVal = useGame((s) => s.setClassNumber);
   const setText = useGame((s) => s.setClassString);
   const apply = useGame((s) => s.apply);
-  if (!state) return null;
-  const c = state.classes.capitalist;
-  const partyMode = state.meta.mode === "party";
+  const hideForeign = useShouldHideClass("capitalist");
+  if (!c) return null;
   return (
     <ClassPanelShell classId="capitalist">
       {/* Primary stats */}
@@ -106,7 +106,20 @@ export function CapitalistPanel() {
         </ul>
       </div>
 
-      <HideCurtain label="hand">
+      {hideForeign ? (
+        <HideCurtain label="hand">
+          <div>
+            <div className="panel-title">Hand size</div>
+            <Counter
+              label="Cards in hand"
+              value={c.handSize}
+              onAdjust={(d) => adjust("capitalist", "handSize", d)}
+              onSet={(v) => setVal("capitalist", "handSize", v)}
+              max={20}
+            />
+          </div>
+        </HideCurtain>
+      ) : (
         <div>
           <div className="panel-title">Hand size</div>
           <Counter
@@ -116,23 +129,10 @@ export function CapitalistPanel() {
             onSet={(v) => setVal("capitalist", "handSize", v)}
             max={20}
           />
-          {!partyMode ? (
-            <p className="mt-2 font-serif text-xs italic text-inkMute">
-              In solo mode this curtain is not needed; toggling it just blurs the panel.
-            </p>
-          ) : null}
         </div>
-      </HideCurtain>
+      )}
 
-      <div>
-        <div className="panel-title">Notes</div>
-        <textarea
-          className="input min-h-[60px]"
-          placeholder="Strategy notes, reminders…"
-          value={c.notes}
-          onChange={(e) => setText("capitalist", "notes", e.target.value)}
-        />
-      </div>
+      <NotesField classId="capitalist" value={c.notes} onChange={(t) => setText("capitalist", "notes", t)} />
     </ClassPanelShell>
   );
 }

@@ -6,6 +6,8 @@ import type { MiddleClassState } from "./classes/middle";
 import type { StateClassState } from "./classes/state";
 import type { WorkingClassState } from "./classes/working";
 
+export type { CapitalistState, MiddleClassState, StateClassState, WorkingClassState };
+
 export type ClassId = "working" | "middle" | "capitalist" | "state";
 
 export type GameMode = "solo" | "party";
@@ -102,6 +104,8 @@ export interface GameMeta {
   round: 1 | 2 | 3 | 4 | 5;
   phase: Phase;
   activeClass?: ClassId;
+  /** Solo: which class the local player controls. Other classes' private info gated. */
+  localPlayerClass?: ClassId;
 }
 
 export interface GameState {
