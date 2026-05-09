@@ -38,6 +38,8 @@ const KNOWN_TYPES = [
   "applyEndRound",
   "passBill",
   "failBill",
+  "setWealthMarker",
+  "sellWelfare",
 ] as const satisfies readonly Mutation["type"][];
 
 const KNOWN_TYPE_SET: ReadonlySet<string> = new Set(KNOWN_TYPES);

@@ -48,5 +48,7 @@ export type Mutation =
       workingProsperitySteps: number;
       middleProsperitySteps: number;
     }
-  | { type: "passBill"; billId: string }
-  | { type: "failBill"; billId: string };
+  | { type: "passBill"; billId: string; supporters?: ClassId[] }
+  | { type: "failBill"; billId: string }
+  | { type: "setWealthMarker"; position: number }
+  | { type: "sellWelfare"; good: Good; buyer: ClassId; units: number };

@@ -41,6 +41,10 @@ export interface CapitalistState {
 
   votingCubesInBag: number;
   billMarkersAvailable: 0 | 1 | 2 | 3;
+  // Highest Wealth-table space reached so far (0 = start, 1..15 per board
+  // spaces). Marker only advances rightward — rulebook v1.2 page 21.
+  // Optional for backward compat with pre-marker save files.
+  wealthMarkerPosition?: number;
 
   notes: string;
 }
