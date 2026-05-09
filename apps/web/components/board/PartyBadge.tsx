@@ -33,6 +33,12 @@ export function PartyBadge() {
         : party.connected
           ? "live"
           : "offline";
+  const peerColor =
+    party.transport === "connected"
+      ? "text-positive"
+      : party.transport === "reconnecting"
+        ? "text-warning"
+        : "text-danger";
 
   async function copyCode() {
     if (!party.code) return;
@@ -69,50 +75,45 @@ export function PartyBadge() {
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-accent/30 bg-accent/[0.05] px-3 py-1.5">
-      <span className="font-serif text-[10px] uppercase italic tracking-[0.2em] text-accentInk/70">
+    <div className="flex flex-wrap items-center gap-2 rounded-sharp border border-accent/40 bg-accent/[0.08] px-3 py-1.5">
+      <span className="font-display text-[10px] uppercase tracking-[0.2em] text-accentInk/80">
         {isHost ? "Hosting" : "Joined"}
       </span>
       <button
         type="button"
         onClick={copyCode}
-        className="font-mono text-sm tracking-[0.2em] text-accentInk transition-colors hover:text-accentInk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="min-h-tap min-w-tap rounded-sharp px-2 font-mono text-fluid-base tracking-[0.2em] text-accentInk transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         title="Click to copy code"
+        aria-label={`Room code ${party.code}, click to copy`}
       >
         {party.code}
       </button>
       {isHost ? (
-        <span className="font-serif text-[10px] italic text-accentInk/60">
+        <span className="font-serif text-[11px] italic text-accentInk/70">
           {party.peerCount} {party.peerCount === 1 ? "peer" : "peers"}
         </span>
       ) : (
-        <span
-          className={`font-serif text-[10px] italic ${
-            party.transport === "connected"
-              ? "text-emerald-300/70"
-              : party.transport === "reconnecting"
-                ? "text-amber-300/80"
-                : "text-danger/70"
-          }`}
-        >
+        <span className={`font-display text-[10px] uppercase tracking-wider ${peerColor}`}>
           {peerLabel}
         </span>
       )}
       {copied ? (
-        <span className="font-serif text-[10px] italic text-accentInk/80">copied</span>
+        <span className="font-serif text-[11px] italic text-accentInk/80" role="status">
+          copied
+        </span>
       ) : null}
       {isHost ? (
         <button
           type="button"
           onClick={share}
-          className="ml-1 rounded-md border border-accent/40 px-2 py-0.5 text-[10px] text-accentInk transition-colors hover:border-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          className="min-h-tap rounded-sharp border border-accent/50 px-3 py-1 font-display text-[10px] uppercase tracking-wider text-accentInk transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         >
           {canShare ? "Share" : "Copy link"}
         </button>
       ) : null}
       <button
         type="button"
-        className="ml-1 rounded-md border border-rule/60 px-2 py-0.5 text-[10px] text-inkSoft transition-colors hover:border-rule hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="min-h-tap rounded-sharp border border-rule/60 px-3 py-1 font-display text-[10px] uppercase tracking-wider text-inkSoft transition-colors hover:border-rule hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         onClick={isHost ? stopHosting : leaveRoom}
       >
         Leave

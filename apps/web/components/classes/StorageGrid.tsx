@@ -17,7 +17,7 @@ export function StorageGrid({ title = "Storage", values, labels, onAdjust, onSet
   return (
     <div>
       {title ? <div className="panel-title">{title}</div> : null}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 @md:grid-cols-3">
         {keys.map((k) => (
           <Counter
             key={k}

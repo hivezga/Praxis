@@ -12,11 +12,18 @@ export function HideCurtain({ label = "Hidden info", children, startHidden = tru
   const [hidden, setHidden] = useState(startHidden);
   return (
     <div className="relative">
-      <div className={hidden ? "pointer-events-none select-none blur-md" : ""}>{children}</div>
+      <div
+        aria-hidden={hidden}
+        className={hidden ? "pointer-events-none select-none blur-md" : ""}
+      >
+        {children}
+      </div>
       <button
         type="button"
         onClick={() => setHidden((h) => !h)}
-        className="absolute right-2 top-2 rounded-md border border-rule bg-surface/95 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-inkSoft transition-colors hover:bg-surfaceSoft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        aria-pressed={!hidden}
+        aria-label={hidden ? `Reveal ${label}` : `Hide ${label}`}
+        className="absolute right-2 top-2 min-h-tap rounded-sharp border border-rule/60 bg-surface/95 px-3 py-1.5 font-display text-[10px] uppercase tracking-wider text-inkSoft transition-colors hover:bg-surfaceSoft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       >
         {hidden ? `Reveal ${label}` : `Hide ${label}`}
       </button>

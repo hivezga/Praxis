@@ -92,8 +92,8 @@ export function EndRoundWizard({ open, onClose }: Props) {
         </>
       }
     >
-      <div className="space-y-6 text-sm">
-        <p className="rounded-md border border-rule/60 bg-paper/40 px-4 py-3 font-serif text-[13px] italic leading-relaxed text-inkSoft">
+      <div className="space-y-6 text-fluid-sm">
+        <p className="rounded-sharp border border-rule/60 bg-paper/40 px-4 py-3 font-serif italic leading-relaxed text-inkSoft">
           Tax multiplier this round:{" "}
           <strong className="not-italic font-mono text-ink">
             ×{suggestion.taxes.multiplier}
@@ -102,7 +102,7 @@ export function EndRoundWizard({ open, onClose }: Props) {
         </p>
 
         <Section title="Taxes → Treasury">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <Stat label="Working income tax"       value={suggestion.taxes.workingIncomeTax} />
             <Stat label="Middle income tax"        value={suggestion.taxes.middleIncomeTax} />
             <Stat label="Middle employment tax"    value={suggestion.taxes.middleEmploymentTax} />
@@ -113,7 +113,7 @@ export function EndRoundWizard({ open, onClose }: Props) {
         </Section>
 
         <Section title="Wages">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <Stat label="From Capitalist companies" value={suggestion.wages.fromCapitalist} />
             <Stat label="From Middle companies"     value={suggestion.wages.fromMiddle} />
             <EditableStat label="To Working class"  value={wW} onChange={setWagesToWorking} />
@@ -122,26 +122,32 @@ export function EndRoundWizard({ open, onClose }: Props) {
 
         <Section title="Welfare costs">
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-            <EditableStat label="State pays for free services" value={wS} onChange={setWelfareFromState} />
-            <p className="self-center text-xs text-inkMute">{suggestion.welfareCosts.notes}</p>
+            <EditableStat
+              label="State pays for free services"
+              value={wS}
+              onChange={setWelfareFromState}
+            />
+            <p className="self-center font-serif text-fluid-sm italic text-inkMute">
+              {suggestion.welfareCosts.notes}
+            </p>
           </div>
         </Section>
 
         <Section title="Prosperity gains">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <EditableStat label="Working +Prosperity steps" value={pW} onChange={setWorkingProsperity} />
             <EditableStat label="Middle +Prosperity steps"  value={pM} onChange={setMiddleProsperity} />
           </div>
-          <p className="mt-2 text-xs text-inkMute">
+          <p className="mt-2 font-serif text-fluid-sm italic text-inkMute">
             Each step grants VP equal to the new Prosperity value.
           </p>
         </Section>
 
-        <section className="rounded-md border border-rule/60 bg-paper/40 p-5">
-          <h4 className="mb-4 font-serif text-[11px] uppercase italic tracking-[0.25em] text-inkMute">
+        <section className="rounded-sharp border border-rule/60 bg-paper/40 p-4 sm:p-5">
+          <h4 className="mb-4 font-display text-[11px] uppercase tracking-[0.25em] text-inkMute">
             Net cash impact
           </h4>
-          <div className="grid grid-cols-4 gap-3 text-center">
+          <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
             <NetCell label="Working"    value={totals.workingNet}    />
             <NetCell label="Middle"     value={totals.middleNet}     />
             <NetCell label="Capitalist" value={totals.capitalistNet} />
@@ -156,7 +162,7 @@ export function EndRoundWizard({ open, onClose }: Props) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h4 className="mb-3 font-serif text-[11px] uppercase italic tracking-[0.25em] text-inkMute">
+      <h4 className="mb-3 font-display text-[11px] uppercase tracking-[0.25em] text-inkMute">
         {title}
       </h4>
       {children}
@@ -166,9 +172,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-rule/60 bg-paper/30 px-3 py-2.5">
+    <div className="rounded-sharp border border-rule/60 bg-paper/30 px-3 py-2.5">
       <div className="stat-label">{label}</div>
-      <div className="mt-0.5 font-mono text-base font-light text-ink">{value}</div>
+      <div className="mt-0.5 font-mono text-fluid-base font-light text-ink">{value}</div>
     </div>
   );
 }
@@ -183,13 +189,14 @@ function EditableStat({
   onChange: (next: number | null) => void;
 }) {
   return (
-    <div className="rounded-md border border-accent/30 bg-accent/[0.04] px-3 py-2.5">
-      <div className="font-serif text-[10px] uppercase italic tracking-[0.2em] text-accentInk/70">
+    <div className="rounded-sharp border-2 border-accent/40 bg-accent/[0.06] px-3 py-2.5">
+      <div className="font-display text-[10px] uppercase tracking-[0.2em] text-accentInk/80">
         {label}
       </div>
       <input
         type="number"
-        className="input mt-1.5 border-accent/20 bg-transparent font-mono focus:border-accent/60"
+        aria-label={label}
+        className="input mt-1.5 border-accent/30 bg-transparent font-mono focus:border-accent"
         value={value}
         onChange={(e) => {
           const n = Number(e.target.value);
@@ -203,13 +210,13 @@ function EditableStat({
 function NetCell({ label, value }: { label: string; value: number }) {
   const positive = value >= 0;
   return (
-    <div className="rounded-md border border-rule/60 bg-paper/40 py-3">
-      <div className="font-serif text-[10px] uppercase italic tracking-[0.2em] text-inkMute">
+    <div className="rounded-sharp border border-rule/60 bg-paper/40 py-3">
+      <div className="font-display text-[10px] uppercase tracking-[0.2em] text-inkMute">
         {label}
       </div>
       <div
-        className={`mt-1 font-mono text-2xl font-light ${
-          positive ? "text-emerald-400" : "text-danger"
+        className={`mt-1 font-mono text-fluid-xl font-light ${
+          positive ? "text-positive" : "text-danger"
         }`}
       >
         {positive ? "+" : ""}

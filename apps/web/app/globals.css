@@ -16,8 +16,8 @@
   /* Ink (text) */
   --ink:           232 230 225;    /* warm white */
   --ink-soft:      185 180 168;
-  --ink-mute:      130 125 113;
-  --ink-subtle:     90  87  79;
+  --ink-mute:      150 144 130;    /* lifted from 130 → 150 for AA contrast on dark surfaces */
+  --ink-subtle:    110 105  93;    /* lifted from 90 → 110 */
 
   /* Rules / borders */
   --rule:          232 230 225;     /* alpha applied at usage */
@@ -31,6 +31,14 @@
   /* Danger: rose */
   --danger:        251 113 133;     /* rose-400 */
   --danger-soft:   244  63  94;
+
+  /* Positive: emerald — replaces raw text-emerald-400 sprinklings */
+  --positive:      52 211 153;      /* emerald-400 */
+  --positive-soft: 16 185 129;      /* emerald-500 */
+
+  /* Warning: amber lighter, distinct from accent */
+  --warning:       253 224 71;      /* yellow-300 */
+  --warning-soft:  250 204 21;      /* yellow-400 */
 }
 
 /* ─── Light / "daylight" theme ─────────────────────────────────────── */
@@ -45,8 +53,8 @@
 
   --ink:            28  25  20;     /* near-black, warm */
   --ink-soft:       72  68  58;
-  --ink-mute:      120 115 100;
-  --ink-subtle:    160 154 138;
+  --ink-mute:      105 100  85;     /* lifted for AA contrast on cream */
+  --ink-subtle:    150 144 130;
 
   --rule:           28  25  20;
   --rule-strong:    28  25  20;
@@ -57,6 +65,12 @@
 
   --danger:        190  18  60;     /* rose-700 */
   --danger-soft:   225  29  72;
+
+  --positive:       21 128  61;     /* emerald-700 */
+  --positive-soft:  22 163  74;     /* emerald-600 */
+
+  --warning:       161  98  7;      /* yellow-700 */
+  --warning-soft:  202 138 4;       /* yellow-600 */
 }
 
 html,
@@ -80,35 +94,53 @@ body {
 @layer components {
   /* ── Surfaces ─────────────────────────────────────────────────────── */
   .panel {
-    @apply rounded-lg border border-rule/40 bg-surface/30 p-5;
+    @apply rounded-md border border-rule/40 bg-surface/30 p-4 sm:p-5;
   }
   .panel-quiet {
-    @apply rounded-lg border border-rule/20 bg-paperSoft/40 p-4;
+    @apply rounded-md border border-rule/20 bg-paperSoft/40 p-3 sm:p-4;
   }
   .panel-title {
     @apply mb-3 font-serif text-[11px] font-normal uppercase italic tracking-[0.25em] text-inkMute;
   }
 
   /* ── Typography helpers ───────────────────────────────────────────── */
+  /* Editorial = the pre-existing Crimson voice. Used for prose, eyebrows, asides. */
   .editorial-h1 {
-    @apply font-serif text-5xl font-light leading-[1.05] tracking-tight text-ink sm:text-6xl;
+    @apply font-serif font-light leading-[1.05] tracking-tight text-ink text-poster-lg text-balance;
   }
   .editorial-h2 {
-    @apply font-serif text-3xl font-light leading-tight text-ink;
+    @apply font-serif font-light leading-tight text-ink text-poster-md text-balance;
   }
   .editorial-h3 {
-    @apply font-serif text-xl font-normal italic text-ink/95;
+    @apply font-serif text-fluid-xl font-normal italic text-ink/95;
   }
   .editorial-eyebrow {
     @apply font-serif text-[11px] uppercase italic tracking-[0.3em] text-inkMute;
   }
   .editorial-lede {
-    @apply font-serif text-lg font-light leading-relaxed text-inkSoft;
+    @apply font-serif text-fluid-lg font-light leading-relaxed text-inkSoft text-pretty;
+  }
+
+  /* Poster = the new civic-poster voice. Archivo Black, all caps, tracked. */
+  .poster-h1 {
+    @apply font-display uppercase tracking-tight text-ink text-poster-xl text-balance;
+    line-height: 0.9;
+  }
+  .poster-h2 {
+    @apply font-display uppercase tracking-tight text-ink text-poster-lg text-balance;
+    line-height: 0.95;
+  }
+  .poster-h3 {
+    @apply font-display uppercase tracking-tight text-ink text-poster-md;
+    line-height: 1.05;
+  }
+  .poster-eyebrow {
+    @apply font-display text-[10px] uppercase tracking-[0.3em] text-inkMute;
   }
 
   /* ── Stats ────────────────────────────────────────────────────────── */
   .stat-num {
-    @apply font-mono text-xl font-semibold text-ink;
+    @apply font-mono text-fluid-xl font-semibold text-ink;
   }
   .stat-label {
     @apply text-[10px] font-medium uppercase tracking-[0.18em] text-inkMute;
@@ -121,26 +153,66 @@ body {
     @apply font-serif text-xs uppercase italic tracking-[0.25em] text-inkMute;
   }
   .stat-primary-value {
-    @apply font-mono text-3xl font-light tracking-tight text-ink;
+    @apply font-mono text-fluid-xl font-light tracking-tight text-ink;
   }
 
   /* ── Buttons ──────────────────────────────────────────────────────── */
+  /* Sharp pamphlet edges, 44 px tap target, fluid label, wraps before clipping. */
   .btn {
-    @apply inline-flex min-h-[36px] items-center justify-center rounded-md border border-rule/40 bg-surface/30 px-3.5 py-2 text-sm font-medium text-inkSoft transition-colors hover:bg-surface/60 hover:text-ink active:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-paper;
+    @apply inline-flex min-h-tap min-w-0 items-center justify-center gap-1.5
+           rounded-sharp border border-rule/40 bg-surface/30
+           px-3.5 py-2 text-fluid-sm font-medium text-inkSoft
+           transition-colors transition-transform
+           hover:bg-surface/60 hover:text-ink
+           active:translate-y-px active:bg-surface/80
+           disabled:cursor-not-allowed disabled:opacity-40
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
+           focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
   .btn-primary {
-    @apply border-accent/40 bg-accent/15 text-accentInk hover:border-accent/60 hover:bg-accent/25 hover:text-accentInk;
+    @apply border-accent/60 bg-accent/20 text-accentInk
+           hover:border-accent hover:bg-accent/30 hover:text-accentInk;
+  }
+  .btn-poster {
+    /* Loud civic-poster CTA. Use sparingly: hero, "Start game", "Begin".
+       Uses Tailwind stone palette (warm near-black) directly so the
+       contrast pair stays AA in both themes — theme-flipping tokens like
+       --ink invert and break contrast on this surface. */
+    @apply border-2 border-stone-900 bg-stone-900 text-stone-50 shadow-poster-sm
+           hover:bg-stone-800 hover:text-stone-50 hover:shadow-poster
+           active:translate-x-px active:translate-y-px active:shadow-none;
   }
   .btn-ghost {
-    @apply border-transparent bg-transparent hover:bg-surface/40 hover:border-rule/30;
+    @apply border-transparent bg-transparent
+           hover:bg-surface/40 hover:border-rule/30;
   }
   .btn-danger {
-    @apply border-danger/40 bg-danger/10 text-danger hover:bg-danger/20 hover:text-danger;
+    @apply border-danger/50 bg-danger/15 text-danger
+           hover:border-danger hover:bg-danger/25 hover:text-danger;
+  }
+  .btn-positive {
+    @apply border-positive/50 bg-positive/15 text-positive
+           hover:border-positive hover:bg-positive/25 hover:text-positive;
   }
 
   /* ── Inputs ───────────────────────────────────────────────────────── */
   .input {
-    @apply w-full rounded-md border border-rule/40 bg-paperSoft/40 px-3 py-2 text-sm text-ink placeholder:text-inkSubtle transition-colors focus:border-accent/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent/40;
+    @apply w-full rounded-sharp border border-rule/50 bg-paperSoft/40
+           px-3 py-2 text-fluid-base text-ink placeholder:text-inkSubtle
+           transition-colors
+           focus:border-accent focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-accent/60;
+  }
+
+  /* ── Faction surfaces ─────────────────────────────────────────────── */
+  /* Heavy color band header used by ClassPanelShell. Reusable for any
+     surface that should read as "owned" by a faction. */
+  .faction-band {
+    @apply flex items-end justify-between gap-3 px-5 py-4 text-paper;
+  }
+  .faction-band-title {
+    @apply font-display uppercase tracking-tight text-poster-md;
+    line-height: 1;
   }
 
   /* ── Ornament ─────────────────────────────────────────────────────── */
@@ -159,6 +231,9 @@ body {
     @apply sr-only;
   }
   .skip-link:focus {
-    @apply not-sr-only fixed left-4 top-4 z-50 inline-flex items-center rounded-md border border-accent/60 bg-paper px-4 py-2 font-serif text-sm italic text-accentInk shadow-lg outline-none ring-2 ring-accent/40;
+    @apply not-sr-only fixed left-4 top-4 z-50 inline-flex items-center
+           rounded-sharp border-2 border-accent bg-paper px-4 py-2
+           font-display text-sm uppercase tracking-wider text-accentInk
+           shadow-poster outline-none ring-2 ring-accent/40;
   }
 }

@@ -9,7 +9,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "snapshots": "node scripts/snapshot-grid.mjs",
+    "axe": "node scripts/axe-sweep.mjs"
   },
   "dependencies": {
     "@praxis/party": "workspace:*",
@@ -24,7 +26,9 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@serwist/next": "^9.5.11",
+    "@tailwindcss/container-queries": "^0.1.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -37,6 +41,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.15",
     "jsdom": "^29.1.1",
+    "playwright": "^1.59.1",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
     "typescript": "^5.5.3",

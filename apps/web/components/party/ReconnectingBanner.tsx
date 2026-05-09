@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParty } from "@/lib/store";
 
 /**
- * Persistent amber banner shown to a peer while their transport is in
+ * Persistent warning banner shown to a peer while their transport is in
  * "reconnecting" or while the browser reports it's offline. Auto-dismisses on
  * reconnect — no banner is shown in solo or while everything is healthy.
  */
@@ -41,9 +41,11 @@ export function ReconnectingBanner() {
   return (
     <div
       role="status"
-      className="border-b border-amber-400/40 bg-amber-400/10 px-5 py-2 text-center"
+      className="border-b border-warning/40 bg-warning/15 px-5 py-2 text-center"
     >
-      <p className="font-serif text-[13px] italic text-amber-200">{label}</p>
+      <p className="font-display text-[11px] uppercase tracking-[0.2em] text-warning">
+        {label}
+      </p>
     </div>
   );
 }

@@ -48,10 +48,10 @@ export function HostLeavingModal() {
       title="Host left the game"
       widthClass="max-w-md"
       footer={
-        <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <button
             type="button"
-            className="btn btn-ghost text-xs"
+            className="btn btn-ghost"
             onClick={() => {
               leave();
               router.replace("/");
@@ -60,13 +60,8 @@ export function HostLeavingModal() {
           >
             Leave room
           </button>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="btn"
-              onClick={dismiss}
-              disabled={busy}
-            >
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn" onClick={dismiss} disabled={busy}>
               Wait
             </button>
             <button
@@ -81,7 +76,7 @@ export function HostLeavingModal() {
         </div>
       }
     >
-      <p className="font-serif text-sm leading-relaxed text-inkSoft">
+      <p className="font-serif text-fluid-base leading-relaxed text-inkSoft">
         The connection to the host has dropped. You can take over with the last
         state Praxis received from the host — your friends will need to rejoin
         with the new room code.
@@ -89,7 +84,7 @@ export function HostLeavingModal() {
       {error ? (
         <p
           role="alert"
-          className="mt-3 rounded-md border border-danger/30 bg-danger/15 px-3 py-2 font-serif text-xs italic text-danger"
+          className="mt-3 rounded-sharp border border-danger/40 bg-danger/15 px-3 py-2 font-serif text-fluid-sm italic text-danger"
         >
           {error}
         </p>

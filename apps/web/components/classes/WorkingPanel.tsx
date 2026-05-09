@@ -17,7 +17,7 @@ export function WorkingPanel() {
   return (
     <ClassPanelShell classId="working">
       {/* Primary stats — what players read most often */}
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 @md:grid-cols-3">
         <Counter
           size="lg"
           label="Money"
@@ -44,7 +44,7 @@ export function WorkingPanel() {
       {/* Secondary stats */}
       <div>
         <div className="panel-title">Population & action economy</div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 @md:grid-cols-3">
           <Counter label="Population"     value={w.population}              onAdjust={(d) => adjust("working", "population", d)}               onSet={(v) => setVal("working", "population", v)} />
           <Counter label="Unemployed"     value={w.unemployedWorkers}       onAdjust={(d) => adjust("working", "unemployedWorkers", d)}        onSet={(v) => setVal("working", "unemployedWorkers", v)} />
           <Counter label="Skilled (free)" value={w.unemployedSkilledWorkers} onAdjust={(d) => adjust("working", "unemployedSkilledWorkers", d)} onSet={(v) => setVal("working", "unemployedSkilledWorkers", v)} />
@@ -69,7 +69,7 @@ export function WorkingPanel() {
 
       <div>
         <div className="panel-title">Trade unions</div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 @md:grid-cols-3 @lg:grid-cols-5">
           {w.tradeUnions.map((t, idx) => (
             <Counter
               key={t.industry}

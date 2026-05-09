@@ -98,7 +98,11 @@ export function JoinCodeInput({ value, onChange, onComplete, disabled }: Props) 
   }
 
   return (
-    <div className="flex justify-between gap-2" role="group" aria-label="Six-character room code">
+    <div
+      className="flex w-full justify-between gap-1 sm:gap-2"
+      role="group"
+      aria-label="Six-character room code"
+    >
       {Array.from({ length: 6 }, (_, idx) => {
         const ch = padded[idx];
         return (
@@ -115,7 +119,7 @@ export function JoinCodeInput({ value, onChange, onComplete, disabled }: Props) 
             maxLength={6}
             disabled={disabled}
             aria-label={`Character ${idx + 1}`}
-            className="input h-14 w-12 rounded-md text-center font-mono text-2xl uppercase tracking-normal"
+            className="aspect-[4/5] min-h-tap min-w-0 flex-1 basis-0 rounded-sharp border-2 border-rule/50 bg-paperSoft/40 text-center font-mono text-2xl font-medium uppercase tracking-normal text-ink transition-colors focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper sm:text-3xl"
             onChange={(e) => onChangeBox(idx, e)}
             onKeyDown={(e) => onKey(idx, e)}
             onPaste={onPaste}

@@ -31,7 +31,7 @@ describe("Modal", () => {
         Body
       </Modal>,
     );
-    await userEvent.click(screen.getByLabelText("Close"));
+    await userEvent.click(screen.getByLabelText("Close dialog"));
     expect(onClose).toHaveBeenCalled();
   });
 

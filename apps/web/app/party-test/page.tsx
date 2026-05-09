@@ -88,25 +88,28 @@ export default function PartyTestPage() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-2xl px-6 py-16">
+    <main id="main" className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
+        className="inline-flex min-h-tap items-center font-serif text-fluid-sm italic text-inkMute transition-colors hover:text-inkSoft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         ← Back to home
       </Link>
 
       <header className="mb-10 mt-6 border-b border-rule/40 pb-8">
-        <p className="editorial-eyebrow">Network spike</p>
-        <h1 className="editorial-h2 mt-3">Party mode lab</h1>
-        <p className="mt-3 font-serif text-sm italic leading-relaxed text-inkMute">
+        <p className="poster-eyebrow">Network spike</p>
+        <h1 className="poster-h2 mt-3">Party mode lab</h1>
+        <p className="mt-3 font-serif text-fluid-base italic leading-relaxed text-inkMute">
           A standalone test of the WebRTC layer before integrating into the game flow.
           Open this page in two browsers (or on two devices) and exchange messages.
         </p>
       </header>
 
       {error ? (
-        <p className="mb-6 rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger">
+        <p
+          role="alert"
+          className="mb-6 rounded-sharp border border-danger/40 bg-danger/15 px-4 py-3 font-serif text-fluid-sm italic text-danger"
+        >
           {error}
         </p>
       ) : null}
@@ -114,21 +117,22 @@ export default function PartyTestPage() {
       {mode === "idle" ? (
         <div className="space-y-6">
           <section>
-            <p className="editorial-eyebrow mb-3">Create a room</p>
+            <p className="poster-eyebrow mb-3">Create a room</p>
             <button type="button" className="btn btn-primary" onClick={startHost}>
               Start hosting
             </button>
           </section>
 
           <section>
-            <p className="editorial-eyebrow mb-3">Join a room</p>
-            <div className="flex gap-2">
+            <p className="poster-eyebrow mb-3">Join a room</p>
+            <div className="flex flex-wrap gap-2">
               <input
-                className="input font-mono uppercase"
+                className="input flex-1 font-mono uppercase"
                 placeholder="ABC234"
                 value={peerCode}
                 onChange={(e) => setPeerCode(e.target.value.toUpperCase().slice(0, 6))}
                 maxLength={6}
+                aria-label="Room code"
               />
               <button type="button" className="btn" onClick={joinAsPeer}>
                 Join
@@ -141,11 +145,11 @@ export default function PartyTestPage() {
       {mode === "hosting" && hostStatus ? (
         <section className="space-y-5">
           <div>
-            <p className="editorial-eyebrow mb-2">Your room code</p>
-            <p className="font-mono text-5xl font-light tracking-[0.3em] text-accentInk">
+            <p className="poster-eyebrow mb-2">Your room code</p>
+            <p className="font-mono text-poster-lg font-light tracking-[0.25em] text-accentInk break-all">
               {hostStatus.code}
             </p>
-            <p className="mt-2 font-serif text-sm italic text-inkMute">
+            <p className="mt-2 font-serif text-fluid-sm italic text-inkMute">
               {hostStatus.peerCount === 0
                 ? "Waiting for peers to connect…"
                 : `${hostStatus.peerCount} peer${hostStatus.peerCount === 1 ? "" : "s"} connected.`}
@@ -153,12 +157,13 @@ export default function PartyTestPage() {
           </div>
 
           <div>
-            <p className="editorial-eyebrow mb-2">Broadcast a test message</p>
-            <div className="flex gap-2">
+            <p className="poster-eyebrow mb-2">Broadcast a test message</p>
+            <div className="flex flex-wrap gap-2">
               <input
-                className="input"
+                className="input flex-1"
                 value={hostMessage}
                 onChange={(e) => setHostMessage(e.target.value)}
+                aria-label="Test message"
               />
               <button type="button" className="btn btn-primary" onClick={broadcast}>
                 Broadcast
@@ -175,11 +180,11 @@ export default function PartyTestPage() {
       {mode === "joining" && peerStatus ? (
         <section className="space-y-5">
           <div>
-            <p className="editorial-eyebrow mb-2">Connected to room</p>
-            <p className="font-mono text-3xl font-light tracking-[0.2em] text-accentInk">
+            <p className="poster-eyebrow mb-2">Connected to room</p>
+            <p className="font-mono text-poster-md font-light tracking-[0.2em] text-accentInk break-all">
               {peerStatus.code}
             </p>
-            <p className="mt-2 font-serif text-sm italic text-inkMute">
+            <p className="mt-2 font-serif text-fluid-sm italic text-inkMute">
               {peerStatus.state === "connected"
                 ? "Connected."
                 : peerStatus.state === "reconnecting"
@@ -191,15 +196,15 @@ export default function PartyTestPage() {
           </div>
 
           <div>
-            <p className="editorial-eyebrow mb-2">Received broadcasts</p>
+            <p className="poster-eyebrow mb-2">Received broadcasts</p>
             {peerLog.length === 0 ? (
-              <p className="font-serif text-sm italic text-inkMute">
+              <p className="font-serif text-fluid-sm italic text-inkMute">
                 No messages yet — host can broadcast above.
               </p>
             ) : (
-              <ul className="divide-y divide-rule/40 overflow-hidden rounded-md border border-rule/60 bg-paper/30">
+              <ul className="divide-y divide-rule/40 overflow-hidden rounded-sharp border border-rule/60 bg-paper/30">
                 {peerLog.map((m, i) => (
-                  <li key={i} className="px-3 py-2 font-mono text-xs text-inkSoft">
+                  <li key={i} className="break-all px-3 py-2 font-mono text-fluid-sm text-inkSoft">
                     {m}
                   </li>
                 ))}

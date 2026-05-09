@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Crimson_Pro, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Archivo_Black, Crimson_Pro, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
@@ -25,6 +25,13 @@ const serif = Crimson_Pro({
   style: ["normal", "italic"],
   subsets: ["latin"],
   variable: "--font-serif",
+  display: "swap",
+});
+
+const display = Archivo_Black({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -84,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
-      <body className={`${sans.variable} ${mono.variable} ${serif.variable} font-sans min-h-full`}>
+      <body className={`${sans.variable} ${mono.variable} ${serif.variable} ${display.variable} font-sans min-h-full`}>
         <a href="#main" className="skip-link">
           Skip to content
         </a>

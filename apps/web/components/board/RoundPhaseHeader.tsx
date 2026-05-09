@@ -59,13 +59,13 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
 
   return (
     <header className="sticky top-0 z-30 border-b border-rule/60 bg-paper/90 backdrop-blur">
-      <div className="mx-auto flex max-w-screen-2xl flex-col gap-2.5 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:gap-x-6">
+      <div className="mx-auto flex max-w-screen-2xl flex-col gap-3 px-3 py-3 sm:px-5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-5">
         {/* Round selector */}
-        <div className="flex items-center gap-3">
-          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-inkMute lg:w-auto">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="font-display text-[10px] uppercase tracking-[0.25em] text-inkMute">
             Round
           </span>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {([1, 2, 3, 4, 5] as const).map((n) => (
               <button
                 key={n}
@@ -73,9 +73,9 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={`Round ${n}`}
                 aria-pressed={round === n}
                 onClick={() => setRound(n)}
-                className={`flex h-9 w-9 items-center justify-center rounded-md border font-serif text-[15px] font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+                className={`flex h-11 w-11 items-center justify-center rounded-sharp border font-display text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
                   round === n
-                    ? "border-accent/50 bg-accent/15 text-accentInk"
+                    ? "border-accent bg-accent/20 text-accentInk"
                     : "border-rule/60 bg-surface/40 text-inkMute hover:border-rule hover:text-inkSoft"
                 }`}
               >
@@ -86,11 +86,11 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
         </div>
 
         {/* Phase selector */}
-        <div className="flex min-w-0 items-center gap-3 lg:flex-1">
-          <span className="w-12 shrink-0 font-serif text-[10px] uppercase italic tracking-[0.3em] text-inkMute lg:w-auto">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 lg:flex-1">
+          <span className="font-display text-[10px] uppercase tracking-[0.25em] text-inkMute">
             Phase
           </span>
-          <div className="flex flex-1 gap-1 lg:flex-initial">
+          <div className="flex flex-1 flex-wrap gap-1">
             {PHASES.map((p) => (
               <button
                 key={p.id}
@@ -98,9 +98,9 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
                 aria-label={p.label}
                 aria-pressed={phase === p.id}
                 onClick={() => setPhase(p.id)}
-                className={`min-h-[36px] flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:flex-initial sm:px-3 sm:text-xs ${
+                className={`min-h-tap min-w-0 flex-1 rounded-sharp border px-2 py-1.5 font-display text-[11px] uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper sm:flex-initial sm:px-3 sm:text-xs ${
                   phase === p.id
-                    ? "border-accent/50 bg-accent/15 text-accentInk"
+                    ? "border-accent bg-accent/20 text-accentInk"
                     : "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule hover:text-ink"
                 }`}
               >
@@ -112,10 +112,10 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 lg:shrink-0">
+        <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
           <button
             type="button"
-            className="btn flex-1 sm:flex-initial"
+            className="btn"
             onClick={undo}
             disabled={!canUndo}
             aria-label="Undo last change"
@@ -123,18 +123,10 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
           >
             ↶ Undo
           </button>
-          <button
-            type="button"
-            className="btn flex-1 sm:flex-initial"
-            onClick={advancePhase}
-          >
+          <button type="button" className="btn" onClick={advancePhase}>
             Next →
           </button>
-          <button
-            type="button"
-            className="btn btn-primary flex-1 sm:flex-initial"
-            onClick={onOpenEndRound}
-          >
+          <button type="button" className="btn btn-primary" onClick={onOpenEndRound}>
             End round
           </button>
         </div>
@@ -147,8 +139,8 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
 
       {/* Phase cue — concise reminder of what to do */}
       {phaseInfo ? (
-        <div className="mx-auto max-w-screen-2xl border-t border-rule/40 px-4 py-2 sm:px-5">
-          <p className="font-serif text-[12px] italic leading-snug text-inkSoft sm:text-[13px] sm:leading-relaxed">
+        <div className="mx-auto max-w-screen-2xl border-t border-rule/40 px-3 py-2 sm:px-5">
+          <p className="font-serif text-fluid-sm italic leading-snug text-inkSoft sm:leading-relaxed">
             <span className="not-italic text-inkMute">— </span>
             {phaseInfo.cue}
           </p>

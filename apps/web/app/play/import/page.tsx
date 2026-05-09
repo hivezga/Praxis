@@ -39,18 +39,26 @@ export default function ImportPage() {
   }, [hydrate, router]);
 
   return (
-    <main id="main" className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-5 px-6 text-center">
-      <p className="editorial-eyebrow">Importing a shared game</p>
+    <main
+      id="main"
+      className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-5 px-5 text-center"
+    >
+      <p className="poster-eyebrow">Importing a shared game</p>
       {error ? (
         <>
-          <h1 className="editorial-h2">That link didn’t work.</h1>
-          <p className="font-serif text-sm italic text-danger">{error}</p>
+          <h1 className="poster-h2">That link didn’t work.</h1>
+          <p
+            role="alert"
+            className="font-serif text-fluid-sm italic text-danger"
+          >
+            {error}
+          </p>
           <Link href="/" className="btn">
             Back to home
           </Link>
         </>
       ) : (
-        <h1 className="editorial-h2">One moment…</h1>
+        <h1 className="poster-h2">One moment…</h1>
       )}
     </main>
   );

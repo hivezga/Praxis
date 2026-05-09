@@ -48,19 +48,26 @@ export function OnboardingModal() {
       title={cur.title}
       widthClass="max-w-lg"
       footer={
-        <div className="flex w-full items-center justify-between gap-3">
-          <div className="flex gap-1.5">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3">
+          <div
+            className="flex gap-1.5"
+            role="tablist"
+            aria-label={`Onboarding step ${step + 1} of ${STEPS.length}`}
+          >
             {STEPS.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 w-6 rounded-full transition-colors ${
-                  i === step ? "bg-accent/80" : "bg-surfaceMute/60"
+                role="tab"
+                aria-selected={i === step}
+                aria-label={`Step ${i + 1}`}
+                className={`h-1.5 w-6 rounded-sm transition-colors ${
+                  i === step ? "bg-accent" : "bg-surfaceMute/60"
                 }`}
               />
             ))}
           </div>
-          <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost text-xs" onClick={dismiss}>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn btn-ghost" onClick={dismiss}>
               Skip
             </button>
             {!isLast ? (
@@ -72,7 +79,7 @@ export function OnboardingModal() {
                 Next →
               </button>
             ) : (
-              <button type="button" className="btn btn-primary" onClick={dismiss}>
+              <button type="button" className="btn btn-poster" onClick={dismiss}>
                 Begin
               </button>
             )}
@@ -80,7 +87,7 @@ export function OnboardingModal() {
         </div>
       }
     >
-      <p className="font-serif text-base leading-relaxed text-inkSoft">{cur.body}</p>
+      <p className="font-serif text-fluid-base leading-relaxed text-inkSoft">{cur.body}</p>
     </Modal>
   );
 }

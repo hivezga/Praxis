@@ -52,15 +52,23 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <main id="main" className="flex min-h-screen items-center justify-center text-inkMute">
+      <main
+        id="main"
+        className="flex min-h-screen items-center justify-center font-display text-fluid-base uppercase tracking-wider text-inkMute"
+      >
         Loading…
       </main>
     );
   }
   if (!state) {
     return (
-      <main id="main" className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
-        <p className="text-inkSoft">This game was not found in your browser storage.</p>
+      <main
+        id="main"
+        className="flex min-h-screen flex-col items-center justify-center gap-4 px-5 text-center"
+      >
+        <p className="font-serif text-fluid-base text-inkSoft">
+          This game was not found in your browser storage.
+        </p>
         <Link href="/" className="btn btn-primary">
           ← Back to home
         </Link>
@@ -74,17 +82,19 @@ export default function GamePage() {
   return (
     <div className="min-h-screen">
       <RoundPhaseHeader onOpenEndRound={() => setEndRoundOpen(true)} />
-      <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
+      <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-3 py-4 sm:px-5 sm:py-5">
         {/* Game identity row */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule/40 pb-4">
-          <div>
-            <h1 className="font-serif text-2xl font-light text-ink">{state.meta.name}</h1>
-            <p className="mt-1 font-serif text-xs italic text-inkMute">
+          <div className="min-w-0">
+            <h1 className="font-display text-fluid-xl uppercase tracking-tight text-ink">
+              {state.meta.name}
+            </h1>
+            <p className="mt-1 font-serif text-fluid-xs italic text-inkMute">
               {state.meta.mode === "solo" ? "Solo" : "Party"} · {state.meta.playerCount} players
               {state.meta.expansions.crisisAndControl ? " · Crisis & Control" : ""}
             </p>
           </div>
-          <Link href="/" className="btn btn-ghost text-xs">
+          <Link href="/" className="btn btn-ghost">
             ← Saved games
           </Link>
         </div>
@@ -111,7 +121,7 @@ export default function GamePage() {
         {/* Class panels */}
         <div
           className={`grid gap-4 ${
-            showAll ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
+            showAll ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"
           }`}
         >
           {showAll
@@ -150,15 +160,23 @@ export default function GamePage() {
   );
 }
 
-function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function TabBtn({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-md border px-3 py-1.5 font-serif text-xs capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+      className={`min-h-tap rounded-sharp border px-3 py-1.5 font-display text-fluid-xs uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
         active
-          ? "border-accent/40 bg-accent/15 text-accentInk"
+          ? "border-accent bg-accent/15 text-accentInk"
           : "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule hover:text-ink"
       }`}
     >

@@ -19,7 +19,7 @@ export function CapitalistPanel() {
   return (
     <ClassPanelShell classId="capitalist">
       {/* Primary stats */}
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 @md:grid-cols-2">
         <Counter
           size="lg"
           label="Revenue"
@@ -40,7 +40,7 @@ export function CapitalistPanel() {
 
       <div>
         <div className="panel-title">Action economy</div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 @md:grid-cols-3">
           <Counter label="VP track"     value={c.vp}                  onAdjust={(d) => adjust("capitalist", "vp", d)}                  onSet={(v) => setVal("capitalist", "vp", v)} />
           <Counter label="Loans"        value={c.loans}               onAdjust={(d) => adjust("capitalist", "loans", d)}               onSet={(v) => setVal("capitalist", "loans", v)} />
           <Counter label="Voting cubes" value={c.votingCubesInBag}    onAdjust={(d) => adjust("capitalist", "votingCubesInBag", d)}    onSet={(v) => setVal("capitalist", "votingCubesInBag", v)} />
@@ -91,9 +91,9 @@ export function CapitalistPanel() {
         <div className="panel-title">Companies ({c.companies.length})</div>
         <ul className="space-y-1.5">
           {c.companies.map((co) => (
-            <li key={co.id} className="rounded-md border border-rule/60 bg-paper/30 px-3 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-ink">{co.label}</span>
+            <li key={co.id} className="rounded-sharp border border-rule/60 bg-paper/30 px-3 py-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="min-w-0 text-fluid-sm text-ink">{co.label}</span>
                 <span className="shrink-0 font-mono text-[10px] text-inkMute">
                   Ind {co.industry} · L{co.wageLevel} · {co.workersAssigned}W{co.onStrike ? " · strike" : ""}
                 </span>
@@ -101,7 +101,7 @@ export function CapitalistPanel() {
             </li>
           ))}
           {c.companies.length === 0 ? (
-            <li className="font-serif text-xs italic text-inkMute">No companies built.</li>
+            <li className="font-serif text-fluid-sm italic text-inkMute">No companies built.</li>
           ) : null}
         </ul>
       </div>

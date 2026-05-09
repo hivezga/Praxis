@@ -69,7 +69,7 @@ export function AutoRunButtons() {
   const active = buttons.find((b) => b.id === phase);
 
   return (
-    <div className="mx-auto max-w-screen-2xl border-t border-rule/40 bg-surface/30 px-4 py-2 sm:px-5">
+    <div className="mx-auto max-w-screen-2xl border-t border-rule/40 bg-surface/30 px-3 py-2 sm:px-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           {buttons.map((b) => (
@@ -86,15 +86,22 @@ export function AutoRunButtons() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-[11px]">
-          <span className="font-serif italic text-inkMute">Production:</span>
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="radiogroup"
+          aria-label="Production mode"
+        >
+          <span className="font-display text-[10px] uppercase tracking-[0.2em] text-inkMute">
+            Production:
+          </span>
           <button
             type="button"
+            role="radio"
+            aria-checked={mode === "auto"}
             onClick={() => setProductionMode("auto")}
-            aria-pressed={mode === "auto"}
-            className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+            className={`min-h-tap rounded-sharp border px-3 py-1.5 font-display text-[11px] uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
               mode === "auto"
-                ? "border-accent/50 bg-accent/15 text-accentInk"
+                ? "border-accent bg-accent/20 text-accentInk"
                 : "border-rule/60 bg-surface/40 text-inkMute hover:text-inkSoft"
             }`}
           >
@@ -102,11 +109,12 @@ export function AutoRunButtons() {
           </button>
           <button
             type="button"
+            role="radio"
+            aria-checked={mode === "manual"}
             onClick={() => setProductionMode("manual")}
-            aria-pressed={mode === "manual"}
-            className={`rounded-md border px-2 py-1 text-[11px] transition-colors ${
+            className={`min-h-tap rounded-sharp border px-3 py-1.5 font-display text-[11px] uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
               mode === "manual"
-                ? "border-accent/50 bg-accent/15 text-accentInk"
+                ? "border-accent bg-accent/20 text-accentInk"
                 : "border-rule/60 bg-surface/40 text-inkMute hover:text-inkSoft"
             }`}
           >
@@ -115,19 +123,17 @@ export function AutoRunButtons() {
         </div>
       </div>
       {active ? (
-        <p className="mt-1 font-serif text-[12px] italic text-inkSoft">
-          {active.subtle}
-        </p>
+        <p className="mt-1 font-serif text-fluid-sm italic text-inkSoft">{active.subtle}</p>
       ) : null}
       {showLog && lastLog ? (
-        <div className="mt-2 rounded-md border border-rule/60 bg-paper/50 p-3 text-[12px]">
+        <div className="mt-2 rounded-sharp border border-rule/60 bg-paper/50 p-3 text-fluid-sm">
           <div className="flex items-center justify-between">
-            <strong className="text-inkSoft">
+            <strong className="font-display text-[11px] uppercase tracking-wider text-inkSoft">
               {lastLog.phase} phase log (round {lastLog.round})
             </strong>
             <button
               type="button"
-              className="text-[11px] text-inkMute hover:text-inkSoft"
+              className="min-h-tap rounded-sharp px-2 text-fluid-sm text-inkMute hover:text-inkSoft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => setShowLog(false)}
             >
               Close
@@ -139,7 +145,7 @@ export function AutoRunButtons() {
             ))}
           </ul>
           {lastLog.imfIntervened ? (
-            <p className="mt-2 rounded bg-accent/15 px-2 py-1 font-medium text-accentInk">
+            <p className="mt-2 rounded-sharp bg-warning/15 px-2 py-1 font-display text-[11px] uppercase tracking-wider text-warning">
               ⚠ IMF intervention applied.
             </p>
           ) : null}

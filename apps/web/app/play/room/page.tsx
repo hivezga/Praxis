@@ -46,10 +46,13 @@ export default function RoomPage() {
 
   if (!state) {
     return (
-      <main id="main" className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="editorial-eyebrow">Connected</p>
-        <h1 className="editorial-h2">Waiting for the host…</h1>
-        <p className="font-serif text-sm italic text-inkMute">
+      <main
+        id="main"
+        className="flex min-h-screen flex-col items-center justify-center gap-4 px-5 text-center"
+      >
+        <p className="poster-eyebrow">Connected</p>
+        <h1 className="poster-h2">Waiting for the host…</h1>
+        <p className="font-serif text-fluid-sm italic text-inkMute">
           The first state snapshot will arrive any moment.
         </p>
       </main>
@@ -64,16 +67,18 @@ export default function RoomPage() {
       <PeerObserverBanner />
       <RoundPhaseHeader onOpenEndRound={() => {}} />
       <HostLeavingModal />
-      <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
+      <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-3 py-4 sm:px-5 sm:py-5">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule/40 pb-4">
-          <div>
-            <h1 className="font-serif text-2xl font-light text-ink">{state.meta.name}</h1>
-            <p className="mt-1 font-serif text-xs italic text-inkMute">
+          <div className="min-w-0">
+            <h1 className="font-display text-fluid-xl uppercase tracking-tight text-ink">
+              {state.meta.name}
+            </h1>
+            <p className="mt-1 font-serif text-fluid-xs italic text-inkMute">
               {state.meta.mode === "solo" ? "Solo" : "Party"} · {state.meta.playerCount} players
               {state.meta.expansions.crisisAndControl ? " · Crisis & Control" : ""}
             </p>
           </div>
-          <Link href="/" className="btn btn-ghost text-xs">
+          <Link href="/" className="btn btn-ghost">
             ← Leave
           </Link>
         </div>
@@ -82,7 +87,7 @@ export default function RoomPage() {
 
         {state.meta.phase === "scoring" && <ScoringPanel />}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 xl:grid-cols-2">
           {activeClasses.map((c) => {
             const Panel = PANELS[c];
             return (
@@ -104,8 +109,11 @@ export default function RoomPage() {
 
 function PeerObserverBanner() {
   return (
-    <div className="border-b border-accent/20 bg-accent/[0.04] px-5 py-2 text-center">
-      <p className="font-serif text-[13px] italic text-accentInk/80">
+    <div
+      role="status"
+      className="border-b border-accent/30 bg-accent/[0.06] px-5 py-2 text-center"
+    >
+      <p className="font-display text-[11px] uppercase tracking-[0.2em] text-accentInk">
         Connected as observer — only the host can change values. Your taps are silent.
       </p>
     </div>

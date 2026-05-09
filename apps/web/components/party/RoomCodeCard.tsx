@@ -63,17 +63,18 @@ export function RoomCodeCard({ code, joinUrl }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-rule/60 bg-surface/40 p-6">
-      <p className="editorial-eyebrow">Your room code</p>
+    <div className="rounded-md border border-rule/60 bg-surface/40 p-5 sm:p-6">
+      <p className="poster-eyebrow">Your room code</p>
       <button
         type="button"
         onClick={() => copy("code")}
-        className="mt-3 block w-full text-left font-mono text-5xl tracking-[0.35em] text-accentInk transition-colors hover:text-accentInk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="mt-3 block w-full rounded-sharp border border-rule/30 bg-paperSoft/30 px-3 py-3 text-center font-mono uppercase tracking-[0.25em] text-accentInk transition-colors hover:border-accent/40 hover:bg-paperSoft/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         title="Click to copy code"
+        aria-label={`Room code ${code}, click to copy`}
       >
-        {code}
+        <span className="text-poster-md break-all">{code}</span>
       </button>
-      <p className="mt-2 font-serif text-xs italic text-inkMute">
+      <p className="mt-2 font-serif text-fluid-sm italic text-inkMute">
         Friends type this into Join — or scan the QR below to land on the join screen with the code pre-filled.
       </p>
 
@@ -95,11 +96,11 @@ export function RoomCodeCard({ code, joinUrl }: Props) {
           <img
             src={qr}
             alt={`QR code linking to ${joinUrl}`}
-            className="h-[220px] w-[220px] rounded-md border border-rule/40 bg-white p-2"
+            className="h-[220px] w-[220px] rounded-sharp border border-rule/40 bg-white p-2"
             width={220}
             height={220}
           />
-          <p className="font-serif text-[11px] italic text-inkMute break-all text-center">
+          <p className="text-center font-serif text-[11px] italic text-inkMute break-all">
             {joinUrl}
           </p>
         </div>

@@ -2,18 +2,18 @@ import Link from "next/link";
 
 export default function RulesCheatsheetPage() {
   return (
-    <main id="main" className="mx-auto max-w-3xl px-6 py-16">
+    <main id="main" className="mx-auto max-w-3xl px-5 py-12 sm:px-6 sm:py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
+        className="inline-flex min-h-tap items-center font-serif text-fluid-sm italic text-inkMute transition-colors hover:text-inkSoft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         ← Back to home
       </Link>
 
       <header className="mb-12 mt-6 border-b border-rule/40 pb-8">
-        <p className="editorial-eyebrow">A field guide</p>
-        <h1 className="editorial-h1 mt-3">Quick rules reference</h1>
-        <p className="mt-4 max-w-xl font-serif text-sm italic leading-relaxed text-inkMute">
+        <p className="poster-eyebrow">A field guide</p>
+        <h1 className="poster-h1 mt-3">Quick rules reference</h1>
+        <p className="mt-4 max-w-xl font-serif text-fluid-sm italic leading-relaxed text-inkMute">
           Distilled from the official rulebooks bundled in{" "}
           <code className="not-italic font-mono text-inkSoft">/docs/</code>. The
           rulebook remains the definitive answer.
@@ -22,7 +22,7 @@ export default function RulesCheatsheetPage() {
 
       <div className="space-y-8">
         <Block title="Tax multiplier">
-          <p className="font-serif text-base leading-relaxed text-inkSoft">
+          <p className="font-serif text-fluid-base leading-relaxed text-inkSoft">
             Multiplier ={" "}
             <strong className="font-medium text-ink">Tax base</strong> +{" "}
             <strong className="font-medium text-ink">Health welfare modifier</strong>{" "}
@@ -37,7 +37,7 @@ export default function RulesCheatsheetPage() {
               ["Section C", "1", "0"],
             ]}
           />
-          <p className="font-serif text-xs italic text-inkMute">
+          <p className="font-serif text-fluid-xs italic text-inkMute">
             Range: 1 (low tax + private welfare) to 7 (high tax + universal welfare).
           </p>
         </Block>
@@ -76,24 +76,24 @@ export default function RulesCheatsheetPage() {
         </Block>
 
         <Block title="VP scoring per round">
-          <ul className="space-y-3 font-serif text-base leading-relaxed text-inkSoft">
+          <ul className="space-y-3 font-serif text-fluid-base leading-relaxed text-inkSoft">
             <li>
-              <span className="font-medium text-working">Working class</span> — VP for each
-              Prosperity step gained (= new value); +2 VP per active Trade Union (≥4 workers);
-              +1 VP per $10 cash.
+              <FactionTag classId="working" /> Working class — VP for each Prosperity step
+              gained (= new value); +2 VP per active Trade Union (≥4 workers); +1 VP per
+              $10 cash.
             </li>
             <li>
-              <span className="font-medium text-middle">Middle class</span> — VP for Prosperity
-              steps; +1 VP per 2 storage goods; +1 VP per $15 cash.
+              <FactionTag classId="middle" /> Middle class — VP for Prosperity steps; +1 VP
+              per 2 storage goods; +1 VP per $15 cash.
             </li>
             <li>
-              <span className="font-medium text-capitalist">Capitalist class</span> — VP from
-              the Wealth table based on Capital value.
+              <FactionTag classId="capitalist" /> Capitalist class — VP from the Wealth
+              table based on Capital value.
             </li>
             <li>
-              <span className="font-medium text-state">The State</span> — VP equal to the sum
-              of the two lowest Legitimacy values; +1 VP per Political Agenda match; +1 VP per
-              $30 in Treasury at game end.
+              <FactionTag classId="state" /> The State — VP equal to the sum of the two
+              lowest Legitimacy values; +1 VP per Political Agenda match; +1 VP per $30 in
+              Treasury at game end.
             </li>
           </ul>
         </Block>
@@ -115,23 +115,40 @@ export default function RulesCheatsheetPage() {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-rule/60 bg-surface/30 p-6">
-      <h2 className="editorial-h3 mb-4 border-b border-rule/40 pb-3">{title}</h2>
+    <section className="rounded-md border border-rule/60 bg-surface/30 p-5 sm:p-6">
+      <h2 className="mb-4 border-b border-rule/40 pb-3 font-display text-poster-md uppercase tracking-tight text-ink">
+        {title}
+      </h2>
       <div className="space-y-4">{children}</div>
     </section>
+  );
+}
+
+function FactionTag({ classId }: { classId: "working" | "middle" | "capitalist" | "state" }) {
+  const tint: Record<typeof classId, string> = {
+    working:    "bg-working text-working-ink",
+    middle:     "bg-middle text-middle-ink",
+    capitalist: "bg-capitalist text-capitalist-ink",
+    state:      "bg-state text-state-ink",
+  };
+  return (
+    <span
+      aria-hidden
+      className={`mr-1 inline-block h-3 w-3 rounded-sm ${tint[classId]}`}
+    />
   );
 }
 
 function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-fluid-sm">
         <thead>
           <tr className="border-b border-rule/60">
             {headers.map((h) => (
               <th
                 key={h}
-                className="py-2 pr-4 text-left font-serif text-[11px] font-normal uppercase italic tracking-[0.2em] text-inkMute first:pl-0"
+                className="py-2 pr-4 text-left font-display text-[10px] font-normal uppercase tracking-[0.2em] text-inkMute first:pl-0"
               >
                 {h}
               </th>

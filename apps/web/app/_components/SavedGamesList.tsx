@@ -86,11 +86,11 @@ export function SavedGamesList() {
   if (!loaded) return null;
   return (
     <section>
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <p className="editorial-eyebrow m-0">Saved games</p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="poster-eyebrow m-0">Saved games</p>
         <button
           type="button"
-          className="btn text-xs"
+          className="btn"
           onClick={() => fileRef.current?.click()}
         >
           Import save
@@ -100,6 +100,7 @@ export function SavedGamesList() {
           type="file"
           accept="application/json"
           className="hidden"
+          aria-hidden
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void handleImport(f);
@@ -108,40 +109,43 @@ export function SavedGamesList() {
       </div>
 
       {importError ? (
-        <p className="mb-4 rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger">
+        <p
+          role="alert"
+          className="mb-4 rounded-sharp border border-danger/40 bg-danger/15 px-4 py-3 font-serif text-fluid-sm italic text-danger"
+        >
           {importError}
         </p>
       ) : null}
 
       {metas.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-rule/60 bg-surface/20 p-8 text-center">
-          <p className="font-serif text-sm italic text-inkMute">
+        <div className="rounded-md border border-dashed border-rule/60 bg-surface/20 p-8 text-center">
+          <p className="font-serif text-fluid-sm italic text-inkMute">
             No saved games yet — start one above, or import a save.
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-rule/40 overflow-hidden rounded-lg border border-rule/60 bg-surface/30">
+        <ul className="divide-y divide-rule/40 overflow-hidden rounded-md border border-rule/60 bg-surface/30">
           {metas.map((m) => (
             <li
               key={m.id}
-              className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-surface/50"
+              className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-surface/50 sm:px-5"
             >
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-serif text-base font-normal text-ink">
+              <div className="min-w-0 flex-1 basis-full sm:basis-auto">
+                <div className="font-display text-fluid-base uppercase tracking-tight text-ink text-balance">
                   {m.name}
                 </div>
-                <div className="mt-1 truncate text-xs text-inkMute">
+                <div className="mt-1 font-serif text-fluid-xs text-inkMute">
                   {m.mode === "solo" ? "Solo" : "Party"} · {m.playerCount} players · round{" "}
                   {m.round} · {new Date(m.updatedAt).toLocaleString()}
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Link href={`/play/${m.id}`} className="btn text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link href={`/play/${m.id}`} className="btn">
                   Open
                 </Link>
                 <button
                   type="button"
-                  className="btn btn-ghost text-xs"
+                  className="btn btn-ghost"
                   onClick={() => shareGame(m.id)}
                   title="Copy a share link to clipboard"
                 >
@@ -149,7 +153,7 @@ export function SavedGamesList() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost text-xs"
+                  className="btn btn-ghost"
                   onClick={() => exportGame(m.id)}
                   title="Download save as JSON"
                 >
@@ -157,7 +161,7 @@ export function SavedGamesList() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost text-xs text-danger/80 hover:text-danger"
+                  className="btn btn-danger"
                   onClick={() => remove(m.id)}
                 >
                   Delete

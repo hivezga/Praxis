@@ -29,25 +29,25 @@ const CLASS_META: Record<
   working: {
     label:    "Working Class",
     desc:     "Labor, unions & welfare",
-    active:   "border-working/60 bg-working/10 text-working",
+    active:   "border-working-deep bg-working-deep text-working-ink",
     inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
   middle: {
     label:    "Middle Class",
     desc:     "Companies & savings",
-    active:   "border-middle/60 bg-middle/10 text-middle",
+    active:   "border-middle-deep bg-middle-deep text-middle-ink",
     inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
   capitalist: {
     label:    "Capitalist Class",
     desc:     "Capital & revenue",
-    active:   "border-capitalist/60 bg-capitalist/10 text-capitalist",
+    active:   "border-capitalist-deep bg-capitalist-deep text-capitalist-ink",
     inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
   state: {
     label:    "The State",
     desc:     "Treasury & legitimacy",
-    active:   "border-state/60 bg-state/10 text-state",
+    active:   "border-state-deep bg-state-deep text-state-ink",
     inactive: "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule",
   },
 };
@@ -130,18 +130,18 @@ export function SetupClient() {
   }
 
   return (
-    <main id="main" className="mx-auto max-w-2xl px-6 py-16">
+    <main id="main" className="mx-auto max-w-2xl px-5 py-12 sm:px-6 sm:py-16">
       <Link
         href="/"
-        className="font-serif text-xs italic text-inkMute transition-colors hover:text-inkSoft"
+        className="inline-flex min-h-tap items-center font-serif text-fluid-sm italic text-inkMute transition-colors hover:text-inkSoft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         ← Back to home
       </Link>
 
       <header className="mb-12 mt-6 border-b border-rule/40 pb-8">
-        <p className="editorial-eyebrow">A new session</p>
-        <h1 className="editorial-h2 mt-3">Configure & begin</h1>
-        <p className="mt-3 font-serif text-sm italic leading-relaxed text-inkMute">
+        <p className="poster-eyebrow">A new session</p>
+        <h1 className="poster-h2 mt-3">Configure & begin</h1>
+        <p className="mt-3 font-serif text-fluid-sm italic leading-relaxed text-inkMute">
           A few choices first — then Praxis sets up the board state for you.
         </p>
       </header>
@@ -154,28 +154,33 @@ export function SetupClient() {
             placeholder="Tuesday night at Sam's"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            aria-label="Game name"
           />
         </Field>
 
         {/* Mode */}
         <Field label="Mode">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(["party", "solo"] as GameMode[]).map((m) => (
               <button
                 key={m}
                 type="button"
                 aria-pressed={mode === m}
                 onClick={() => setMode(m)}
-                className={`rounded-lg border px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+                className={`min-h-tap rounded-sharp border-2 px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
                   mode === m
-                    ? "border-accent/40 bg-accent/10 text-accentInk"
+                    ? "border-accent bg-accent/15 text-accentInk"
                     : "border-rule/60 bg-surface/40 text-inkSoft hover:border-rule"
                 }`}
               >
-                <div className="font-serif text-lg font-normal capitalize">
+                <div className="font-display text-fluid-base uppercase tracking-tight">
                   {m === "party" ? "Party" : "Solo"}
                 </div>
-                <div className="mt-1 font-serif text-xs italic text-inkMute">
+                <div
+                  className={`mt-1 font-serif text-fluid-xs italic ${
+                    mode === m ? "text-accentInk" : "text-inkMute"
+                  }`}
+                >
                   {m === "party" ? "One screen, two to four players" : "One player against an automa"}
                 </div>
               </button>
@@ -192,7 +197,7 @@ export function SetupClient() {
               : undefined
           }
         >
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {([2, 3, 4] as const).map((n) => (
               <button
                 key={n}
@@ -209,7 +214,7 @@ export function SetupClient() {
 
         {/* Classes */}
         <Field label="Classes in play">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {ALL_CLASSES.map((c) => {
               const active = classes.has(c);
               const meta = CLASS_META[c];
@@ -219,14 +224,14 @@ export function SetupClient() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => toggleClass(c)}
-                  className={`rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+                  className={`min-h-tap rounded-sharp border-2 px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
                     active ? meta.active : meta.inactive
                   }`}
                 >
-                  <div className="font-serif text-sm font-normal">{meta.label}</div>
+                  <div className="font-display text-fluid-sm uppercase tracking-tight">{meta.label}</div>
                   <div
                     className={`mt-1 font-serif text-[11px] italic ${
-                      active ? "opacity-70" : "text-inkMute"
+                      active ? "" : "text-inkMute"
                     }`}
                   >
                     {meta.desc}
@@ -243,7 +248,7 @@ export function SetupClient() {
             label="Which class are you playing?"
             hint="Other classes' private info (cards in hand, notes) will stay hidden behind a curtain."
           >
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from(classes).map((c) => {
                 const meta = CLASS_META[c];
                 const active = localPlayerClass === c;
@@ -253,14 +258,14 @@ export function SetupClient() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => setLocalPlayerClass(active ? null : c)}
-                    className={`rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+                    className={`min-h-tap rounded-sharp border-2 px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
                       active ? meta.active : meta.inactive
                     }`}
                   >
-                    <div className="font-serif text-sm font-normal">{meta.label}</div>
+                    <div className="font-display text-fluid-sm uppercase tracking-tight">{meta.label}</div>
                     <div
                       className={`mt-1 font-serif text-[11px] italic ${
-                        active ? "opacity-70" : "text-inkMute"
+                        active ? "opacity-80" : "text-inkMute"
                       }`}
                     >
                       {meta.desc}
@@ -274,28 +279,28 @@ export function SetupClient() {
 
         {/* Expansion */}
         <Field label="Expansion: Crisis & Control">
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-rule/60 bg-surface/40 px-4 py-3 text-sm text-inkSoft transition-colors hover:border-rule">
+          <label className="flex min-h-tap cursor-pointer items-center gap-3 rounded-sharp border border-rule/60 bg-surface/40 px-4 py-3 text-fluid-sm text-inkSoft transition-colors hover:border-rule">
             <input
               type="checkbox"
-              className="rounded border-rule"
+              className="h-4 w-4 rounded-sharp border-rule"
               checked={expansions.crisisAndControl}
               onChange={(e) =>
                 setExpansions((p) => ({ ...p, crisisAndControl: e.target.checked }))
               }
             />
-            <span className="font-serif text-base">Enable Crisis &amp; Control</span>
+            <span className="font-serif text-fluid-base">Enable Crisis &amp; Control</span>
           </label>
           {expansions.crisisAndControl ? (
-            <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {(Object.keys(expansions.modules) as (keyof ExpansionFlags["modules"])[]).map(
                 (k) => (
                   <label
                     key={k}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-md border border-rule/60 bg-paper/30 px-3 py-2 text-xs text-inkSoft transition-colors hover:border-rule"
+                    className="flex min-h-tap cursor-pointer items-center gap-2.5 rounded-sharp border border-rule/60 bg-paper/30 px-3 py-2 text-fluid-xs text-inkSoft transition-colors hover:border-rule"
                   >
                     <input
                       type="checkbox"
-                      className="rounded border-rule"
+                      className="h-4 w-4 rounded-sharp border-rule"
                       checked={expansions.modules[k]}
                       onChange={(e) => setExp(k, e.target.checked)}
                     />
@@ -312,14 +317,14 @@ export function SetupClient() {
           label="Party room"
           hint="Friends with the room code can connect from another device and watch the game live. Only you can change values."
         >
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-rule/60 bg-surface/40 px-4 py-3 text-sm text-inkSoft transition-colors hover:border-rule">
+          <label className="flex min-h-tap cursor-pointer items-center gap-3 rounded-sharp border border-rule/60 bg-surface/40 px-4 py-3 text-fluid-sm text-inkSoft transition-colors hover:border-rule">
             <input
               type="checkbox"
-              className="rounded border-rule"
+              className="h-4 w-4 rounded-sharp border-rule"
               checked={hostParty}
               onChange={(e) => setHostParty(e.target.checked)}
             />
-            <span className="font-serif text-base">Host a party room (share a 6-char code)</span>
+            <span className="font-serif text-fluid-base">Host a party room (share a 6-char code)</span>
           </label>
         </Field>
 
@@ -327,7 +332,7 @@ export function SetupClient() {
         <div className="border-t border-rule/40 pt-6">
           <button
             type="button"
-            className="btn btn-primary px-6 py-3 font-serif text-base"
+            className="btn btn-poster px-6 py-3 font-display text-fluid-base"
             onClick={start}
             disabled={
               classes.size === 0 ||
@@ -338,16 +343,19 @@ export function SetupClient() {
             {starting ? (hostParty ? "Opening room…" : "Starting…") : "Start game →"}
           </button>
           {classes.size === 0 ? (
-            <p className="mt-2 font-serif text-xs italic text-inkMute">
+            <p className="mt-2 font-serif text-fluid-xs italic text-inkMute">
               Select at least one class to start.
             </p>
           ) : mode === "solo" && classes.size > 1 && !localPlayerClass ? (
-            <p className="mt-2 font-serif text-xs italic text-inkMute">
+            <p className="mt-2 font-serif text-fluid-xs italic text-inkMute">
               Pick which class you&rsquo;ll play to start.
             </p>
           ) : null}
           {partyError ? (
-            <p className="mt-3 rounded-md border border-danger/30 bg-danger/20 px-4 py-2.5 font-serif text-xs italic text-danger">
+            <p
+              role="alert"
+              className="mt-3 rounded-sharp border border-danger/40 bg-danger/15 px-4 py-2.5 font-serif text-fluid-xs italic text-danger"
+            >
               {partyError}
             </p>
           ) : null}
@@ -368,9 +376,9 @@ function Field({
 }) {
   return (
     <div>
-      <p className="editorial-eyebrow mb-3">{label}</p>
+      <p className="poster-eyebrow mb-3">{label}</p>
       {children}
-      {hint ? <p className="mt-2 font-serif text-xs italic text-inkMute">{hint}</p> : null}
+      {hint ? <p className="mt-2 font-serif text-fluid-xs italic text-inkMute">{hint}</p> : null}
     </div>
   );
 }

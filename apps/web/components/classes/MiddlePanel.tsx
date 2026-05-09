@@ -17,7 +17,7 @@ export function MiddlePanel() {
   return (
     <ClassPanelShell classId="middle">
       {/* Primary stats */}
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 @md:grid-cols-3">
         <Counter
           size="lg"
           label="Money"
@@ -43,7 +43,7 @@ export function MiddlePanel() {
 
       <div>
         <div className="panel-title">VP, prosperity & population</div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 @md:grid-cols-3">
           <Counter label="VP track"      value={m.vp}                       onAdjust={(d) => adjust("middle", "vp", d)}                       onSet={(v) => setVal("middle", "vp", v)} />
           <Counter label="Prosperity"    value={m.prosperity}               onAdjust={(d) => adjust("middle", "prosperity", d)}               onSet={(v) => setVal("middle", "prosperity", v)} />
           <Counter label="Population"    value={m.population}               onAdjust={(d) => adjust("middle", "population", d)}               onSet={(v) => setVal("middle", "population", v)} />
@@ -72,9 +72,9 @@ export function MiddlePanel() {
         <div className="panel-title">Companies ({m.companies.length})</div>
         <ul className="space-y-1.5">
           {m.companies.map((c) => (
-            <li key={c.id} className="rounded-md border border-rule/60 bg-paper/30 px-3 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-ink">{c.label}</span>
+            <li key={c.id} className="rounded-sharp border border-rule/60 bg-paper/30 px-3 py-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="min-w-0 text-fluid-sm text-ink">{c.label}</span>
                 <span className="shrink-0 font-mono text-[10px] text-inkMute">
                   L{c.wageLevel} · {c.workersAssigned}M / {c.workingClassEmployees}W
                 </span>
@@ -82,7 +82,7 @@ export function MiddlePanel() {
             </li>
           ))}
           {m.companies.length === 0 ? (
-            <li className="font-serif text-xs italic text-inkMute">No companies built.</li>
+            <li className="font-serif text-fluid-sm italic text-inkMute">No companies built.</li>
           ) : null}
         </ul>
       </div>
