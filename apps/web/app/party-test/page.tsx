@@ -69,8 +69,10 @@ export default function PartyTestPage() {
       peerRef.current = p;
       setMode("joining");
       p.onStatus((s) => setPeerStatus(s));
-      p.onState((payload) => {
-        setPeerLog((prev) => [JSON.stringify(payload), ...prev].slice(0, 10));
+      p.onMessage((msg) => {
+        if (msg.type === "state" || msg.type === "full_state") {
+          setPeerLog((prev) => [JSON.stringify(msg.payload), ...prev].slice(0, 10));
+        }
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to join.");
@@ -178,7 +180,13 @@ export default function PartyTestPage() {
               {peerStatus.code}
             </p>
             <p className="mt-2 font-serif text-sm italic text-inkMute">
-              {peerStatus.connected ? "Connected." : "Disconnected."}
+              {peerStatus.state === "connected"
+                ? "Connected."
+                : peerStatus.state === "reconnecting"
+                  ? `Reconnecting (attempt ${peerStatus.attempts})…`
+                  : peerStatus.state === "disconnected"
+                    ? "Disconnected."
+                    : "Connecting…"}
             </p>
           </div>
 

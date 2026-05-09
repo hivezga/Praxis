@@ -2,7 +2,8 @@
 
 import { ClassPanelShell } from "./ClassPanelShell";
 import { Counter } from "@/components/shared/Counter";
-import { useGame, useGameState } from "@/lib/store";
+import { NotesField } from "./NotesField";
+import { useClassState, useGame } from "@/lib/store";
 import type { ClassId } from "@/lib/types/game";
 
 const OTHERS: Exclude<ClassId, "state">[] = ["working", "middle", "capitalist"];
@@ -14,13 +15,12 @@ const LEGIT_LABEL: Record<Exclude<ClassId, "state">, string> = {
 };
 
 export function StatePanel() {
-  const state = useGameState();
+  const sc = useClassState("state");
   const adjust = useGame((s) => s.adjustClassNumber);
   const setVal = useGame((s) => s.setClassNumber);
   const setText = useGame((s) => s.setClassString);
   const apply = useGame((s) => s.apply);
-  if (!state) return null;
-  const sc = state.classes.state;
+  if (!sc) return null;
   return (
     <ClassPanelShell classId="state">
       {/* Primary stats */}
@@ -120,15 +120,7 @@ export function StatePanel() {
         </div>
       </div>
 
-      <div>
-        <div className="panel-title">Notes</div>
-        <textarea
-          className="input min-h-[60px]"
-          placeholder="Strategy notes, reminders…"
-          value={sc.notes}
-          onChange={(e) => setText("state", "notes", e.target.value)}
-        />
-      </div>
+      <NotesField classId="state" value={sc.notes} onChange={(t) => setText("state", "notes", t)} />
     </ClassPanelShell>
   );
 }

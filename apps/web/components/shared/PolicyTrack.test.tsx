@@ -10,6 +10,7 @@ const FIXTURE: PolicyDefinition = {
   number: 3,
   name: "Taxation",
   axis: "leftRight",
+  defaultStart: "B",
   sections: {
     A: { label: "High tax",   tooltip: "" },
     B: { label: "Medium tax", tooltip: "" },

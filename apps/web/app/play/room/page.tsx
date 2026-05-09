@@ -10,6 +10,8 @@ import { CapitalistPanel } from "@/components/classes/CapitalistPanel";
 import { MiddlePanel } from "@/components/classes/MiddlePanel";
 import { StatePanel } from "@/components/classes/StatePanel";
 import { WorkingPanel } from "@/components/classes/WorkingPanel";
+import { HostLeavingModal } from "@/components/party/HostLeavingModal";
+import { ReconnectingBanner } from "@/components/party/ReconnectingBanner";
 import { ScoringPanel } from "@/components/scoring/ScoringPanel";
 import { ErrorBoundary, PanelErrorFallback } from "@/components/shared/ErrorBoundary";
 import { useGameState, useParty } from "@/lib/store";
@@ -58,8 +60,10 @@ export default function RoomPage() {
 
   return (
     <div className="min-h-screen">
+      <ReconnectingBanner />
       <PeerObserverBanner />
       <RoundPhaseHeader onOpenEndRound={() => {}} />
+      <HostLeavingModal />
       <main id="main" className="mx-auto max-w-screen-2xl space-y-5 px-5 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule/40 pb-4">
           <div>

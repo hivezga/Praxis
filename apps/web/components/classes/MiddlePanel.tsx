@@ -2,18 +2,18 @@
 
 import { ClassPanelShell } from "./ClassPanelShell";
 import { Counter } from "@/components/shared/Counter";
+import { NotesField } from "./NotesField";
 import { StorageGrid } from "./StorageGrid";
-import { useGame, useGameState } from "@/lib/store";
+import { useClassState, useGame } from "@/lib/store";
 import type { Good } from "@/lib/types/game";
 
 export function MiddlePanel() {
-  const state = useGameState();
+  const m = useClassState("middle");
   const adjust = useGame((s) => s.adjustClassNumber);
   const setVal = useGame((s) => s.setClassNumber);
   const setText = useGame((s) => s.setClassString);
   const apply = useGame((s) => s.apply);
-  if (!state) return null;
-  const m = state.classes.middle;
+  if (!m) return null;
   return (
     <ClassPanelShell classId="middle">
       {/* Primary stats */}
@@ -87,15 +87,7 @@ export function MiddlePanel() {
         </ul>
       </div>
 
-      <div>
-        <div className="panel-title">Notes</div>
-        <textarea
-          className="input min-h-[60px]"
-          placeholder="Strategy notes, reminders…"
-          value={m.notes}
-          onChange={(e) => setText("middle", "notes", e.target.value)}
-        />
-      </div>
+      <NotesField classId="middle" value={m.notes} onChange={(t) => setText("middle", "notes", t)} />
     </ClassPanelShell>
   );
 }

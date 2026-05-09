@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -10,11 +11,16 @@ import { CapitalistPanel } from "@/components/classes/CapitalistPanel";
 import { MiddlePanel } from "@/components/classes/MiddlePanel";
 import { StatePanel } from "@/components/classes/StatePanel";
 import { WorkingPanel } from "@/components/classes/WorkingPanel";
-import { EndRoundWizard } from "@/components/endRound/EndRoundWizard";
 import { ScoringPanel } from "@/components/scoring/ScoringPanel";
 import { ErrorBoundary, PanelErrorFallback } from "@/components/shared/ErrorBoundary";
 import { useGame, useGameState } from "@/lib/store";
 import type { ClassId } from "@/lib/types/game";
+
+// Lazy-load the wizard — it's only opened on demand and pulls in WASM phase logic.
+const EndRoundWizard = dynamic(
+  () => import("@/components/endRound/EndRoundWizard").then((m) => m.EndRoundWizard),
+  { ssr: false },
+);
 
 const PANELS: Record<ClassId, React.FC> = {
   working:    WorkingPanel,

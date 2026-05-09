@@ -1,24 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
+import { JoinCodeInput } from "@/components/party/JoinCodeInput";
 import { useGame } from "@/lib/store";
 
-export default function JoinPage() {
+function JoinPageInner() {
   const router = useRouter();
+  const params = useSearchParams();
   const joinRoom = useGame((s) => s.joinRoom);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function attempt() {
+  // Pre-fill from /play/join?code=ABC234 (web "deep link" equivalent).
+  useEffect(() => {
+    const fromUrl = params.get("code");
+    if (fromUrl && fromUrl.length > 0) {
+      setCode(fromUrl.toUpperCase().slice(0, 6));
+    }
+  }, [params]);
+
+  async function attempt(submitted: string) {
     setError(null);
     setBusy(true);
     try {
-      await joinRoom(code);
-      router.push("/play/room");
+      await joinRoom(submitted);
+      router.push("/play/lobby");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn’t join the room.");
     } finally {
@@ -47,21 +57,19 @@ export default function JoinPage() {
       <div className="space-y-5">
         <div>
           <p className="editorial-eyebrow mb-3">Room code</p>
-          <input
-            className="input text-center font-mono text-2xl uppercase tracking-[0.4em]"
-            placeholder="ABC234"
-            maxLength={6}
+          <JoinCodeInput
             value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && code.length === 6 && !busy) attempt();
-            }}
-            autoFocus
+            disabled={busy}
+            onChange={setCode}
+            onComplete={(c) => attempt(c)}
           />
         </div>
 
         {error ? (
-          <p className="rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger">
+          <p
+            role="alert"
+            className="rounded-md border border-danger/30 bg-danger/20 px-4 py-3 font-serif text-sm italic text-danger"
+          >
             {error}
           </p>
         ) : null}
@@ -69,7 +77,7 @@ export default function JoinPage() {
         <button
           type="button"
           className="btn btn-primary w-full px-6 py-3 font-serif text-base"
-          onClick={attempt}
+          onClick={() => attempt(code)}
           disabled={code.length !== 6 || busy}
         >
           {busy ? "Connecting…" : "Join room"}
@@ -80,5 +88,13 @@ export default function JoinPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={null}>
+      <JoinPageInner />
+    </Suspense>
   );
 }

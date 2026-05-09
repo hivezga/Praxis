@@ -2,18 +2,18 @@
 
 import { ClassPanelShell } from "./ClassPanelShell";
 import { Counter } from "@/components/shared/Counter";
+import { NotesField } from "./NotesField";
 import { StorageGrid } from "./StorageGrid";
-import { useGame, useGameState } from "@/lib/store";
+import { useClassState, useGame } from "@/lib/store";
 import type { Good } from "@/lib/types/game";
 
 export function WorkingPanel() {
-  const state = useGameState();
+  const w = useClassState("working");
   const adjust = useGame((s) => s.adjustClassNumber);
   const setVal = useGame((s) => s.setClassNumber);
   const setText = useGame((s) => s.setClassString);
   const apply = useGame((s) => s.apply);
-  if (!state) return null;
-  const w = state.classes.working;
+  if (!w) return null;
   return (
     <ClassPanelShell classId="working">
       {/* Primary stats — what players read most often */}
@@ -87,15 +87,7 @@ export function WorkingPanel() {
         </div>
       </div>
 
-      <div>
-        <div className="panel-title">Notes</div>
-        <textarea
-          className="input min-h-[60px]"
-          placeholder="Strategy notes, reminders…"
-          value={w.notes}
-          onChange={(e) => setText("working", "notes", e.target.value)}
-        />
-      </div>
+      <NotesField classId="working" value={w.notes} onChange={(t) => setText("working", "notes", t)} />
     </ClassPanelShell>
   );
 }

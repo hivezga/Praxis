@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useGame, useParty } from "@/lib/store";
 
@@ -9,10 +9,30 @@ export function PartyBadge() {
   const stopHosting = useGame((s) => s.stopHosting);
   const leaveRoom = useGame((s) => s.leaveRoom);
   const [copied, setCopied] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
+  }, []);
+
+  const joinUrl = useMemo(
+    () => (party.code && origin ? `${origin}/play/join?code=${party.code}` : ""),
+    [origin, party.code],
+  );
 
   if (!party.role || !party.code) return null;
 
   const isHost = party.role === "host";
+  const peerLabel =
+    party.transport === "reconnecting"
+      ? "reconnecting…"
+      : party.transport === "disconnected"
+        ? "offline"
+        : party.connected
+          ? "live"
+          : "offline";
 
   async function copyCode() {
     if (!party.code) return;
@@ -21,7 +41,30 @@ export function PartyBadge() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // Clipboard may be blocked — fall back to selecting silently.
+      /* clipboard may be blocked */
+    }
+  }
+
+  async function share() {
+    if (!joinUrl) return;
+    if (canShare) {
+      try {
+        await navigator.share({
+          title: "Praxis party room",
+          text: `Join my Hegemony game — code ${party.code}`,
+          url: joinUrl,
+        });
+        return;
+      } catch {
+        /* fall through to clipboard fallback */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard may be blocked */
     }
   }
 
@@ -45,14 +88,27 @@ export function PartyBadge() {
       ) : (
         <span
           className={`font-serif text-[10px] italic ${
-            party.connected ? "text-emerald-300/70" : "text-danger/70"
+            party.transport === "connected"
+              ? "text-emerald-300/70"
+              : party.transport === "reconnecting"
+                ? "text-amber-300/80"
+                : "text-danger/70"
           }`}
         >
-          {party.connected ? "live" : "disconnected"}
+          {peerLabel}
         </span>
       )}
       {copied ? (
         <span className="font-serif text-[10px] italic text-accentInk/80">copied</span>
+      ) : null}
+      {isHost ? (
+        <button
+          type="button"
+          onClick={share}
+          className="ml-1 rounded-md border border-accent/40 px-2 py-0.5 text-[10px] text-accentInk transition-colors hover:border-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          {canShare ? "Share" : "Copy link"}
+        </button>
       ) : null}
       <button
         type="button"

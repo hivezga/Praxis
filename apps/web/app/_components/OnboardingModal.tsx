@@ -8,20 +8,16 @@ const STORAGE_KEY = "praxis.onboarding.dismissed";
 
 const STEPS = [
   {
-    title: "Welcome",
-    body: "Praxis is a companion tracker for Hegemony — Lead Your Class to Victory. It keeps the table free of arithmetic so the evening is spent playing.",
+    title: "What Praxis does",
+    body: "A companion tracker for Hegemony: Lead Your Class to Victory. It does the arithmetic so the table can spend the evening playing.",
   },
   {
-    title: "How a session flows",
-    body: "Pick Party or Solo, choose the classes in play, then begin. Each round moves through five phases — Praxis shows a short cue under the header to remind you what happens in each.",
+    title: "Solo or party",
+    body: "Solo — one device tracks every faction. Party — host a room with a 6-character code, friends join from their own devices and watch the game live.",
   },
   {
-    title: "End-of-round wizard",
-    body: "When you finish a round, tap End round. Praxis suggests taxes, wages, welfare costs and prosperity gains from the current state — adjust anything you need, then apply.",
-  },
-  {
-    title: "Saved on this device",
-    body: "Sessions are saved in this browser. Use Export to download a save as a JSON file — handy for moving between devices or sharing with a friend.",
+    title: "Tap and it's saved",
+    body: "Use + and − on any value to adjust it. Everything saves automatically to this browser, so you can close the tab and pick up where you left off.",
   },
 ];
 
