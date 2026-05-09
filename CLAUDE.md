@@ -47,7 +47,16 @@ Android-target Rust + WASM + web + mobile + dep audits.
 - **Android bindings**: UniFFI → Kotlin → Expo native module
 - **Web app**: Next.js, Tailwind CSS, Zustand (UI state only)
 - **Android app**: Expo React Native, bare workflow, EAS Build → Play Store
-- **Party mode**: WebRTC via PeerJS — host generates room code, P2P, no server
+- **Party mode**: WebRTC via PeerJS — host generates room code, P2P, no
+  server-side state. **Vercel only serves the static SPA.** Peer
+  connections never touch Vercel; `vercel logs` will only ever show
+  build logs and SSR for the few dynamic routes (`/play/[gameId]`,
+  `/play/setup`, `/opengraph-image`). Don't go looking in Vercel logs
+  for "connection rejected" — those failures live in the browser.
+  Signaling defaults to the public PeerJS broker (`0.peerjs.com`) +
+  Open Relay free TURN; both are env-swappable
+  (`NEXT_PUBLIC_PEERJS_HOST/PORT/PATH/SECURE`,
+  `NEXT_PUBLIC_TURN_URL/USERNAME/PASSWORD`) for self-hosting.
 - **Monetization**: Google AdMob (free tier) + one-time IAP to remove ads
 - **Monorepo**: pnpm workspaces
 
@@ -62,6 +71,8 @@ All game logic lives in Rust. TS files are UI-only:
 - `packages/party/` — WebRTC transport. Host enforces `MAX_PEERS=8`,
   payload size cap (`MAX_MESSAGE_BYTES=32_768`), token-bucket rate limit
   (20 msg/sec, 40 burst). Peer pins host-id on first message.
+  `peer-options.ts` builds the PeerJS config (broker host + ICE servers)
+  consumed by both `RoomHost` and `RoomPeer` — change broker / TURN here.
 - `apps/web/lib/types/game.ts` — TS mirror of Rust GameState.
 - `apps/web/lib/types/mutations.ts` — discriminated union mirroring Rust
   `Mutation` enum (incl. `passBill`, `failBill`).
@@ -69,6 +80,9 @@ All game logic lives in Rust. TS files are UI-only:
   known mutation `type` discriminators (defense before WASM).
 - `apps/web/lib/store/index.ts` — Zustand store; mutations delegate to
   `wasm().apply_mutation_wasm()` and pass through `assertGameState()`.
+  Party-mode ownership lock: when `party.localFaction` is set, mutations
+  targeting other factions surface a transient `notice` toast instead of
+  silent drop. `useIsClassLocked(classId)` drives the visual lock badge.
 - `apps/web/lib/party/state-projection.ts` — host→peer state redaction
   seam. Today no fields are private; future hidden info redacts here.
 - `apps/web/lib/util/base64-utf8.ts` — UTF-8-safe share-link encoder.

@@ -1,5 +1,6 @@
 import type { DataConnection, Peer } from "peerjs";
 
+import { peerOptions } from "./peer-options";
 import { isValidRoomCode, peerIdFromCode } from "./room-code";
 import type {
   PartyMessage,
@@ -48,7 +49,7 @@ export class RoomPeer {
     }
     const upper = code.toUpperCase();
     const { default: PeerCtor } = await import("peerjs");
-    const peer = new PeerCtor();
+    const peer = new PeerCtor(peerOptions());
 
     await new Promise<void>((resolve, reject) => {
       const onOpen = () => {
@@ -131,7 +132,7 @@ export class RoomPeer {
       const stalePeer = this.peer.disconnected || this.peer.destroyed;
       if (stalePeer) {
         const { default: PeerCtor } = await import("peerjs");
-        this.peer = new PeerCtor();
+        this.peer = new PeerCtor(peerOptions());
         await new Promise<void>((resolve, reject) => {
           const onOpen = () => {
             this.peer.off("open", onOpen);

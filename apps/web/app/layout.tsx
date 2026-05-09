@@ -3,6 +3,7 @@ import { Archivo_Black, Crimson_Pro, IBM_Plex_Mono, IBM_Plex_Sans } from "next/f
 import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
+import { Notice } from "./_components/Notice";
 import { ThemeProvider } from "./_components/ThemeProvider";
 import { WasmBootstrap } from "./_components/WasmBootstrap";
 
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <WasmBootstrap />
           <div className="min-h-screen">{children}</div>
+          <Notice />
         </ThemeProvider>
         <Analytics />
       </body>

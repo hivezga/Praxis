@@ -3,7 +3,7 @@
 import { ReactNode, useMemo } from "react";
 
 import { wasm } from "@/lib/wasm";
-import { useClassNickname, useGameState } from "@/lib/store";
+import { useClassNickname, useGameState, useIsClassLocked } from "@/lib/store";
 import type { ClassId } from "@/lib/types/game";
 
 interface VpBreakdown {
@@ -60,6 +60,7 @@ export function ClassPanelShell({ classId, children }: Props) {
   const state = useGameState();
   const accent = ACCENT[classId];
   const nickname = useClassNickname(classId);
+  const locked = useIsClassLocked(classId);
   // Memoize per state+classId so 4 mounted panels = 4 VP calls per state
   // change, not 16.
   const vp = useMemo<VpBreakdown | null>(
@@ -69,14 +70,26 @@ export function ClassPanelShell({ classId, children }: Props) {
   return (
     <section
       aria-label={accent.label}
-      className={`@container relative overflow-hidden rounded-md border border-rule/40 ${accent.tint}`}
+      aria-disabled={locked || undefined}
+      className={`@container relative overflow-hidden rounded-md border border-rule/40 ${accent.tint} ${
+        locked ? "opacity-60" : ""
+      }`}
     >
       <span aria-hidden className={`absolute left-0 top-0 z-10 h-full w-1.5 ${accent.rail}`} />
 
       <header className={`faction-band ${accent.band} pl-7`}>
         <div className="min-w-0">
-          <h3 className="faction-band-title">
+          <h3 className="faction-band-title flex items-center gap-2">
             {accent.label}
+            {locked ? (
+              <span
+                title="Locked: another seat owns this class. You can view but not edit."
+                aria-label="Locked to another seat"
+                className="rounded-sharp border border-current/30 bg-current/10 px-1.5 py-0.5 font-display text-[9px] uppercase tracking-wider"
+              >
+                🔒 Locked
+              </span>
+            ) : null}
           </h3>
           {nickname ? (
             <p className="mt-1 font-serif text-[12px] italic opacity-90">

@@ -48,6 +48,39 @@ function isFactionTakenByOther(
   return lobby.players.some((p) => p.faction === faction && p.peerId !== exceptPeerId);
 }
 
+/**
+ * Translate raw PeerJS error / network failures into a player-facing
+ * sentence. PeerJS attaches a `.type` field on its error objects (see
+ * https://peerjs.com/docs/#peerontype). Falls back to the original
+ * message if the type isn't recognised.
+ */
+function explainPeerError(err: unknown): string {
+  const e = err as { type?: string; message?: string } | null;
+  if (!e) return "Could not establish a connection.";
+  switch (e.type) {
+    case "peer-unavailable":
+      return "No host found for that code. Double-check the code, or ask the host to recreate the room.";
+    case "unavailable-id":
+      return "Room code is already taken — try creating a new room.";
+    case "browser-incompatible":
+      return "This browser doesn't support WebRTC. Try a current Chrome, Firefox, Safari, or Edge.";
+    case "ssl-unavailable":
+      return "Browser blocked the secure broker connection. Disable any ad blocker or VPN and retry.";
+    case "server-error":
+    case "socket-error":
+    case "socket-closed":
+      return "PeerJS broker is unreachable. The public broker may be throttling — wait 30s and retry, or set NEXT_PUBLIC_PEERJS_HOST to a self-hosted broker.";
+    case "network":
+      return "Network unreachable — check Wi-Fi/cellular and try again.";
+    case "webrtc":
+      return "Direct connection failed (NAT traversal). One of the peers is behind a strict firewall — try a different network or enable a TURN relay.";
+    case "disconnected":
+      return "Disconnected from broker. Reconnecting…";
+    default:
+      return e.message?.trim() || "Could not establish a connection.";
+  }
+}
+
 function ownerOfMutation(m: Mutation): ClassId | null {
   switch (m.type) {
     case "proposeBill":
@@ -235,9 +268,15 @@ interface GameStore {
   error: string | null;
   party: PartyState;
 
+  /** Transient notice shown to the user (toast-style). Auto-clears after ~3s. */
+  notice: string | null;
+
   load(gameId: string): Promise<void>;
   hydrate(state: GameState): void;
   clear(): void;
+
+  /** Set a transient notice. Pass null to clear immediately. */
+  setNotice(text: string | null, ttlMs?: number): void;
 
   apply(mutation: Mutation, label?: string): void;
 
@@ -284,11 +323,28 @@ interface GameStore {
   dismissHostLeaving(): void;
 }
 
+let noticeTimer: ReturnType<typeof setTimeout> | null = null;
+
 export const useGame = create<GameStore>((set, get) => ({
   state: null,
   loading: false,
   error: null,
   party: PARTY_IDLE,
+  notice: null,
+
+  setNotice(text, ttlMs = 3000) {
+    if (noticeTimer) {
+      clearTimeout(noticeTimer);
+      noticeTimer = null;
+    }
+    set({ notice: text });
+    if (text != null && ttlMs > 0) {
+      noticeTimer = setTimeout(() => {
+        set({ notice: null });
+        noticeTimer = null;
+      }, ttlMs);
+    }
+  },
 
   async load(gameId) {
     if (get().party.role === "peer") return;
@@ -323,7 +379,13 @@ export const useGame = create<GameStore>((set, get) => ({
     // mutate someone else's class. Solo mode does not lock — single tracker.
     if (current.meta.mode === "party" && party.localFaction) {
       const owner = ownerOfMutation(mutation);
-      if (owner && owner !== party.localFaction) return;
+      if (owner && owner !== party.localFaction) {
+        // Surface why the click did nothing — silent drops were confusing.
+        get().setNotice(
+          `Locked to ${party.localFaction}. Ask the ${owner} player to make this change.`,
+        );
+        return;
+      }
     }
     if (party.role === "peer") {
       peerInstance?.send({
@@ -598,7 +660,7 @@ export const useGame = create<GameStore>((set, get) => ({
       }
     } catch (err) {
       hostInstance = null;
-      set({ party: { ...PARTY_IDLE, error: (err as Error).message } });
+      set({ party: { ...PARTY_IDLE, error: explainPeerError(err) } });
       throw err;
     }
   },
@@ -660,7 +722,7 @@ export const useGame = create<GameStore>((set, get) => ({
       });
     } catch (err) {
       peerInstance = null;
-      set({ party: { ...PARTY_IDLE, error: (err as Error).message } });
+      set({ party: { ...PARTY_IDLE, error: explainPeerError(err) } });
       throw err;
     }
   },
@@ -786,6 +848,25 @@ export function useLocalNickname(): string {
     const myPeerId = s.party.localPeerId;
     if (!s.party.lobby || !myPeerId) return "";
     return s.party.lobby.players.find((p) => p.peerId === myPeerId)?.name ?? "";
+  });
+}
+
+/** Transient notice for toast UI. */
+export function useNotice(): string | null {
+  return useGame((s) => s.notice);
+}
+
+/**
+ * True when this class is owned by another seat in party mode AND the local
+ * player picked a faction. Drives the visual lock indicator on foreign panels.
+ * Solo mode never locks — single tracker by definition.
+ */
+export function useIsClassLocked(classId: ClassId): boolean {
+  return useGame((s) => {
+    if (!s.state) return false;
+    if (s.state.meta.mode !== "party") return false;
+    if (!s.party.localFaction) return false;
+    return s.party.localFaction !== classId;
   });
 }
 

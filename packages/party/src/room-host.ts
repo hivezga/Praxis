@@ -1,5 +1,6 @@
 import type { DataConnection, Peer } from "peerjs";
 
+import { peerOptions } from "./peer-options";
 import { RateLimiter } from "./rate-limiter";
 import { makeRoomCode, peerIdFromCode } from "./room-code";
 import type { PartyMessage, RoomCode, RoomHostStatus } from "./types";
@@ -44,7 +45,7 @@ export class RoomHost {
     const { default: PeerCtor } = await import("peerjs");
     const code = makeRoomCode();
     const id = peerIdFromCode(code);
-    const peer = new PeerCtor(id);
+    const peer = new PeerCtor(id, peerOptions());
 
     await new Promise<void>((resolve, reject) => {
       const onOpen = () => {
