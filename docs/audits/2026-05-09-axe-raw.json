@@ -1,0 +1,82 @@
+[
+  {
+    "route": "home",
+    "path": "/",
+    "theme": "dark",
+    "violations": [],
+    "passes": 21,
+    "incomplete": 1
+  },
+  {
+    "route": "home",
+    "path": "/",
+    "theme": "light",
+    "violations": [],
+    "passes": 21,
+    "incomplete": 1
+  },
+  {
+    "route": "play-setup",
+    "path": "/play/setup",
+    "theme": "dark",
+    "violations": [],
+    "passes": 22,
+    "incomplete": 1
+  },
+  {
+    "route": "play-setup",
+    "path": "/play/setup",
+    "theme": "light",
+    "violations": [],
+    "passes": 22,
+    "incomplete": 1
+  },
+  {
+    "route": "play-join",
+    "path": "/play/join",
+    "theme": "dark",
+    "violations": [],
+    "passes": 22,
+    "incomplete": 0
+  },
+  {
+    "route": "play-join",
+    "path": "/play/join",
+    "theme": "light",
+    "violations": [],
+    "passes": 22,
+    "incomplete": 0
+  },
+  {
+    "route": "play-game",
+    "path": "/play/de96e54c-fd0f-42b9-b369-449581d98fc5",
+    "theme": "dark",
+    "violations": [],
+    "passes": 20,
+    "incomplete": 0
+  },
+  {
+    "route": "play-game",
+    "path": "/play/de96e54c-fd0f-42b9-b369-449581d98fc5",
+    "theme": "light",
+    "violations": [],
+    "passes": 20,
+    "incomplete": 0
+  },
+  {
+    "route": "rules-cheatsheet",
+    "path": "/rules-cheatsheet",
+    "theme": "dark",
+    "violations": [],
+    "passes": 23,
+    "incomplete": 0
+  },
+  {
+    "route": "rules-cheatsheet",
+    "path": "/rules-cheatsheet",
+    "theme": "light",
+    "violations": [],
+    "passes": 23,
+    "incomplete": 0
+  }
+]
