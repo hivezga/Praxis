@@ -1,18 +1,24 @@
 "use client";
 
 import { create } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { RoomHost, RoomPeer } from "@praxis/party";
+import type { LobbySnapshot, PartyMessage } from "@praxis/party";
 
 import { wasm } from "@/lib/wasm";
 import { localStorageAdapter } from "./persistence/localStorage";
 import type { PersistenceAdapter } from "./persistence/adapter";
 import type {
   Bill,
+  CapitalistState,
   ClassId,
   GameState,
+  MiddleClassState,
   Phase,
   PolicyId,
   PolicySection,
+  StateClassState,
+  WorkingClassState,
 } from "../types/game";
 import type { Mutation } from "../types/mutations";
 
@@ -25,7 +31,46 @@ export function setPersistenceAdapter(next: PersistenceAdapter): void {
 let hostInstance: RoomHost | null = null;
 let peerInstance: RoomPeer | null = null;
 
-// Path → Mutation mapping for the adjustClassNumber / setClassNumber helpers.
+/**
+ * For class-owned mutations, return the ClassId that "owns" the mutation.
+ * Returns null for global mutations (phase, policy, market, pools, etc.)
+ * that any seat can apply.
+ */
+function ownerOfMutation(m: Mutation): ClassId | null {
+  switch (m.type) {
+    case "proposeBill":
+      return m.proposedBy;
+    case "adjustMoney":
+    case "adjustCapital":
+    case "adjustVp":
+    case "adjustProsperity":
+    case "adjustPopulation":
+    case "adjustStorage":
+    case "adjustLoans":
+    case "setNotes":
+    case "adjustUnemployedWorkers":
+    case "adjustSkilledWorkers":
+    case "adjustVotingCubes":
+    case "adjustBillMarkers":
+    case "adjustHandSize":
+      return m.classId;
+    case "adjustRevenue":
+      return "capitalist";
+    case "adjustTreasury":
+    case "adjustLegitimacy":
+    case "adjustLegitimacyTokens":
+      return "state";
+    case "adjustSavings":
+      return "middle";
+    case "adjustTradeUnion":
+      return "working";
+    case "adjustFreeTradeZone":
+      return "capitalist";
+    default:
+      return null;
+  }
+}
+
 function classPathToMutation(classId: ClassId, path: string, delta: number): Mutation {
   switch (path) {
     case "money":
@@ -50,7 +95,6 @@ function classPathToMutation(classId: ClassId, path: string, delta: number): Mut
   }
 }
 
-// Reads a value from a nested object using dot notation, e.g. "storage.food".
 function getByPath(obj: Record<string, unknown>, path: string): unknown {
   const segments = path.split(".");
   let cursor: unknown = obj;
@@ -67,6 +111,32 @@ function persist(state: GameState | null, isPeer: boolean): void {
   void adapter.save(state);
 }
 
+/**
+ * Apply a mutation through WASM, persist, broadcast — bypassing ownership
+ * checks. Used when the host validates a peer's `mutation_request` and is
+ * acting on behalf of that peer.
+ */
+function commitMutation(
+  set: (
+    partial:
+      | { state: GameState | null; loading?: boolean; error?: string | null; party?: PartyState }
+      | ((prev: { state: GameState | null; party: PartyState }) => Partial<GameStore>),
+  ) => void,
+  get: () => GameStore,
+  mutation: Mutation,
+  label: string,
+): void {
+  const { state: current, party } = get();
+  if (!current) return;
+  const next = wasm().apply_mutation_wasm(current, mutation, label) as GameState;
+  next.meta.updatedAt = Date.now();
+  set({ state: next });
+  persist(next, false);
+  if (party.role === "host" && hostInstance) {
+    hostInstance.broadcastState(next);
+  }
+}
+
 export interface PhaseRunResult {
   log: {
     phase: Phase;
@@ -81,7 +151,18 @@ interface PartyState {
   role: "host" | "peer" | null;
   code: string | null;
   peerCount: number;
+  /** Host: always true; peer: tracks live transport state. */
   connected: boolean;
+  /** Peer-only: detailed transport state for surfacing reconnect banners. */
+  transport: "connecting" | "connected" | "reconnecting" | "disconnected" | null;
+  /** Lobby snapshot — host owns it, peers receive it via broadcast. */
+  lobby: LobbySnapshot | null;
+  /** This player's chosen faction (host or peer). */
+  localFaction: ClassId | null;
+  /** True once the host has started the game. */
+  gameStarted: boolean;
+  /** Peer-only: host has signalled it's leaving — show promote/wait UI. */
+  hostLeavingPending: boolean;
   error: string | null;
 }
 
@@ -90,6 +171,11 @@ const PARTY_IDLE: PartyState = {
   code: null,
   peerCount: 0,
   connected: false,
+  transport: null,
+  lobby: null,
+  localFaction: null,
+  gameStarted: false,
+  hostLeavingPending: false,
   error: null,
 };
 
@@ -112,6 +198,10 @@ interface GameStore {
 
   proposeBill(bill: Omit<Bill, "id">): void;
   removeBill(id: string): void;
+  /** Resolve a proposed bill: move policy marker, return bill marker, +3 VP to proposer. */
+  passBill(id: string): void;
+  /** Resolve a proposed bill as failed: just return the bill marker, no VP. */
+  failBill(id: string): void;
 
   adjustClassNumber(classId: ClassId, path: string, delta: number): void;
   setClassNumber(classId: ClassId, path: string, value: number): void;
@@ -130,6 +220,14 @@ interface GameStore {
   stopHosting(): void;
   joinRoom(code: string): Promise<void>;
   leaveRoom(): void;
+
+  /** Lobby + party-coordination API. */
+  selectFaction(faction: ClassId | null): void;
+  /** Set this seat's nickname. Broadcast via lobby update. */
+  setNickname(name: string): void;
+  startGame(): void;
+  promoteToHost(): Promise<string | null>;
+  dismissHostLeaving(): void;
 }
 
 export const useGame = create<GameStore>((set, get) => ({
@@ -139,7 +237,6 @@ export const useGame = create<GameStore>((set, get) => ({
   party: PARTY_IDLE,
 
   async load(gameId) {
-    // Peers receive state through broadcasts — never touch local storage.
     if (get().party.role === "peer") return;
     set({ loading: true, error: null });
     try {
@@ -168,41 +265,56 @@ export const useGame = create<GameStore>((set, get) => ({
   apply(mutation, label = "") {
     const { state: current, party } = get();
     if (!current) return;
-    if (party.role === "peer") return; // Peer cannot mutate locally.
-    const next = wasm().apply_mutation_wasm(current, mutation, label) as GameState;
-    next.meta.updatedAt = Date.now();
-    set({ state: next });
-    persist(next, false);
-    if (party.role === "host" && hostInstance) {
-      hostInstance.broadcastState(next);
+    // Ownership lock (party mode only): if local seat picked a faction, don't
+    // mutate someone else's class. Solo mode does not lock — single tracker.
+    if (current.meta.mode === "party" && party.localFaction) {
+      const owner = ownerOfMutation(mutation);
+      if (owner && owner !== party.localFaction) return;
     }
+    if (party.role === "peer") {
+      peerInstance?.send({
+        type: "mutation_request",
+        payload: { mutation, label },
+        ts: Date.now(),
+      });
+      return;
+    }
+    commitMutation(set, get, mutation, label);
   },
 
   setPolicy(policyId, position) {
     get().apply({ type: "setPolicy", policyId, position }, `Set ${policyId} → ${position}`);
   },
 
-  advancePhase() {
-    get().apply({ type: "advancePhase" }, "Advance phase");
-  },
-
-  setPhase(phase) {
-    get().apply({ type: "setPhase", phase }, `Set phase → ${phase}`);
-  },
-
-  setRound(round) {
-    get().apply({ type: "setRound", round }, `Set round → ${round}`);
-  },
+  advancePhase() { get().apply({ type: "advancePhase" }, "Advance phase"); },
+  setPhase(phase) { get().apply({ type: "setPhase", phase }, `Set phase → ${phase}`); },
+  setRound(round) { get().apply({ type: "setRound", round }, `Set round → ${round}`); },
 
   proposeBill(bill) {
-    get().apply(
-      { type: "proposeBill", ...bill },
-      `Propose bill on ${bill.policyId}`,
-    );
+    get().apply({ type: "proposeBill", ...bill }, `Propose bill on ${bill.policyId}`);
   },
-
   removeBill(id) {
     get().apply({ type: "removeBill", id }, "Remove bill");
+  },
+
+  passBill(id) {
+    const current = get().state;
+    if (!current) return;
+    const bill = current.bills.find((b) => b.id === id);
+    if (!bill) return;
+    const policyName = bill.policyId;
+    const apply = get().apply;
+    apply({ type: "setPolicy", policyId: bill.policyId, position: bill.proposedSection }, `Bill passed: ${policyName} → ${bill.proposedSection}`);
+    apply({ type: "adjustVp", classId: bill.proposedBy, delta: 3 }, `+3 VP to ${bill.proposedBy} (bill passed)`);
+    apply({ type: "removeBill", id }, "Remove passed bill");
+  },
+
+  failBill(id) {
+    const current = get().state;
+    if (!current) return;
+    const bill = current.bills.find((b) => b.id === id);
+    if (!bill) return;
+    get().apply({ type: "removeBill", id }, `Bill failed: ${bill.policyId} → ${bill.proposedSection}`);
   },
 
   adjustClassNumber(classId, path, delta) {
@@ -294,15 +406,96 @@ export const useGame = create<GameStore>((set, get) => ({
     try {
       const host = await RoomHost.create();
       hostInstance = host;
-      set({ party: { role: "host", code: host.code, peerCount: 0, connected: true, error: null } });
+
+      const initialLobby: LobbySnapshot = {
+        code: host.code,
+        hostPeerId: host.hostPeerId,
+        started: false,
+        players: [
+          { peerId: host.hostPeerId, isHost: true, faction: null },
+        ],
+      };
+      set({
+        party: {
+          ...PARTY_IDLE,
+          role: "host",
+          code: host.code,
+          peerCount: 0,
+          connected: true,
+          transport: null,
+          lobby: initialLobby,
+          localFaction: null,
+          gameStarted: false,
+        },
+      });
+      host.broadcastLobby(initialLobby);
+
       host.onStatus((s) => {
         set((prev) => ({
           party: { ...prev.party, peerCount: s.peerCount },
         }));
       });
+
+      host.onConnection((peerId, kind) => {
+        const cur = get().party.lobby;
+        if (!cur) return;
+        let next: LobbySnapshot;
+        if (kind === "open") {
+          if (cur.players.some((p) => p.peerId === peerId)) return;
+          next = {
+            ...cur,
+            players: [...cur.players, { peerId, isHost: false, faction: null }],
+          };
+        } else {
+          next = { ...cur, players: cur.players.filter((p) => p.peerId !== peerId) };
+        }
+        set((prev) => ({ party: { ...prev.party, lobby: next } }));
+        host.broadcastLobby(next);
+      });
+
+      host.onMessage((peerId, msg) => {
+        if (msg.type === "hello") {
+          const payload = msg.payload as { faction?: string | null; name?: string } | undefined;
+          updateLobbyPlayer(peerId, (p) => ({
+            ...p,
+            name: payload?.name ?? p.name,
+            faction: (payload?.faction as ClassId | null | undefined) ?? p.faction,
+          }));
+        } else if (msg.type === "select_faction") {
+          const payload = msg.payload as { faction: string | null };
+          updateLobbyPlayer(peerId, (p) => ({ ...p, faction: payload.faction as ClassId | null }));
+        } else if (msg.type === "mutation_request") {
+          const payload = msg.payload as { mutation: Mutation; label?: string };
+          if (!get().party.gameStarted) return;
+          // Validate the requesting peer is allowed to mutate this class.
+          const owner = ownerOfMutation(payload.mutation);
+          if (owner) {
+            const peerFaction = get()
+              .party.lobby?.players.find((p) => p.peerId === peerId)
+              ?.faction;
+            if (peerFaction !== owner) return;
+          }
+          commitMutation(set, get, payload.mutation, payload.label ?? "");
+        }
+      });
+
       const cur = get().state;
       if (cur) host.broadcastState(cur);
       return host.code;
+
+      function updateLobbyPlayer(
+        peerId: string,
+        mutate: (p: LobbySnapshot["players"][number]) => LobbySnapshot["players"][number],
+      ) {
+        const lobby = get().party.lobby;
+        if (!lobby) return;
+        const next: LobbySnapshot = {
+          ...lobby,
+          players: lobby.players.map((p) => (p.peerId === peerId ? mutate(p) : p)),
+        };
+        set((prev) => ({ party: { ...prev.party, lobby: next } }));
+        host.broadcastLobby(next);
+      }
     } catch (err) {
       hostInstance = null;
       set({ party: { ...PARTY_IDLE, error: (err as Error).message } });
@@ -325,16 +518,43 @@ export const useGame = create<GameStore>((set, get) => ({
       const peer = await RoomPeer.join(code);
       peerInstance = peer;
       set({
-        party: { role: "peer", code: peer.code, peerCount: 0, connected: true, error: null },
-        // Clear local state — peer state is host-driven.
+        party: {
+          ...PARTY_IDLE,
+          role: "peer",
+          code: peer.code,
+          peerCount: 0,
+          connected: true,
+          transport: "connected",
+        },
         state: null,
       });
-      peer.onState((payload) => {
-        set({ state: payload as GameState });
+      peer.send({
+        type: "hello",
+        payload: { faction: null },
+        ts: Date.now(),
+      });
+      peer.onMessage((msg) => {
+        if (msg.type === "state" || msg.type === "full_state") {
+          set({ state: msg.payload as GameState });
+        } else if (msg.type === "lobby") {
+          const lobby = msg.payload as LobbySnapshot;
+          set((prev) => ({
+            party: { ...prev.party, lobby, gameStarted: lobby.started },
+          }));
+        } else if (msg.type === "start_game") {
+          set((prev) => ({ party: { ...prev.party, gameStarted: true } }));
+        }
+      });
+      peer.onHostLeaving(() => {
+        set((prev) => ({ party: { ...prev.party, hostLeavingPending: true } }));
       });
       peer.onStatus((s) => {
         set((prev) => ({
-          party: { ...prev.party, connected: s.connected },
+          party: {
+            ...prev.party,
+            transport: s.state,
+            connected: s.state === "connected",
+          },
         }));
       });
     } catch (err) {
@@ -349,12 +569,147 @@ export const useGame = create<GameStore>((set, get) => ({
     peerInstance = null;
     set({ party: PARTY_IDLE, state: null });
   },
+
+  selectFaction(faction) {
+    const { party } = get();
+    set((prev) => ({ party: { ...prev.party, localFaction: faction } }));
+    if (party.role === "host" && hostInstance) {
+      const lobby = get().party.lobby;
+      if (!lobby) return;
+      const next: LobbySnapshot = {
+        ...lobby,
+        players: lobby.players.map((p) =>
+          p.peerId === hostInstance!.hostPeerId ? { ...p, faction } : p,
+        ),
+      };
+      set((prev) => ({ party: { ...prev.party, lobby: next } }));
+      hostInstance.broadcastLobby(next);
+    } else if (party.role === "peer" && peerInstance) {
+      peerInstance.send({
+        type: "select_faction",
+        payload: { faction },
+        ts: Date.now(),
+      });
+    }
+  },
+
+  setNickname(name) {
+    const trimmed = name.trim();
+    const { party } = get();
+    if (party.role === "host" && hostInstance) {
+      const lobby = get().party.lobby;
+      if (!lobby) return;
+      const next: LobbySnapshot = {
+        ...lobby,
+        players: lobby.players.map((p) =>
+          p.peerId === hostInstance!.hostPeerId ? { ...p, name: trimmed || undefined } : p,
+        ),
+      };
+      set((prev) => ({ party: { ...prev.party, lobby: next } }));
+      hostInstance.broadcastLobby(next);
+    } else if (party.role === "peer" && peerInstance) {
+      peerInstance.send({
+        type: "hello",
+        payload: { name: trimmed || undefined },
+        ts: Date.now(),
+      });
+    }
+  },
+
+  startGame() {
+    const { party, state } = get();
+    if (party.role !== "host" || !hostInstance) return;
+    const lobby = party.lobby;
+    if (!lobby) return;
+    const started: LobbySnapshot = { ...lobby, started: true };
+    set((prev) => ({ party: { ...prev.party, lobby: started, gameStarted: true } }));
+    hostInstance.broadcastLobby(started);
+    const startMsg: PartyMessage = { type: "start_game", ts: Date.now() };
+    hostInstance.broadcast(startMsg);
+    if (state) hostInstance.broadcastState(state);
+  },
+
+  async promoteToHost() {
+    const { state } = get();
+    // Tear down peer transport first so we can spin up a fresh host.
+    peerInstance?.destroy();
+    peerInstance = null;
+    set({ party: PARTY_IDLE });
+    if (!state) return null;
+    const code = await get().startHosting();
+    // Re-broadcast current state so any future joiners are in sync.
+    hostInstance?.broadcastState(state);
+    set((prev) => ({ party: { ...prev.party, gameStarted: true, lobby: prev.party.lobby ? { ...prev.party.lobby, started: true } : null } }));
+    return code;
+  },
+
+  dismissHostLeaving() {
+    set((prev) => ({ party: { ...prev.party, hostLeavingPending: false } }));
+  },
 }));
+
+// Per-slice selectors — keep panel components from re-rendering on unrelated state changes.
 
 export function useGameState(): GameState | null {
   return useGame((s) => s.state);
 }
 
 export function useParty(): PartyState {
-  return useGame((s) => s.party);
+  return useGame(useShallow((s) => s.party));
+}
+
+export function useGameMeta() {
+  return useGame(useShallow((s) => (s.state ? s.state.meta : null)));
+}
+
+export function useClassState(classId: "working"): WorkingClassState | null;
+export function useClassState(classId: "middle"): MiddleClassState | null;
+export function useClassState(classId: "capitalist"): CapitalistState | null;
+export function useClassState(classId: "state"): StateClassState | null;
+export function useClassState(classId: ClassId) {
+  return useGame((s) => (s.state ? s.state.classes[classId] : null));
+}
+
+/** Nickname of the player seated at this class (party mode), or undefined. */
+export function useClassNickname(classId: ClassId): string | undefined {
+  return useGame((s) => {
+    if (!s.state || s.state.meta.mode !== "party") return undefined;
+    const seat = s.party.lobby?.players.find((p) => p.faction === classId);
+    return seat?.name?.trim() || undefined;
+  });
+}
+
+/** Local seat's own nickname, for editing in the lobby. */
+export function useLocalNickname(): string {
+  return useGame((s) => {
+    if (!s.party.lobby || !hostInstance && !peerInstance) return "";
+    const myPeerId = hostInstance?.hostPeerId ?? peerInstance?.peerId ?? null;
+    if (!myPeerId) return "";
+    return s.party.lobby.players.find((p) => p.peerId === myPeerId)?.name ?? "";
+  });
+}
+
+/** True when the given class belongs to another player (party seat or solo identity). */
+export function useShouldHideClass(classId: ClassId): boolean {
+  return useGame((s) => {
+    if (!s.state) return false;
+    if (s.state.meta.mode === "party") {
+      if (!s.party.role) return false;
+      return s.party.localFaction !== classId;
+    }
+    const local = s.state.meta.localPlayerClass;
+    if (!local) return false;
+    return local !== classId;
+  });
+}
+
+export function useGameActions() {
+  return useGame(
+    useShallow((s) => ({
+      apply: s.apply,
+      adjustClassNumber: s.adjustClassNumber,
+      setClassNumber: s.setClassNumber,
+      setClassString: s.setClassString,
+    })),
+  );
 }
