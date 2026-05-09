@@ -37,7 +37,7 @@ export function PolicyTrack({ policy, position, pendingPosition, onChange }: Pro
               type="button"
               aria-label={`Set ${policy.name} to section ${s}`}
               aria-pressed={active}
-              className={`rounded-md border px-1.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+              className={`min-w-0 overflow-hidden rounded-md border px-1.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
                 active
                   ? "border-accent/40 bg-accent/[0.08] text-accentInk"
                   : pending
@@ -48,7 +48,9 @@ export function PolicyTrack({ policy, position, pendingPosition, onChange }: Pro
               onClick={() => onChange?.(s)}
             >
               <div className="mb-0.5 font-mono text-[9px] uppercase opacity-60">{s}</div>
-              <div className="text-[10px] leading-tight">{policy.sections[s].label}</div>
+              <div className="hyphens-auto break-words text-[10px] leading-tight">
+                {policy.sections[s].label}
+              </div>
             </button>
           );
         })}
