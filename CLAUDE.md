@@ -15,6 +15,16 @@ VP scoring fix, Rust panic→Result, Next.js 15 upgrade, party-mode hardening,
 `passBill` moved into Rust, base64-utf8 share-link util, CI for host +
 Android-target Rust + WASM + web + mobile + dep audits.
 
+**Post-audit work (2026-05-09 afternoon)** — see
+`memory/project_post_audit_2026_05_09.md` for the full rundown:
+8 rulebook conformance fixes (`crates/hegemony-core`), party-mode
+ownership-lock toast + foreign-panel dim, ICE/TURN config + clearer
+PeerJS errors + env-swappable broker, semantic WASM-freshness CI check,
+pnpm overrides for the Expo dep CVEs, `packageManager` field for CI
+pnpm hydration, `rename_all_fields = "camelCase"` on the Mutation enum
+(serde silent-failure that broke every `class_id`/`policy_id` mutation
+since project start — caught only via Playwright e2e on prod).
+
 ## Build sequence
 
 | Step | Tool | Work |
