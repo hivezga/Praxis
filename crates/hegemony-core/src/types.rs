@@ -390,6 +390,12 @@ pub struct CapitalistState {
     pub hand_size: i32,
     pub voting_cubes_in_bag: i32,
     pub bill_markers_available: u8,
+    /// Highest Wealth-table space index reached so far (0 = start, 1..15
+    /// per board spaces). Marker only advances rightward — rulebook v1.2
+    /// page 21. Each space advanced during Scoring grants +3 VP. Default
+    /// 0 for backward-compat with pre-marker save files.
+    #[serde(default)]
+    pub wealth_marker_position: u8,
     pub notes: String,
 }
 
@@ -424,7 +430,7 @@ pub struct PublicCompany {
     pub row_index: u8,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct LegitimacyMap {
     pub working: i32,
@@ -468,13 +474,47 @@ pub struct Classes {
 // Crisis & Control expansion
 // ---------------------------------------------------------------------------
 
+/// Crisis Response card (C&C expansion p.14). 10 such cards exist in
+/// the physical box; each describes 5 effect sections that override the
+/// base-game IMF intervention. Effect fields default to empty/zero so
+/// older serialised states (with only id/label/locks_policy) still
+/// deserialise cleanly.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CrisisCard {
     pub id: String,
     pub label: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Policies whose proposed Bills are discarded (rather than ALL
+    /// Bills, per fixed IMF). Other Bills remain on the table.
+    #[serde(default)]
+    pub discard_bills_for_policies: Vec<PolicyId>,
+    /// Policy moves to apply directly (each Policy + new section).
+    #[serde(default)]
+    pub change_policies: Vec<PolicyChange>,
+    /// Treasury delta applied to State (positive = State gains).
+    #[serde(default)]
+    pub state_money_delta: i32,
+    /// True iff State pays off Loans at 55¥/each as part of this card.
+    #[serde(default)]
+    pub state_pays_off_loans: bool,
+    /// Legitimacy lost per class.
+    #[serde(default)]
+    pub legitimacy_loss: LegitimacyMap,
+    /// Policies that gain a Lock token until the next IMF check
+    /// (rulebook p.14 — bills cannot be proposed for these).
+    #[serde(default)]
+    pub locked_policies: Vec<PolicyId>,
+    /// Single-policy lock retained for backward compat with prior
+    /// serialised states. Prefer `locked_policies` for new data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub locks_policy: Option<PolicyId>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct PolicyChange {
+    pub policy_id: PolicyId,
+    pub new_position: PolicySection,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -638,6 +678,12 @@ pub struct VpBreakdown {
     pub cash: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub capital: Option<i32>,
+    /// Capitalist Wealth-marker movement bonus that WOULD apply this
+    /// Scoring Phase: 3 VP per space the marker would advance. Once
+    /// the marker is advanced, this drops to 0 until Capital grows
+    /// past the next space.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capital_marker_bonus: Option<i32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

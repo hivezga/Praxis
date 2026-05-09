@@ -1,19 +1,16 @@
 use crate::types::{ClassId, GameState, VpBreakdown};
 
-/// Capital wealth table derived from rulebook examples:
-/// 34→2VP, 57→3VP, 166→7VP
-/// Thresholds: [0, 10, 30, 50, 75, 100, 130, 160]
-fn capital_vp(capital: i32) -> i32 {
-    match capital {
-        c if c < 10 => 0,
-        c if c < 30 => 1,
-        c if c < 50 => 2,
-        c if c < 75 => 3,
-        c if c < 100 => 4,
-        c if c < 130 => 5,
-        c if c < 160 => 6,
-        _ => 7,
-    }
+/// Capital wealth table — rulebook v1.2 page 21.
+/// Board spaces: 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350,
+/// 400, 450, 500¥. VP value = number of spaces reached.
+pub(crate) const WEALTH_SPACES: &[i32] = &[
+    10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500,
+];
+
+/// Returns the wealth space index reached by `capital` (1-15), or 0 if
+/// below the first space.
+pub(crate) fn capital_vp(capital: i32) -> i32 {
+    WEALTH_SPACES.iter().filter(|&&t| capital >= t).count() as i32
 }
 
 // Per-class breakdowns for the running scoreboard. Only includes per-round
@@ -46,6 +43,7 @@ pub fn working_vp(state: &GameState) -> VpBreakdown {
         legitimacy: None,
         cash: Some(cash),
         capital: None,
+        capital_marker_bonus: None,
         total: w.vp + trade_unions,
     }
 }
@@ -63,6 +61,7 @@ pub fn middle_vp(state: &GameState) -> VpBreakdown {
         legitimacy: None,
         cash: Some(cash),
         capital: None,
+        capital_marker_bonus: None,
         total: m.vp,
     }
 }
@@ -70,6 +69,10 @@ pub fn middle_vp(state: &GameState) -> VpBreakdown {
 pub fn capitalist_vp(state: &GameState) -> VpBreakdown {
     let c = &state.classes.capitalist;
     let cap_vp = capital_vp(c.capital);
+    // Wealth-marker movement bonus: +3 VP per space the marker would
+    // advance to reach `cap_vp` (rulebook v1.2 page 21). Marker never
+    // moves left, so a Capital drop yields no negative bonus.
+    let bonus = ((cap_vp - c.wealth_marker_position as i32).max(0)) * 3;
     VpBreakdown {
         base: c.vp,
         prosperity: None,
@@ -78,7 +81,8 @@ pub fn capitalist_vp(state: &GameState) -> VpBreakdown {
         legitimacy: None,
         cash: None,
         capital: Some(cap_vp),
-        total: c.vp + cap_vp,
+        capital_marker_bonus: Some(bonus),
+        total: c.vp + cap_vp + bonus,
     }
 }
 
@@ -100,6 +104,7 @@ pub fn state_vp(state: &GameState) -> VpBreakdown {
         legitimacy: Some(legitimacy),
         cash: Some(cash),
         capital: None,
+        capital_marker_bonus: None,
         total: s.vp + legitimacy,
     }
 }
@@ -212,24 +217,36 @@ mod tests {
     #[test]
     fn capitalist_vp_wealth_table() {
         let mut state = create_starting_state(default_input());
-
-        state.classes.capitalist.capital = 34;
-        assert_eq!(capitalist_vp(&state).capital, Some(2));
-
-        state.classes.capitalist.capital = 57;
-        assert_eq!(capitalist_vp(&state).capital, Some(3));
-
-        state.classes.capitalist.capital = 166;
-        assert_eq!(capitalist_vp(&state).capital, Some(7));
-
-        state.classes.capitalist.capital = 9;
-        assert_eq!(capitalist_vp(&state).capital, Some(0));
-
-        state.classes.capitalist.capital = 10;
-        assert_eq!(capitalist_vp(&state).capital, Some(1));
-
-        state.classes.capitalist.capital = 160;
-        assert_eq!(capitalist_vp(&state).capital, Some(7));
+        // (capital, expected_space_index) — board spaces:
+        //   10=1, 25=2, 50=3, 75=4, 100=5, 125=6, 150=7, 175=8, 200=9,
+        //   250=10, 300=11, 350=12, 400=13, 450=14, 500=15
+        let cases = [
+            (0, 0), (9, 0),
+            (10, 1), (24, 1),
+            (25, 2), (34, 2), (49, 2),
+            (50, 3), (57, 3), (74, 3),
+            (75, 4), (99, 4),
+            (100, 5), (124, 5),
+            (125, 6), (149, 6),
+            (150, 7), (166, 7), (174, 7),
+            (175, 8), (199, 8),
+            (200, 9), (249, 9),
+            (250, 10), (299, 10),
+            (300, 11), (349, 11),
+            (350, 12), (399, 12),
+            (400, 13), (449, 13),
+            (450, 14), (499, 14),
+            (500, 15), (1000, 15),
+        ];
+        for (capital, expected) in cases {
+            state.classes.capitalist.capital = capital;
+            assert_eq!(
+                capitalist_vp(&state).capital,
+                Some(expected),
+                "capital_vp({}) wrong",
+                capital,
+            );
+        }
     }
 
     #[test]
@@ -263,6 +280,42 @@ mod tests {
         assert_eq!(vp_for(ClassId::Middle, &state), middle_vp(&state));
         assert_eq!(vp_for(ClassId::Capitalist, &state), capitalist_vp(&state));
         assert_eq!(vp_for(ClassId::State, &state), state_vp(&state));
+    }
+
+    #[test]
+    fn capitalist_wealth_marker_bonus_full_movement_first_score() {
+        // Rulebook p.21 example: capital=57, marker at 0 → space 3 → +9 VP bonus.
+        let mut state = create_starting_state(default_input());
+        state.classes.capitalist.capital = 57;
+        state.classes.capitalist.wealth_marker_position = 0;
+        let vp = capitalist_vp(&state);
+        assert_eq!(vp.capital, Some(3));
+        assert_eq!(vp.capital_marker_bonus, Some(9));
+        assert_eq!(vp.total, 12); // base 0 + 3 + 9
+    }
+
+    #[test]
+    fn capitalist_wealth_marker_bonus_zero_when_capital_drops() {
+        // Rulebook p.21 round 2 example: capital=34, marker already at 3 → no bonus.
+        let mut state = create_starting_state(default_input());
+        state.classes.capitalist.capital = 34;
+        state.classes.capitalist.wealth_marker_position = 3;
+        let vp = capitalist_vp(&state);
+        assert_eq!(vp.capital, Some(2));
+        assert_eq!(vp.capital_marker_bonus, Some(0));
+        assert_eq!(vp.total, 2); // static table only
+    }
+
+    #[test]
+    fn capitalist_wealth_marker_bonus_partial_advance() {
+        // Rulebook p.21 round 3 example: capital=166, marker at 3 → space 7 → +12 VP bonus.
+        let mut state = create_starting_state(default_input());
+        state.classes.capitalist.capital = 166;
+        state.classes.capitalist.wealth_marker_position = 3;
+        let vp = capitalist_vp(&state);
+        assert_eq!(vp.capital, Some(7));
+        assert_eq!(vp.capital_marker_bonus, Some(12)); // (7-3)*3
+        assert_eq!(vp.total, 19); // 7 + 12
     }
 
     #[test]

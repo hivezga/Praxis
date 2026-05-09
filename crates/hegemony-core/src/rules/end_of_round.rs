@@ -65,11 +65,23 @@ fn pub_operational(c: &PublicCompany) -> bool {
 // Wage helpers
 // ---------------------------------------------------------------------------
 
-/// Wage paid by a Capitalist Company in this Production Phase. Striked
-/// Companies pay nothing. Non-operational pay nothing. Otherwise, the
-/// printed L1/L2/L3 wage at the current marker level.
+/// Wage paid by a Capitalist Company in this Production Phase.
+///
+/// Per rulebook v1.2 page 16, strike resolution at the START of the
+/// Production Phase:
+///   1. Discard the Strike token from all Companies with Level 3 Wages.
+///   2. For each operational Co still on strike (L1/L2 wages), no
+///      production and no wage paid; Working gains 1 Influence each.
+///   3. Discard all remaining Strike tokens.
+///
+/// Therefore: L3 + on_strike pays its full wage normally (strike was
+/// discarded before wages computed). L1/L2 + on_strike pays nothing.
+/// Non-operational Companies pay nothing regardless of strike state.
 fn cap_wage(c: &CapitalistCompany) -> i32 {
-    if c.on_strike || !cap_operational(c) {
+    if !cap_operational(c) {
+        return 0;
+    }
+    if c.on_strike && c.wage_level < 3 {
         return 0;
     }
     match lookup_by_name(&c.label) {
@@ -290,6 +302,13 @@ pub fn apply_round_suggestion(state: &GameState, suggestion: &RoundSuggestion) -
     next.classes.working.storage.influence =
         (next.classes.working.storage.influence + strike_inf).max(0);
 
+    // Discard ALL Strike tokens after Production resolves (rulebook p.16).
+    // Both L3 (cleared at phase start) and L1/L2 (after producing influence)
+    // tokens go away by end of Production.
+    for c in next.classes.capitalist.companies.iter_mut() {
+        c.on_strike = false;
+    }
+
     next
 }
 
@@ -381,6 +400,41 @@ mod tests {
         // L1 or L2 striked operational Cap Co -> +1 Influence to Working.
         let strike_inf = strike_influence_to_working(&state);
         assert_eq!(strike_inf, 1);
+    }
+
+    #[test]
+    fn l3_striked_supermarket_still_pays_wages() {
+        // Rulebook p.16: L3 strike tokens are discarded at start of
+        // Production BEFORE wages compute. So an on_strike L3 Co pays
+        // its full wage (25¥ for Supermarket).
+        let mut state = create_starting_state(default_input());
+        let sm = state
+            .classes
+            .capitalist
+            .companies
+            .iter_mut()
+            .find(|c| c.label == "Supermarket")
+            .unwrap();
+        sm.workers_assigned = 4;
+        sm.wage_level = 3;
+        sm.on_strike = true;
+
+        let s = compute_round_suggestion(&state);
+        assert_eq!(s.wages.from_capitalist, 25, "L3 strike must pay wages");
+    }
+
+    #[test]
+    fn apply_round_clears_all_strike_tokens() {
+        let mut state = create_starting_state(default_input());
+        for c in state.classes.capitalist.companies.iter_mut() {
+            c.workers_assigned = 4;
+            c.on_strike = true;
+        }
+        let s = compute_round_suggestion(&state);
+        let next = apply_round_suggestion(&state, &s);
+        for c in &next.classes.capitalist.companies {
+            assert!(!c.on_strike, "all strike tokens should clear post-Production");
+        }
     }
 
     #[test]

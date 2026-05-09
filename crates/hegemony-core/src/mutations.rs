@@ -110,11 +110,32 @@ pub enum Mutation {
     AdjustLegitimacyTokens { from_class: ClassId, delta: i32 },
     ApplyEndRound(EndRoundPayload),
     /// Resolve a proposed Bill atomically: move the Policy marker, award
-    /// +3 VP to the proposer, and remove the Bill from the queue. Replaces
-    /// the prior TS-side three-step orchestration to keep all rules in Rust.
-    PassBill { bill_id: String },
+    /// +3 VP to the proposer, +1 VP to each supporter that contributed
+    /// (excluding the proposer to prevent double-dip per rulebook p.13),
+    /// and remove the Bill from the queue. `supporters` defaults to empty
+    /// for backward compat with pre-supporter-VP serialised payloads.
+    PassBill {
+        bill_id: String,
+        #[serde(default)]
+        supporters: Vec<ClassId>,
+    },
     /// Fail a proposed Bill: simply remove it from the queue.
     FailBill { bill_id: String },
+    /// Set the Capitalist Wealth-marker position directly (UI override).
+    /// Normally advanced automatically by `apply_scoring_phase`.
+    SetWealthMarker { position: u8 },
+    /// Atomic State Welfare sale (Public Health/Education) to a buyer
+    /// class. Computes price from current Welfare Policy section, drains
+    /// `PublicServices`, credits Treasury, credits buyer storage, and
+    /// applies the rulebook bonus:
+    ///   - Section A (free)  → +1 Legitimacy per 3 units sold (rulebook p.26)
+    ///   - Section B (5¥ ea) → +1 VP to State, regardless of amount (rulebook p.26)
+    ///   - Section C (10¥ ea) → no bonus
+    SellWelfare {
+        good: Good,
+        buyer: ClassId,
+        units: i32,
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -573,7 +594,7 @@ pub fn apply_mutation(
             }
         }
 
-        Mutation::PassBill { bill_id } => {
+        Mutation::PassBill { bill_id, supporters } => {
             let bill = match next.bills.iter().find(|b| b.id == bill_id) {
                 Some(b) => b.clone(),
                 None => {
@@ -592,23 +613,32 @@ pub fn apply_mutation(
                 PolicyId::ForeignTrade => next.policies.foreign_trade.position = bill.proposed_section.clone(),
                 PolicyId::Immigration => next.policies.immigration.position = bill.proposed_section.clone(),
             }
-            // 2. Award +3 VP to the proposing class (rulebook).
-            const PASS_BILL_VP: i32 = 3;
-            match bill.proposed_by {
-                ClassId::Working => {
-                    next.classes.working.vp = next.classes.working.vp.saturating_add(PASS_BILL_VP);
+            // 2. Award +3 VP to the proposing class (rulebook p.12).
+            const PROPOSER_VP: i32 = 3;
+            const SUPPORTER_VP: i32 = 1;
+            let award = |state: &mut GameState, class: &ClassId, amount: i32| match class {
+                ClassId::Working => state.classes.working.vp = state.classes.working.vp.saturating_add(amount),
+                ClassId::Middle => state.classes.middle.vp = state.classes.middle.vp.saturating_add(amount),
+                ClassId::Capitalist => state.classes.capitalist.vp = state.classes.capitalist.vp.saturating_add(amount),
+                ClassId::State => state.classes.state.vp = state.classes.state.vp.saturating_add(amount),
+            };
+            award(&mut next, &bill.proposed_by, PROPOSER_VP);
+            // 3. Award +1 VP per supporter that contributed (cube or
+            //    Influence). Per rulebook p.13: proposer's +3 is separate
+            //    and does NOT stack with +1 even if they also contributed.
+            //    Dedupe and exclude proposer.
+            let mut seen: Vec<ClassId> = Vec::new();
+            for s in supporters {
+                if s == bill.proposed_by {
+                    continue;
                 }
-                ClassId::Middle => {
-                    next.classes.middle.vp = next.classes.middle.vp.saturating_add(PASS_BILL_VP);
+                if seen.contains(&s) {
+                    continue;
                 }
-                ClassId::Capitalist => {
-                    next.classes.capitalist.vp = next.classes.capitalist.vp.saturating_add(PASS_BILL_VP);
-                }
-                ClassId::State => {
-                    next.classes.state.vp = next.classes.state.vp.saturating_add(PASS_BILL_VP);
-                }
+                award(&mut next, &s, SUPPORTER_VP);
+                seen.push(s);
             }
-            // 3. Remove the bill from the queue.
+            // 4. Remove the bill from the queue.
             next.bills.retain(|b| b.id != bill_id);
         }
 
@@ -620,6 +650,110 @@ pub fn apply_mutation(
                 });
             }
             next.bills.retain(|b| b.id != bill_id);
+        }
+
+        Mutation::SetWealthMarker { position } => {
+            // Cap at 15 (max wealth-table space).
+            next.classes.capitalist.wealth_marker_position = position.min(15);
+        }
+
+        Mutation::SellWelfare { good, buyer, units } => {
+            // Validate good.
+            let policy_section = match good {
+                Good::Health => &state.policies.health_benefits.position,
+                Good::Education => &state.policies.education_welfare.position,
+                other => {
+                    return Err(MutationError::InvalidArgument {
+                        reason: format!("SellWelfare: only Health or Education, got {:?}", other),
+                    });
+                }
+            };
+            // Validate buyer.
+            match buyer {
+                ClassId::Working | ClassId::Middle => {}
+                other => {
+                    return Err(MutationError::InvalidClass {
+                        class: other,
+                        reason: "SellWelfare: only Working or Middle may buy".to_string(),
+                    });
+                }
+            }
+            if units <= 0 {
+                return Err(MutationError::InvalidArgument {
+                    reason: "SellWelfare: units must be positive".to_string(),
+                });
+            }
+            // Validate stock.
+            let available = match good {
+                Good::Health => state.public_services.health,
+                Good::Education => state.public_services.education,
+                _ => unreachable!(),
+            };
+            if units > available {
+                return Err(MutationError::InvalidArgument {
+                    reason: format!(
+                        "SellWelfare: only {} {:?} available in Public Services, requested {}",
+                        available, good, units
+                    ),
+                });
+            }
+            // Price per unit by policy section.
+            let price_per_unit = match policy_section {
+                PolicySection::A => 0,
+                PolicySection::B => 5,
+                PolicySection::C => 10,
+            };
+            let total_price = units * price_per_unit;
+            // Drain Public Services.
+            match good {
+                Good::Health => next.public_services.health -= units,
+                Good::Education => next.public_services.education -= units,
+                _ => unreachable!(),
+            }
+            // Credit Treasury (only when not free).
+            next.classes.state.treasury =
+                (next.classes.state.treasury + total_price).max(0);
+            // Credit buyer's money is not deducted here — UI's Buy Goods
+            // & Services flow handles buyer-side payment via AdjustMoney.
+            // This mutation is the SELLER side only.
+            // Credit buyer storage.
+            match (&buyer, &good) {
+                (ClassId::Working, Good::Health) => {
+                    next.classes.working.storage.health += units;
+                }
+                (ClassId::Working, Good::Education) => {
+                    next.classes.working.storage.education += units;
+                }
+                (ClassId::Middle, Good::Health) => {
+                    next.classes.middle.storage.health += units;
+                }
+                (ClassId::Middle, Good::Education) => {
+                    next.classes.middle.storage.education += units;
+                }
+                _ => unreachable!(),
+            }
+            // Apply policy-section bonus.
+            match policy_section {
+                PolicySection::A => {
+                    // +1 Legitimacy per 3 units sold (rulebook p.26).
+                    let bonus = units / 3;
+                    if bonus > 0 {
+                        let leg = &mut next.classes.state.legitimacy;
+                        match buyer {
+                            ClassId::Working => leg.working = (leg.working + bonus).max(0),
+                            ClassId::Middle => leg.middle = (leg.middle + bonus).max(0),
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+                PolicySection::B => {
+                    // +1 VP to State regardless of amount (rulebook p.26).
+                    next.classes.state.vp = next.classes.state.vp.saturating_add(1);
+                }
+                PolicySection::C => {
+                    // Full price, no bonus.
+                }
+            }
         }
 
         Mutation::ApplyEndRound(p) => {
@@ -1101,7 +1235,7 @@ mod tests {
         let starting_working_vp = proposed.classes.working.vp;
         let next = apply_mutation_unwrap(
             &proposed,
-            Mutation::PassBill { bill_id },
+            Mutation::PassBill { bill_id, supporters: vec![] },
             "pass",
         );
         assert_eq!(next.policies.taxation.position, PolicySection::C);
@@ -1114,10 +1248,108 @@ mod tests {
         let state = base_state();
         let result = apply_mutation(
             &state,
-            Mutation::PassBill { bill_id: "nope".to_string() },
+            Mutation::PassBill { bill_id: "nope".to_string(), supporters: vec![] },
             "pass",
         );
         assert!(matches!(result, Err(MutationError::InvalidArgument { .. })));
+    }
+
+    #[test]
+    fn pass_bill_awards_supporter_vp() {
+        let state = base_state();
+        let bill = NewBill {
+            policy_id: PolicyId::ForeignTrade,
+            proposed_section: PolicySection::A,
+            proposed_by: ClassId::Working,
+            immediate_vote: false,
+        };
+        let proposed = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "p");
+        let bill_id = proposed.bills[0].id.clone();
+        let starting_w_vp = proposed.classes.working.vp;
+        let starting_m_vp = proposed.classes.middle.vp;
+        let starting_c_vp = proposed.classes.capitalist.vp;
+        let next = apply_mutation_unwrap(
+            &proposed,
+            Mutation::PassBill {
+                bill_id,
+                supporters: vec![ClassId::Middle, ClassId::Capitalist],
+            },
+            "pass",
+        );
+        assert_eq!(next.classes.working.vp, starting_w_vp + 3); // proposer
+        assert_eq!(next.classes.middle.vp, starting_m_vp + 1);
+        assert_eq!(next.classes.capitalist.vp, starting_c_vp + 1);
+    }
+
+    #[test]
+    fn pass_bill_proposer_in_supporters_no_double_dip() {
+        // Per rulebook p.13: proposer's +3 does not stack with +1.
+        let state = base_state();
+        let bill = NewBill {
+            policy_id: PolicyId::Immigration,
+            proposed_section: PolicySection::A,
+            proposed_by: ClassId::Middle,
+            immediate_vote: false,
+        };
+        let proposed = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "p");
+        let bill_id = proposed.bills[0].id.clone();
+        let starting_vp = proposed.classes.middle.vp;
+        let next = apply_mutation_unwrap(
+            &proposed,
+            Mutation::PassBill {
+                bill_id,
+                supporters: vec![ClassId::Middle, ClassId::Working],
+            },
+            "pass",
+        );
+        // Middle gets +3 only; Working gets +1.
+        assert_eq!(next.classes.middle.vp, starting_vp + 3);
+        assert_eq!(next.classes.working.vp, 0 + 1);
+    }
+
+    #[test]
+    fn pass_bill_dedupes_supporters() {
+        let state = base_state();
+        let bill = NewBill {
+            policy_id: PolicyId::Immigration,
+            proposed_section: PolicySection::A,
+            proposed_by: ClassId::Working,
+            immediate_vote: false,
+        };
+        let proposed = apply_mutation_unwrap(&state, Mutation::ProposeBill(bill), "p");
+        let bill_id = proposed.bills[0].id.clone();
+        let starting_m_vp = proposed.classes.middle.vp;
+        let next = apply_mutation_unwrap(
+            &proposed,
+            Mutation::PassBill {
+                bill_id,
+                supporters: vec![ClassId::Middle, ClassId::Middle, ClassId::Middle],
+            },
+            "pass",
+        );
+        assert_eq!(next.classes.middle.vp, starting_m_vp + 1);
+    }
+
+    #[test]
+    fn set_wealth_marker_clamps_to_15() {
+        let state = base_state();
+        let next = apply_mutation_unwrap(
+            &state,
+            Mutation::SetWealthMarker { position: 99 },
+            "wealth",
+        );
+        assert_eq!(next.classes.capitalist.wealth_marker_position, 15);
+    }
+
+    #[test]
+    fn set_wealth_marker_sets_position() {
+        let state = base_state();
+        let next = apply_mutation_unwrap(
+            &state,
+            Mutation::SetWealthMarker { position: 7 },
+            "wealth",
+        );
+        assert_eq!(next.classes.capitalist.wealth_marker_position, 7);
     }
 
     #[test]
@@ -1139,6 +1371,117 @@ mod tests {
         );
         assert_eq!(next.classes.middle.vp, starting_vp);
         assert_eq!(next.bills.len(), 0);
+    }
+
+    #[test]
+    fn sell_welfare_section_b_grants_state_vp() {
+        // Welfare H&B starts at B → 5¥/unit, +1 VP to State.
+        let mut state = base_state();
+        state.public_services.health = 5;
+        let starting_treasury = state.classes.state.treasury;
+        let starting_vp = state.classes.state.vp;
+        let next = apply_mutation_unwrap(
+            &state,
+            Mutation::SellWelfare {
+                good: Good::Health,
+                buyer: ClassId::Working,
+                units: 3,
+            },
+            "sell",
+        );
+        assert_eq!(next.public_services.health, 2);
+        assert_eq!(next.classes.state.treasury, starting_treasury + 15); // 3 * 5
+        assert_eq!(next.classes.state.vp, starting_vp + 1);
+        assert_eq!(next.classes.working.storage.health, 3);
+    }
+
+    #[test]
+    fn sell_welfare_section_a_grants_legitimacy() {
+        let mut state = base_state();
+        state.policies.health_benefits.position = PolicySection::A;
+        state.public_services.health = 6;
+        let starting_leg = state.classes.state.legitimacy.working;
+        let next = apply_mutation_unwrap(
+            &state,
+            Mutation::SellWelfare {
+                good: Good::Health,
+                buyer: ClassId::Working,
+                units: 6,
+            },
+            "sell",
+        );
+        // Free → no treasury change. 6/3 = 2 Legitimacy.
+        assert_eq!(next.classes.state.legitimacy.working, starting_leg + 2);
+        assert_eq!(next.classes.working.storage.health, 6);
+    }
+
+    #[test]
+    fn sell_welfare_section_c_no_bonus() {
+        let mut state = base_state();
+        state.policies.education_welfare.position = PolicySection::C;
+        state.public_services.education = 4;
+        let starting_treasury = state.classes.state.treasury;
+        let starting_vp = state.classes.state.vp;
+        let starting_leg = state.classes.state.legitimacy.middle;
+        let next = apply_mutation_unwrap(
+            &state,
+            Mutation::SellWelfare {
+                good: Good::Education,
+                buyer: ClassId::Middle,
+                units: 4,
+            },
+            "sell",
+        );
+        // Section C: 10¥/unit, no VP, no Legitimacy.
+        assert_eq!(next.classes.state.treasury, starting_treasury + 40);
+        assert_eq!(next.classes.state.vp, starting_vp);
+        assert_eq!(next.classes.state.legitimacy.middle, starting_leg);
+    }
+
+    #[test]
+    fn sell_welfare_rejects_food() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::SellWelfare {
+                good: Good::Food,
+                buyer: ClassId::Working,
+                units: 1,
+            },
+            "bad",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidArgument { .. })));
+    }
+
+    #[test]
+    fn sell_welfare_rejects_capitalist_buyer() {
+        let state = base_state();
+        let result = apply_mutation(
+            &state,
+            Mutation::SellWelfare {
+                good: Good::Health,
+                buyer: ClassId::Capitalist,
+                units: 1,
+            },
+            "bad",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidClass { .. })));
+    }
+
+    #[test]
+    fn sell_welfare_rejects_oversell() {
+        let mut state = base_state();
+        state.public_services.health = 2;
+        let result = apply_mutation(
+            &state,
+            Mutation::SellWelfare {
+                good: Good::Health,
+                buyer: ClassId::Working,
+                units: 5,
+            },
+            "bad",
+        );
+        assert!(matches!(result, Err(MutationError::InvalidArgument { .. })));
     }
 
     #[test]

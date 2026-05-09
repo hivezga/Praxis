@@ -9,7 +9,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::rules::end_of_round::{apply_round_suggestion, compute_round_suggestion};
-use crate::rules::imf::{apply_imf_intervention, imf_intervenes};
+use crate::rules::imf::{apply_imf_or_crisis, imf_intervenes};
 use crate::types::{GameState, Phase, RoundSuggestion};
 
 const LOAN_INTEREST: i32 = 5;
@@ -144,18 +144,40 @@ pub fn apply_production_phase(state: &GameState, mode: ProductionMode) -> PhaseR
 
     // 1. Check IMF first (it changes Policies which feed taxes).
     let imf_triggered = imf_intervenes(state);
+
+    // 2. Compute round suggestion BEFORE IMF mutates Policies.
+    //    Rulebook v1.2 page 33 sidebar: "If the IMF Intervention causes
+    //    the Labor Market Policy to change, when the time comes for the
+    //    Working Class and the Middle Class to pay their taxes, use the
+    //    Labor Market's previous section for their calculations."
+    //    Tax tables consume Labor Market + Taxation, so any policy
+    //    movement caused by IMF must not retroactively re-rate this round.
+    let suggestion = compute_round_suggestion(state);
+
     let post_imf = if imf_triggered {
+        let used_crisis = state
+            .crisis
+            .as_ref()
+            .map(|c| !c.crisis_cards.is_empty())
+            .unwrap_or(false);
+        if used_crisis {
+            entries.push(
+                "IMF intervenes via Crisis Response card (C&C p.14)."
+                    .to_string(),
+            );
+        } else {
+            entries.push(
+                "IMF intervenes: bills discarded, Policies reset, Loans paid, Legitimacy halved."
+                    .to_string(),
+            );
+        }
         entries.push(
-            "IMF intervenes: bills discarded, Policies reset, Loans paid, Legitimacy halved."
-                .to_string(),
+            "Tax calc uses pre-IMF Labor Market section (rulebook p.33).".to_string(),
         );
-        apply_imf_intervention(state)
+        apply_imf_or_crisis(state)
     } else {
         state.clone()
     };
-
-    // 2. Compute round suggestion against the (possibly IMF-mutated) state.
-    let suggestion = compute_round_suggestion(&post_imf);
     entries.push(format!("Tax multiplier this round: \u{d7}{}", suggestion.taxes.multiplier));
     entries.push(format!(
         "Total taxes to Treasury: {}¥ (working {} + middle income {} + middle employment {} + capitalist corporate {} + capitalist employment {})",
@@ -254,14 +276,61 @@ pub fn apply_scoring_phase(state: &GameState) -> PhaseResult {
     next.classes.middle.vp = next.classes.middle.vp.saturating_add(m_delta);
     next.classes.capitalist.vp = next.classes.capitalist.vp.saturating_add(c_delta);
 
+    // Advance Capitalist Wealth marker to its new position (rulebook
+    // p.21). Marker only moves rightward; if Capital dropped below the
+    // current position, marker stays. Done AFTER awarding the round
+    // delta so the +3-per-space bonus is paid out exactly once.
+    let new_position = crate::rules::vp::capital_vp(next.classes.capitalist.capital).max(0) as u8;
+    if new_position > next.classes.capitalist.wealth_marker_position {
+        let moved = new_position - next.classes.capitalist.wealth_marker_position;
+        entries.push(format!(
+            "Capitalist Wealth marker advances {} space(s) to position {}.",
+            moved, new_position
+        ));
+        next.classes.capitalist.wealth_marker_position = new_position;
+    }
+
     // Round transition: advance round, set phase back to Preparation.
     if next.meta.round < 5 {
         next.meta.round += 1;
         next.meta.phase = Phase::Preparation;
         entries.push(format!("Advancing to Round {}.", next.meta.round));
     } else {
-        // Game End: phase stays Scoring but indicate end.
-        entries.push("Round 5 complete — Game End.".to_string());
+        // Game End scoring (rulebook v1.2 pages 13, 17, 21, 25, 29):
+        // loan penalty + policy section table + storage + cash for all
+        // four classes. Phase stays Scoring to indicate game over.
+        let (after_end, breakdown) = crate::rules::game_end::apply_game_end_scoring(&next);
+        next = after_end;
+        entries.push("Round 5 complete — Game End scoring applied.".to_string());
+        entries.push(format!(
+            "Working +{} VP (policy {} / cash {} / loan {}).",
+            breakdown.working.total_delta,
+            breakdown.working.policy_table,
+            breakdown.working.cash,
+            breakdown.working.loan_penalty,
+        ));
+        entries.push(format!(
+            "Middle +{} VP (policy {} / storage {} / cash {} / loan {}).",
+            breakdown.middle.total_delta,
+            breakdown.middle.policy_table,
+            breakdown.middle.storage,
+            breakdown.middle.cash,
+            breakdown.middle.loan_penalty,
+        ));
+        entries.push(format!(
+            "Capitalist +{} VP (policy {} / storage {} / loan {}).",
+            breakdown.capitalist.total_delta,
+            breakdown.capitalist.policy_table,
+            breakdown.capitalist.storage,
+            breakdown.capitalist.loan_penalty,
+        ));
+        entries.push(format!(
+            "State +{} VP (storage {} / cash {} / loan {}).",
+            breakdown.state.total_delta,
+            breakdown.state.storage,
+            breakdown.state.cash,
+            breakdown.state.loan_penalty,
+        ));
     }
 
     let round = next.meta.round;
@@ -376,6 +445,29 @@ mod tests {
     }
 
     #[test]
+    fn production_taxes_use_pre_imf_labor_market() {
+        // Rulebook p.33: when IMF moves Labor Market, the round's taxes
+        // still use the previous section. Set up: starting LM=B (income
+        // tax 4¥/Pop at any Tax). IMF will reset LM→C and Tax→A
+        // (post-IMF LM=C + Tax=A would be 1¥/Pop). With pop=10, pre-IMF
+        // taxes 40¥; post-IMF would be 10¥. Suggestion must show 40.
+        let mut state = create_starting_state(default_input());
+        state.classes.state.loans = 5;
+        state.classes.state.treasury = 0;
+        // Confirm starting LM=B and pop=10.
+        assert_eq!(state.policies.labor_market.position, PolicySection::B);
+        assert_eq!(state.classes.working.population, 10);
+        let r = apply_production_phase(&state, ProductionMode::Manual);
+        assert!(r.log.imf_intervened);
+        let s = r.log.suggestion.expect("suggestion present");
+        // Pre-IMF: LM=B, Tax=A → per_unit=4 → 4*10 = 40
+        assert_eq!(s.taxes.working_income_tax, 40);
+        // Post-IMF state should still reflect IMF policy changes.
+        assert_eq!(r.state.policies.labor_market.position, PolicySection::C);
+        assert_eq!(r.state.policies.taxation.position, PolicySection::A);
+    }
+
+    #[test]
     fn scoring_advances_round() {
         let mut state = create_starting_state(default_input());
         state.meta.round = 2;
@@ -390,7 +482,29 @@ mod tests {
         state.meta.round = 5;
         let r = apply_scoring_phase(&state);
         assert_eq!(r.state.meta.round, 5);
-        assert!(r.log.entries.last().unwrap().contains("Game End"));
+        assert!(
+            r.log.entries.iter().any(|e| e.contains("Game End")),
+            "expected Game End log entry, got: {:?}",
+            r.log.entries,
+        );
+    }
+
+    #[test]
+    fn scoring_round5_applies_game_end_scoring() {
+        // Round 5 scoring should add policy-section + cash + storage VP.
+        let mut state = create_starting_state(default_input());
+        state.meta.round = 5;
+        // Working has section A=1 (Taxation 3A) → 1 VP; money 30/10=3 cash.
+        let starting_w_vp = state.classes.working.vp;
+        let r = apply_scoring_phase(&state);
+        // Expected: 1 (policy) + 3 (cash) = 4 VP minimum from game end.
+        // Per-round scoring contributes 0 (no trade unions).
+        assert!(
+            r.state.classes.working.vp >= starting_w_vp + 4,
+            "Working should get game-end VP: {} -> {}",
+            starting_w_vp,
+            r.state.classes.working.vp,
+        );
     }
 
     #[test]
@@ -454,6 +568,32 @@ mod tests {
         }
         // No per-round VP for Working at constant zero-trade-union state.
         assert_eq!(working_running - starting_working_vp, 0);
+    }
+
+    #[test]
+    fn scoring_advances_capitalist_wealth_marker() {
+        // Capital 57, marker at 0 → after scoring marker at 3, +12 VP.
+        let mut state = create_starting_state(default_input());
+        state.classes.capitalist.capital = 57;
+        state.classes.capitalist.wealth_marker_position = 0;
+        let r = apply_scoring_phase(&state);
+        assert_eq!(r.state.classes.capitalist.wealth_marker_position, 3);
+        // 12 VP awarded (3 table + 9 movement).
+        assert_eq!(r.state.classes.capitalist.vp, 12);
+    }
+
+    #[test]
+    fn scoring_capitalist_marker_does_not_regress() {
+        let mut state = create_starting_state(default_input());
+        state.classes.capitalist.capital = 30;
+        state.classes.capitalist.wealth_marker_position = 5;
+        let starting_vp = state.classes.capitalist.vp;
+        let r = apply_scoring_phase(&state);
+        // Marker stays at 5; no movement bonus.
+        assert_eq!(r.state.classes.capitalist.wealth_marker_position, 5);
+        // But static table value still awarded each round (rulebook p.21).
+        // 30¥ → space 2 → 2 VP table + 0 bonus.
+        assert_eq!(r.state.classes.capitalist.vp, starting_vp + 2);
     }
 
     #[test]

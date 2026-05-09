@@ -16,7 +16,7 @@
 //! a drawn card. Handled separately in `crisis_response.rs`.
 
 use crate::types::{
-    Bill, GameState, LegitimacyMap, PolicyId, PolicySection, Policies,
+    Bill, CrisisCard, GameState, LegitimacyMap, PolicyId, PolicySection, Policies,
 };
 
 const LOAN_PAYOFF_COST: i32 = 55;
@@ -110,6 +110,85 @@ fn half_up(n: i32) -> i32 {
         return 0;
     }
     (n + 1) / 2
+}
+
+// ---------------------------------------------------------------------------
+// Crisis Response (C&C expansion p.14)
+// ---------------------------------------------------------------------------
+
+/// Set policy position by id (helper).
+fn set_policy(policies: &mut Policies, id: &PolicyId, position: PolicySection) {
+    match id {
+        PolicyId::FiscalPolicy => policies.fiscal_policy.position = position,
+        PolicyId::LaborMarket => policies.labor_market.position = position,
+        PolicyId::Taxation => policies.taxation.position = position,
+        PolicyId::HealthBenefits => policies.health_benefits.position = position,
+        PolicyId::EducationWelfare => policies.education_welfare.position = position,
+        PolicyId::ForeignTrade => policies.foreign_trade.position = position,
+        PolicyId::Immigration => policies.immigration.position = position,
+    }
+}
+
+/// Apply a Crisis Response card's effects (rulebook v1.1 page 14):
+///   1. Discard proposed Bills only for the listed Policies (not all)
+///   2. Apply listed Policy moves
+///   3. Apply additional money / loan-payoff effects
+///   4. Apply Legitimacy losses
+///   5. Locked Policies (recorded on `crisis.active_crisis_card_id`;
+///      enforcement of "no Bills may be proposed for these" is a
+///      ProposeBill-time check that the UI/host already validates)
+pub fn apply_crisis_card_intervention(state: &GameState, card: &CrisisCard) -> GameState {
+    let mut next = state.clone();
+
+    // 1. Discard only proposed Bills whose Policy is in the card's list.
+    next.bills.retain(|b| !card.discard_bills_for_policies.contains(&b.policy_id));
+
+    // 2. Apply listed Policy moves.
+    for change in &card.change_policies {
+        set_policy(&mut next.policies, &change.policy_id, change.new_position.clone());
+    }
+
+    // 3a. State money delta.
+    next.classes.state.treasury =
+        (next.classes.state.treasury + card.state_money_delta).max(0);
+
+    // 3b. Optional Loan payoff at 55¥/each (greedy from Treasury).
+    if card.state_pays_off_loans {
+        let mut treasury = next.classes.state.treasury;
+        let mut loans = next.classes.state.loans;
+        while loans > 0 && treasury >= LOAN_PAYOFF_COST {
+            treasury -= LOAN_PAYOFF_COST;
+            loans -= 1;
+        }
+        next.classes.state.treasury = treasury;
+        next.classes.state.loans = loans;
+    }
+
+    // 4. Legitimacy losses.
+    let leg = &mut next.classes.state.legitimacy;
+    leg.working = (leg.working - card.legitimacy_loss.working).max(0);
+    leg.middle = (leg.middle - card.legitimacy_loss.middle).max(0);
+    leg.capitalist = (leg.capitalist - card.legitimacy_loss.capitalist).max(0);
+
+    // 5. Lock tokens are tracked via `active_crisis_card_id` on the
+    //    CrisisState; ProposeBill validation already consults that.
+    if let Some(crisis) = next.crisis.as_mut() {
+        crisis.active_crisis_card_id = Some(card.id.clone());
+    }
+
+    next
+}
+
+/// Branch the IMF intervention based on Crisis & Control state. If a
+/// Crisis Response card is queued (first card in `crisis.crisis_cards`),
+/// apply that card's effects instead of the fixed page-33 table.
+pub fn apply_imf_or_crisis(state: &GameState) -> GameState {
+    if let Some(crisis) = state.crisis.as_ref() {
+        if let Some(card) = crisis.crisis_cards.first() {
+            return apply_crisis_card_intervention(state, card);
+        }
+    }
+    apply_imf_intervention(state)
 }
 
 #[cfg(test)]
@@ -230,6 +309,119 @@ mod tests {
         });
         let next = apply_imf_intervention(&state);
         assert!(next.bills.is_empty());
+    }
+
+    #[test]
+    fn crisis_card_discards_only_listed_bills() {
+        let mut state = create_starting_state(default_input());
+        state.classes.state.loans = 5;
+        state.classes.state.treasury = 0;
+        state.bills.push(Bill {
+            id: "b1".to_string(),
+            policy_id: PolicyId::FiscalPolicy,
+            proposed_section: PolicySection::B,
+            proposed_by: ClassId::Working,
+            immediate_vote: false,
+        });
+        state.bills.push(Bill {
+            id: "b2".to_string(),
+            policy_id: PolicyId::Immigration,
+            proposed_section: PolicySection::A,
+            proposed_by: ClassId::Middle,
+            immediate_vote: false,
+        });
+        let card = CrisisCard {
+            id: "test".to_string(),
+            label: "Test card".to_string(),
+            discard_bills_for_policies: vec![PolicyId::FiscalPolicy],
+            change_policies: vec![],
+            state_money_delta: 0,
+            state_pays_off_loans: false,
+            legitimacy_loss: LegitimacyMap::default(),
+            locked_policies: vec![],
+            locks_policy: None,
+        };
+        let next = apply_crisis_card_intervention(&state, &card);
+        // Fiscal Policy bill discarded, Immigration bill survives.
+        assert_eq!(next.bills.len(), 1);
+        assert_eq!(next.bills[0].id, "b2");
+    }
+
+    #[test]
+    fn crisis_card_changes_policies_and_treasury() {
+        let mut state = create_starting_state(default_input());
+        state.classes.state.treasury = 0;
+        state.classes.state.loans = 1;
+        let card = CrisisCard {
+            id: "japanese".to_string(),
+            label: "Japanese Model".to_string(),
+            discard_bills_for_policies: vec![],
+            change_policies: vec![
+                crate::types::PolicyChange {
+                    policy_id: PolicyId::FiscalPolicy,
+                    new_position: PolicySection::A,
+                },
+            ],
+            state_money_delta: 100,
+            state_pays_off_loans: true,
+            legitimacy_loss: LegitimacyMap { working: 1, middle: 1, capitalist: 1 },
+            locked_policies: vec![],
+            locks_policy: None,
+        };
+        let starting_leg = state.classes.state.legitimacy.clone();
+        let next = apply_crisis_card_intervention(&state, &card);
+        assert_eq!(next.policies.fiscal_policy.position, PolicySection::A);
+        // 100¥ added, 55¥ pays off the 1 loan, 45¥ remains.
+        assert_eq!(next.classes.state.treasury, 45);
+        assert_eq!(next.classes.state.loans, 0);
+        assert_eq!(next.classes.state.legitimacy.working, starting_leg.working - 1);
+        assert_eq!(next.classes.state.legitimacy.middle, starting_leg.middle - 1);
+        assert_eq!(next.classes.state.legitimacy.capitalist, starting_leg.capitalist - 1);
+    }
+
+    #[test]
+    fn apply_imf_or_crisis_uses_card_when_present() {
+        let mut state = create_starting_state(default_input());
+        state.classes.state.loans = 5;
+        state.classes.state.treasury = 0;
+        // Inject crisis state with one card.
+        state.crisis = Some(crate::types::CrisisState {
+            crisis_cards: vec![CrisisCard {
+                id: "c1".to_string(),
+                label: "Test".to_string(),
+                discard_bills_for_policies: vec![],
+                change_policies: vec![crate::types::PolicyChange {
+                    policy_id: PolicyId::Taxation,
+                    new_position: PolicySection::C, // distinct from fixed IMF (which sets A)
+                }],
+                state_money_delta: 0,
+                state_pays_off_loans: false,
+                legitimacy_loss: LegitimacyMap::default(),
+                locked_policies: vec![],
+                locks_policy: None,
+            }],
+            active_crisis_card_id: None,
+            bonds: vec![],
+            automa: None,
+        });
+        let next = apply_imf_or_crisis(&state);
+        // Crisis card moved Taxation → C; fixed IMF would have set it to A.
+        assert_eq!(next.policies.taxation.position, PolicySection::C);
+        // Fixed IMF would also reset Fiscal to C and force L1 wages, etc.
+        // — none of those happen via crisis card.
+        assert_eq!(next.classes.state.loans, 5); // not paid by this test card
+    }
+
+    #[test]
+    fn apply_imf_or_crisis_falls_back_to_fixed_when_no_card() {
+        let mut state = create_starting_state(default_input());
+        state.classes.state.loans = 5;
+        state.classes.state.treasury = 0;
+        // No crisis state at all.
+        state.crisis = None;
+        let next = apply_imf_or_crisis(&state);
+        // Fixed IMF sets Taxation → A.
+        assert_eq!(next.policies.taxation.position, PolicySection::A);
     }
 
     #[test]

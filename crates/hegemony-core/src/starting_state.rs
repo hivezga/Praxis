@@ -143,6 +143,7 @@ fn make_capitalist() -> CapitalistState {
         hand_size: 7,
         voting_cubes_in_bag: 8,
         bill_markers_available: 3,
+        wealth_marker_position: 0,
         notes: String::new(),
     }
 }
