@@ -22,6 +22,7 @@ fn default_input() -> NewGameInput {
                 new_action_cards: false,
             },
         },
+        local_player_class: None,
     }
 }
 
