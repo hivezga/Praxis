@@ -1,10 +1,1 @@
-# wasm-pack output: track committed artifacts so Vercel builds without Rust toolchain.
-# Ignore everything by default, then whitelist what we ship.
 *
-!.gitignore
-!package.json
-!hegemony_core.js
-!hegemony_core.d.ts
-!hegemony_core_bg.js
-!hegemony_core_bg.wasm
-!hegemony_core_bg.wasm.d.ts

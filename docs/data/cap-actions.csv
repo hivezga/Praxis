@@ -1,0 +1,29 @@
+Name,Type,Money,Strangth,from,Other benefits,Comments,Restrictions,Copies,Text,,Players:
+Health Crisis,Sell,90,Strong,State ,,"IMF attack/Spike round, play on A5 to deny WC/MC this health",,1,sell up to 9 health to the State for 10V each.,,State
+Higher education program,Sell,90,Strong,State ,,"IMF attack/Spike round, play on A5 to deny WC/MC this education",,1,sell up to 9 education to the State for 10V each,,MC
+Bid rigging,Sell,60,Strong,State ,1 influance,IMF attack/Spike round,,1,sell up to 6 laxury to the state for 10V each.  Get 1 influance.,,CC
+Business grants,Money,60,medium,State ,,IMF attack/Spike round,1A/B,1,get 5V from State for each company you own,,WC
+Unemplyment initiative program,Assign workers,15,situational,State ,,,4A/B,2,assgin unemployed workers to one of your non-operational companies. get 5V from the State for each worker assign this way,,
+Industrialization,Build,12,situational,State ,,"if it fits your plan its a free 12V, dont change your plans in order to use it.",1A/B,1,"build a luxury or agricultural company paying half the cost, the other half is paid by State",,sum of cards:
+Business expansion,Build,-,R1/2: Strong,,2 builds,,,2,build 2 companies then add 2 new companies to the market,,40
+Investment opportunities,Build,10,R1/2: Strong,,1 build,R1: buy the most expensive company with available workers / Automated,,2,build a company paying 10V less.  Or pay an extra 10V to build a company from the deck.,,unique cards:
+Technological progress,Build,-45,R1/2: Strong,,2 Mechinary symbols,"Best on R1, good at R2.  Best on the three 8+3 companies",,3,buy 2 mechinary symbols for 45V or just one symbol for 20V,,28
+Push political agenda,Influance/Bill,-25,R1/2: Strong,,2 elections,,,1,pay 25V to propose 2 bills,,Cards that will be seen in a game:
+Foreign market insight,Sell,50,Strong,,,Spike round,,2,"choose 1 out of top 3 export cards, and make an export.",,7+5+5+5+5 = 27
+Foreign recruitment,Assign workers,-10,Strong,,,Attack: raise WC/MC population when their health/edu/lux is equal to their pop,7B/C,2,choose one non-operetional company. Spead 10V and assgin matching workers from supply,,
+Offshore companies,Money,100+,Strong,,,"Spike round, redundant if low taxes 3C",,2,move half revenue to capital,,Comments:
+Radical reforms,Influance/Bill,-,Strong,,election X2,,,1,propose a bill.  You can move the marker 2 steps but can't call for immediate election.,,"Money colomn: Playing the card for the event, with maximum effect"
+Competitive wages,Assign workers,-,medium,,,"play on A5, to prevent responce of WC/MC",2B/C,2,set wages in one of your non-operational companies to L3 then choose an operational public company of the same industry with the same number of workers. Assign those workers to your company,,
+Exit strategy,Money,48 + salary + tax,medium,,,"play on Spike round A5 or R5A5, after WC did not start a demonstation.",,2,sell a company without Mechinary for double its cost,,
+Endorse political campaign,Influance/Bill,-15,medium,,6 cubes,,,1,pay 15 to add 6 cubes to the bag,,
+Public opinion polling,Influance/Bill,-,medium,,election + 1influance,,,1,propose a bill. Then decide between immediate vote with 5 voting cubes that just revelead or returning the cubes to the bag and draw new ones in the election phase.,,
+Tax enough already!,Influance/Bill,-,medium,,2 cubes + election,Taxation(3) is super importatant to CC,,1,"add 2 cubes to the bag, then propose a bill for Taxation (3)",,
+Tap into new markets ,Influance/Bill,-,medium,,2 cubes + election,Foreign trade (6) is somewhat important to CC,,1,"add 2 cubes to the bag, then propose a bill for foreign trade (6)",,
+Global food crisis,Sell,60,medium,,,Export + sell 4 food for 15V each,,1,export + sell 4 food for 15V each,,
+Global branding,Sell,60,medium,,,Export + sell 6 lux for 10V each,,1,export + sell 6 lux for 10V each,,
+Foreign partner,Sell,30,situational,,,buisness deal + export(Food+Lux),6B/C,2,"make a business deal, then export Food and Luxury",,
+Fake news,Influance/Bill,-,weak,,-4 cubes of opponents,situational: strong if only few cubes in the bag. Otherwise play it for the regular action ,,1,"draw 6 cubes, remove up to 4 of them.",,
+Interest groups,Influance/Bill,-,weak,,replace 3 cubes,situational: strong if only few cubes in the bag. Otherwise play it for the regular action ,,1,"reaveal cubes from the bag until 3 of other clases, replace them with our cubes.",,
+Trade protectionism lobby,Influance/Bill,-,weak,,2 cubes * Ag/(Ag+Lux),,6A/B,1,2 cubes * Agricultural company owned.  If 6A then (2 cubes) * (Agricultural & Luxury company owned),,
+Extra shift,Production,-,weak,,,play on the turn before the spike round,,2,"choose non-autometed company, pay wages and preform production",,
+Buy private island,VP,-50,weak,,7VP,"play on R5, otherwise its only 7-4=3vp",,1,"pay 50V to the State, get 7VP.",,

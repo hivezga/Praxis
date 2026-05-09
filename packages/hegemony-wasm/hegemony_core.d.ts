@@ -3,6 +3,12 @@
 
 export function apply_mutation_wasm(state: any, mutation: any, label: string): any;
 
+export function apply_preparation_phase_wasm(state: any): any;
+
+export function apply_production_phase_wasm(state: any, mode: string): any;
+
+export function apply_scoring_phase_wasm(state: any): any;
+
 export function compute_round_suggestion_wasm(state: any): any;
 
 export function compute_vp_wasm(state: any, class_id: any): any;
@@ -17,11 +23,14 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly init: () => void;
-    readonly create_starting_state_wasm: (a: any) => [number, number, number];
-    readonly compute_round_suggestion_wasm: (a: any) => [number, number, number];
     readonly apply_mutation_wasm: (a: any, b: any, c: number, d: number) => [number, number, number];
+    readonly apply_preparation_phase_wasm: (a: any) => [number, number, number];
+    readonly apply_production_phase_wasm: (a: any, b: number, c: number) => [number, number, number];
+    readonly apply_scoring_phase_wasm: (a: any) => [number, number, number];
+    readonly compute_round_suggestion_wasm: (a: any) => [number, number, number];
     readonly compute_vp_wasm: (a: any, b: any) => [number, number, number];
+    readonly create_starting_state_wasm: (a: any) => [number, number, number];
+    readonly init: () => void;
     readonly undo_wasm: (a: any) => [number, number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

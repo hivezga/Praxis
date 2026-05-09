@@ -20,6 +20,45 @@ export function apply_mutation_wasm(state, mutation, label) {
  * @param {any} state
  * @returns {any}
  */
+export function apply_preparation_phase_wasm(state) {
+    const ret = wasm.apply_preparation_phase_wasm(state);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * @param {any} state
+ * @param {string} mode
+ * @returns {any}
+ */
+export function apply_production_phase_wasm(state, mode) {
+    const ptr0 = passStringToWasm0(mode, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.apply_production_phase_wasm(state, ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * @param {any} state
+ * @returns {any}
+ */
+export function apply_scoring_phase_wasm(state) {
+    const ret = wasm.apply_scoring_phase_wasm(state);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * @param {any} state
+ * @returns {any}
+ */
 export function compute_round_suggestion_wasm(state) {
     const ret = wasm.compute_round_suggestion_wasm(state);
     if (ret[2]) {

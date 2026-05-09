@@ -1,0 +1,20 @@
+,,,,,,,,,,,,Pretax Profits by wages and operationality,,,
+,,,,,,Wages,,,Value,,,Partly operational,Fully operational,,
+Type,Production,Fully operational,Build Price,Inital,Workers,Wages L3,Wages L2,Wages L1,single unit value,export revenue,export revenue at fully operational,L3/2/1,L3,L2,L1
+Food,2,2,20,,S(s),15,12,9,10,20,40,20,25,28,31
+Influence,2,2,20,,S(s),15,12,9,10,20,40,20,25,28,31
+Health,2,4,20,,S(s),15,12,9,6.5,13,39,13,24,27,30
+Education,2,4,20,,S(s),15,12,9,6.5,13,39,13,24,27,30
+Luxury,2,4,20,,S(s),15,12,9,6.5,13,39,13,24,27,30
+Food,2,1,14,V,S(n),10,8,6,10,20,30,20,20,22,24
+Food,2,1,14,,S(n),10,8,6,10,20,30,20,20,22,24
+Influence,2,1,14,,S(n),10,8,6,10,20,30,20,20,22,24
+Health,2,2,12,V,S(n),10,8,6,6.5,13,26,13,16,18,20
+Health,2,2,12,,S(n),10,8,6,6.5,13,26,13,16,18,20
+Education,2,2,12,,S(n),10,8,6,6.5,13,26,13,16,18,20
+Luxury,2,2,12,,S(n),10,8,6,6.5,13,26,13,16,18,20
+Health,4,,16,,SN,,,,6.5,26,26,26,,,
+Education,4,,16,,SN,,,,6.5,26,26,26,,,
+Luxury,4,,16,,SN,,,,6.5,26,26,26,,,
+Food,3,,20,,SN,,,,10,30,30,30,,,
+Influence,3,,20,,SN,,,,10,30,30,30,,,

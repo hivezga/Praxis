@@ -1,3 +1,4 @@
+mod cards;
 mod mutations;
 mod rules;
 mod starting_state;
@@ -9,6 +10,7 @@ mod wasm;
 #[cfg(target_os = "android")]
 mod jni_exports;
 
+pub use cards::*;
 pub use mutations::*;
 pub use rules::*;
 pub use starting_state::*;

@@ -46,7 +46,14 @@ proptest! {
         state.policies.education_welfare.position = section_from_u8(edu);
 
         let m = compute_tax_multiplier(&state.policies);
-        prop_assert!(m >= 1 && m <= 7, "multiplier {} out of [1,7]", m);
+        // Rulebook page 31: printed track values {1,2,3,4,5,6,7,9,11}.
+        let printed = [1, 2, 3, 4, 5, 6, 7, 9, 11];
+        prop_assert!(
+            printed.contains(&m),
+            "multiplier {} not in printed track {:?}",
+            m,
+            printed
+        );
     }
 
     #[test]

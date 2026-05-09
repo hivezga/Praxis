@@ -1,5 +1,6 @@
 "use client";
 
+import { AutoRunButtons } from "./AutoRunButtons";
 import { PartyBadge } from "./PartyBadge";
 import { useGame, useGameState } from "@/lib/store";
 import type { Phase } from "@/lib/types/game";
@@ -153,6 +154,9 @@ export function RoundPhaseHeader({ onOpenEndRound }: { onOpenEndRound: () => voi
           </p>
         </div>
       ) : null}
+
+      {/* Auto-run buttons for the deterministic phases (Prep / Production / Scoring) */}
+      <AutoRunButtons />
     </header>
   );
 }

@@ -1,0 +1,28 @@
+,,Pretax Profits by wages and machinary,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,Wages,,,Revenue,,,no Machinary,,,with Machinary,,,,,,,,,,,,Workers
+Type,Production,/w Machinary,Build Price,Inital setup,Workers,Wages L3,Wages L2,Wages L1,Average export price,export revenue,export revenue /w machinry,L3,L2,L1,L3,L2,L1,,,,,,,,,,"S-skilled, N-unskilled. (convention by @prometheusheir)"
+Health,6,2,16,non operational,SN,30,20,10,6.5,39,52,9,19,29,22,32,42,,,,,,,,,,
+Education,6,2,16,Operational (3/4p),SN,30,20,10,6.5,39,52,9,19,29,22,32,42,,,,,,,,,,Revenue
+Luxury,6,2,16,Operational,SN,25,20,15,6.5,39,52,14,19,24,27,32,37,,,,,,,,,,assuming average export prices as in CC Export prices
+Food,4,1,16,Operational,SN,25,20,15,10,40,50,15,20,25,25,30,35,,,,,,,,,,Influence value differ. Estimating it as 10+ since this is the price when playing Lobby.
+Health,7,,20,,SN,30,20,10,6.5,45.5,45.5,15.5,25.5,35.5,,,,,,,,,,,,,
+Health,8,3,20,,SNN,40,30,20,6.5,52,71.5,12,22,32,31.5,41.5,51.5,,,,,,,,,,
+Health,9,2,24,,SNN,40,30,20,6.5,58.5,71.5,18.5,28.5,38.5,31.5,41.5,51.5,,,,,,,,,,
+Education,7,,20,,SN,30,20,10,6.5,45.5,45.5,15.5,25.5,35.5,,,,,,,,,,,,,
+Education,8,3,20,,SNN,40,30,20,6.5,52,71.5,12,22,32,31.5,41.5,51.5,,,,,,,,,,
+Education,9,2,24,,SNN,40,30,20,6.5,58.5,71.5,18.5,28.5,38.5,31.5,41.5,51.5,,,,,,,,,,
+Luxury,4,2,8,,NN,20,15,10,6.5,26,39,6,11,16,19,24,29,,,,,,,,,,
+Luxury,7,,15,,NNN,30,25,20,6.5,45.5,45.5,15.5,20.5,25.5,,,,,,,,,,,,,
+Luxury,8,3,20,,SNN,35,30,25,6.5,52,71.5,17,22,27,36.5,41.5,46.5,,,,,,,,,,
+Food,3,,8,,NN,20,15,10,10,30,30,10,15,20,,,,,,,,,,,,,
+Food,5,,15,,NNN,30,25,20,10,50,50,20,25,30,,,,,,,,,,,,,
+Food,6,1,20,,SNN,35,30,25,10,60,70,25,30,35,35,40,45,,,,,,,,,,
+Automated - Lux,5,,45,,-,,,,6.5,32.5,32.5,32.5,,,,,,,,,,,,,,,
+Automated - Food,3,,45,,-,,,,10,30,30,30,,,,,,,,,,,,,,,
+Automated - Food,2,,25,,-,,,,10,20,20,20,,,,,,,,,,,,,,,
+Automated - Lux,3,,25,,-,,,,6.5,19.5,19.5,19.5,,,,,,,,,,,,,,,
+Influence,2,,8,,NN,20,15,10,10,20,20,0,5,10,,,,,,,,,,,,,
+Influence,3,,12,,NNN,30,25,20,10,30,30,0,5,10,,,,,,,,,,,,,
+Influence,3,,16,,SN,30,20,10,10,30,30,0,10,20,,,,,,,,,,,,,
+Influence,4,,24,,SNN,40,30,20,10,40,40,0,10,20,,,,,,,,,,,,,
+2*Mechinary,2 food / 4-6 else,,45,,-,,,,,20 / 26 / 39,,26,,,,,,,,,,,,,,,

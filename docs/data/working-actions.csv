@@ -1,0 +1,27 @@
+Name,Type,benefits,Comments,Restrictions,Copies,Text,,Players:
+Labor marker deregulation,Assign,assign all ,works well with big public sector,2B/C,2,"assign any number of unemplyed workers, if low wages (2C) you may also reassign workers from other companies.",,State
+Signing bonus,Assign,"16V, assign 4",,2B/C,2,assign up to 4 unemplyed workers. Get 4V from companies owners,,MC
+Specialization,Assign,"skilled wroker, assign 3",,7B/C,2,get a skilled worker from the supply. Assign up to 3 workers.,,CC
+Cooperative farm,Assign,"assign 3, 2 Food per turn",,3 unemplyed,2,"if you have at least 3 unemployed, build a cooperative farm and assign 3 workers there.",,WC
+Need for change,Influance/Bill,2 actions,,,3,propose 2 bills.,,sum of cards:
+Radical reforms,Influance/Bill,C --> A,"""dear CC, do X or I will have to propose high Salaries/Tax""",,1,propose a bill. You can move the marker 2 steps but can't call for immediate election.,,40
+Fake news,Influance/Bill,remove 4 cubes out of 6,weak card,,1,"draw 6 cubes, remove up to 4 and return the rest to the bag.",,unique cards:
+Highlight social issues,Influance/Bill,"3 Influance, -15V",,,1,buy 3 influance cubes for 15V from State,,25
+Interest groups,Influance/Bill,,,,2,randomly replace 3 voting cubes of others to your cubes,,Cards that will be seen in a game:
+"Proletarians of the world, unite!",Influance/Bill,cubes = pop,,,2,Add voting cubes equal to your population,,7+5+5+5+5 = 27
+Public opinion polling,Influance/Bill,,,,1,"propoe a bill and reveal 5 cubes, you may then call for imideate vote without spending 1-Influance, if you do use thos 5 cubes, else return to the bag.",,
+Healthcare movement,Influance/Bill,2cubes+bill,,,1,add 2 cubes to the bag. Propose a bill for Healthcare.,,
+Immigration reform,Influance/Bill,2cubes+bill,,,1,add 2 cubes to the bag. Propose a bill for immigration.,,
+Student movment,Influance/Bill,2cubes+bill,,,1,add 2 cubes to the bag. Propose a bill for education.,,
+Workers' movement,Influance/Bill,2cubes+bill,,,1,add 2 cubes to the bag. Propose a bill for Labor market.,,
+Boost domastic tourism,Prosperity,,,1A/B,2,"Buy Luxury from another player up to pop, the State is playing half.",,
+Healthcare benefits,Prosperity,,,4B/C,1,"Buy Health from the State up to pop, playing half",,
+State scolership,Prosperity,,,5B/C,2,"buy Education from State up to pop, paying half.",,
+Supplemental income program,Prosperity,,,2B/C,2,1V from State for each emplyed. Then buy good & services,,
+Unemplyed benefits,Prosperity,,,4A/B,2,5V from State for each unemployed. Then buy goods & services from State,,
+Migration,Reduce pop,"20V, reduce pop",might reduce the cost of prosprity actions,,2,"if you have at least 4 unemployed, remove up to 2 of them, get 5/10 for unskilled/skilled worker.",,
+Workplace accident,Steal,8V*x,"""dear CC, do X or I will have to take your money""",,1,get 8V from another player for each of their companies of that industry with your workers.,,
+General strike,Strikes,,,2B/C,2,preform (1+#Trade_unions) strikes,,
+Affordable housing,VP,"5/3 VP, -20/-10V",,,1,pay 20/10V to CC/MC to gain 5/3 VP,,
+Public sector overtime,Wages,,,,2,"State pays workers and preforms production with an operational company.  
+Buy good & services from State at the type produced by that company.",,

@@ -4,6 +4,9 @@ use wasm_bindgen::prelude::*;
 
 use crate::mutations::{apply_mutation, undo, Mutation};
 use crate::rules::end_of_round::compute_round_suggestion;
+use crate::rules::phases::{
+    apply_preparation_phase, apply_production_phase, apply_scoring_phase, ProductionMode,
+};
 use crate::rules::vp::vp_for;
 use crate::starting_state::create_starting_state;
 use crate::types::{ClassId, GameState, NewGameInput};
@@ -60,5 +63,33 @@ pub fn undo_wasm(state: JsValue) -> Result<JsValue, JsValue> {
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     let result = undo(&state);
     serde_wasm_bindgen::to_value(&result)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn apply_preparation_phase_wasm(state: JsValue) -> Result<JsValue, JsValue> {
+    let state: GameState = serde_wasm_bindgen::from_value(state)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serde_wasm_bindgen::to_value(&apply_preparation_phase(&state))
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn apply_production_phase_wasm(state: JsValue, mode: &str) -> Result<JsValue, JsValue> {
+    let state: GameState = serde_wasm_bindgen::from_value(state)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let mode = match mode {
+        "manual" => ProductionMode::Manual,
+        _ => ProductionMode::Auto,
+    };
+    serde_wasm_bindgen::to_value(&apply_production_phase(&state, mode))
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn apply_scoring_phase_wasm(state: JsValue) -> Result<JsValue, JsValue> {
+    let state: GameState = serde_wasm_bindgen::from_value(state)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    serde_wasm_bindgen::to_value(&apply_scoring_phase(&state))
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }

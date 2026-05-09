@@ -67,6 +67,16 @@ function persist(state: GameState | null, isPeer: boolean): void {
   void adapter.save(state);
 }
 
+export interface PhaseRunResult {
+  log: {
+    phase: Phase;
+    round: number;
+    entries: string[];
+    suggestion: unknown | null;
+    imfIntervened: boolean;
+  };
+}
+
 interface PartyState {
   role: "host" | "peer" | null;
   code: string | null;
@@ -108,6 +118,13 @@ interface GameStore {
   setClassString(classId: ClassId, path: string, value: string): void;
 
   undo(): void;
+
+  /** Run Preparation Phase: pay loan interest, drop prosperity, advance phase to Action. */
+  runPreparationPhase(): PhaseRunResult | null;
+  /** Run Production Phase: wages, taxes, IMF check. Mode "auto" applies, "manual" only computes. */
+  runProductionPhase(mode: "auto" | "manual"): PhaseRunResult | null;
+  /** Run Scoring Phase: legitimacy VP, per-class totals, advance round. */
+  runScoringPhase(): PhaseRunResult | null;
 
   startHosting(): Promise<string>;
   stopHosting(): void;
@@ -222,6 +239,51 @@ export const useGame = create<GameStore>((set, get) => ({
     if (party.role === "host" && hostInstance) {
       hostInstance.broadcastState(restored);
     }
+  },
+
+  runPreparationPhase() {
+    const { state: current, party } = get();
+    if (!current) return null;
+    if (party.role === "peer") return null;
+    const result = wasm().apply_preparation_phase_wasm(current) as {
+      state: GameState;
+      log: PhaseRunResult["log"];
+    };
+    result.state.meta.updatedAt = Date.now();
+    set({ state: result.state });
+    persist(result.state, false);
+    if (party.role === "host" && hostInstance) hostInstance.broadcastState(result.state);
+    return { log: result.log };
+  },
+
+  runProductionPhase(mode) {
+    const { state: current, party } = get();
+    if (!current) return null;
+    if (party.role === "peer") return null;
+    const result = wasm().apply_production_phase_wasm(current, mode) as {
+      state: GameState;
+      log: PhaseRunResult["log"];
+    };
+    result.state.meta.updatedAt = Date.now();
+    set({ state: result.state });
+    persist(result.state, false);
+    if (party.role === "host" && hostInstance) hostInstance.broadcastState(result.state);
+    return { log: result.log };
+  },
+
+  runScoringPhase() {
+    const { state: current, party } = get();
+    if (!current) return null;
+    if (party.role === "peer") return null;
+    const result = wasm().apply_scoring_phase_wasm(current) as {
+      state: GameState;
+      log: PhaseRunResult["log"];
+    };
+    result.state.meta.updatedAt = Date.now();
+    set({ state: result.state });
+    persist(result.state, false);
+    if (party.role === "host" && hostInstance) hostInstance.broadcastState(result.state);
+    return { log: result.log };
   },
 
   async startHosting() {
