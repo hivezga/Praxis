@@ -9,11 +9,12 @@
 export const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 
 export const ROUTES = [
-  { path: "/",                   label: "home",            needsState: false },
-  { path: "/play/setup",         label: "play-setup",      needsState: false },
-  { path: "/play/join",          label: "play-join",       needsState: false },
-  { path: "/play/{id}",          label: "play-game",       needsState: true  },
-  { path: "/rules-cheatsheet",   label: "rules-cheatsheet", needsState: false },
+  { path: "/",                       label: "home",              needsState: false },
+  { path: "/play/setup",             label: "play-setup",        needsState: false },
+  { path: "/play/join",              label: "play-join",         needsState: false },
+  { path: "/play/{id}",              label: "play-game",         needsState: true  },
+  { path: "/rules-cheatsheet",       label: "rules-cheatsheet",  needsState: false },
+  { path: "/tools/working-class",    label: "wc-companion",      needsState: false },
 ];
 
 // /play/lobby + /play/room intentionally skipped — they require an active

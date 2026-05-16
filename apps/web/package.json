@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "snapshots": "node scripts/snapshot-grid.mjs",
-    "axe": "node scripts/axe-sweep.mjs"
+    "axe": "node scripts/axe-sweep.mjs",
+    "wc-smoke": "node scripts/wc-companion-smoke.mjs"
   },
   "dependencies": {
     "@praxis/party": "workspace:*",

@@ -98,6 +98,26 @@ export default function HomePage() {
         </Link>
       </section>
 
+      {/* Tools — standalone calculators that don't need a game session */}
+      <section className="mb-12">
+        <p className="poster-eyebrow mb-4">Tools</p>
+        <div className="grid gap-px overflow-hidden rounded-md border border-rule/60 bg-surfaceSoft/40 sm:grid-cols-2">
+          <ModeCard
+            href="/tools/working-class"
+            tag="Working Class"
+            title="Calculator companion"
+            description="Tax, wages, and policy helper — no game session needed. Inputs persist locally."
+            accentClass="bg-working"
+            tagClass="text-working"
+            footer={
+              <span className="font-serif text-fluid-xs italic text-inkMute">
+                Round 1 defaults ready · base game &amp; C&amp;C
+              </span>
+            }
+          />
+        </div>
+      </section>
+
       <SavedGamesList />
 
       <footer className="mt-16 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-rule/40 pt-8 font-serif text-fluid-xs italic text-inkMute">
