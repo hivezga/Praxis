@@ -15,6 +15,7 @@ export const ROUTES = [
   { path: "/play/{id}",              label: "play-game",         needsState: true  },
   { path: "/rules-cheatsheet",       label: "rules-cheatsheet",  needsState: false },
   { path: "/tools/working-class",    label: "wc-companion",      needsState: false },
+  { path: "/tools/middle-class",     label: "mc-companion",      needsState: false },
 ];
 
 // /play/lobby + /play/room intentionally skipped — they require an active
