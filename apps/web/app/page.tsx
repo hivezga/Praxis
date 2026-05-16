@@ -115,6 +115,19 @@ export default function HomePage() {
               </span>
             }
           />
+          <ModeCard
+            href="/tools/middle-class"
+            tag="Middle Class"
+            title="Calculator companion"
+            description="Dual taxes, mandatory food bill, Section-B scoring tracker. Both employer and employee."
+            accentClass="bg-middle"
+            tagClass="text-middle"
+            footer={
+              <span className="font-serif text-fluid-xs italic text-inkMute">
+                EOG VP from rulebook page 25
+              </span>
+            }
+          />
         </div>
       </section>
 
